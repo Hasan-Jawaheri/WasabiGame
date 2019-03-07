@@ -18,6 +18,25 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Common.hpp" />
+    <ClInclude Include="GameStates\Game.hpp" />
+    <ClInclude Include="GameStates\Intro.hpp" />
+    <ClInclude Include="GameStates\Menu.hpp" />
+    <ClInclude Include="Main.hpp" />
+    <ClInclude Include="UI\GeneralControls\ErrorBox.hpp" />
+    <ClInclude Include="UI\InputControls\MenuButton.hpp" />
+    <ClInclude Include="UI\UI.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="GameStates\Game.cpp" />
+    <ClCompile Include="GameStates\Intro.cpp" />
+    <ClCompile Include="GameStates\Menu.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="UI\GeneralControls\ErrorBox.cpp" />
+    <ClCompile Include="UI\InputControls\MenuButton.cpp" />
+    <ClCompile Include="UI\UI.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{37CD303B-4AA4-4203-86E6-93F2B95B3F25}</ProjectGuid>
@@ -74,8 +93,8 @@
     <LibraryPath>$(VULKAN_SDK)\Lib32;$(OPENAL_SDK)\libs\Win32;C:\Users\h_b_a\source\repos\Wasabi\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(VULKAN_SDK)\include;$(OPENAL_SDK)\Include;C:\Users\h_b_a\source\repos\Wasabi\Wasabi;$(IncludePath)</IncludePath>
-    <LibraryPath>$(VULKAN_SDK)\Lib32;$(OPENAL_SDK)\libs\Win32;C:\Users\h_b_a\source\repos\Wasabi\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(VULKAN_SDK)\include;$(OPENAL_SDK)\Include;C:\Users\h_b_a\OneDrive\Desktop\Wasabi-v0.1\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VULKAN_SDK)\Lib32;$(OPENAL_SDK)\libs\Win32;C:\Users\h_b_a\OneDrive\Desktop\Wasabi-v0.1\Lib\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -125,9 +144,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="Main.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

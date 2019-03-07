@@ -1,22 +1,63 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
+    <ClInclude Include="Common.hpp" />
+    <ClInclude Include="Main.hpp" />
+    <ClInclude Include="GameStates\Intro.hpp">
+      <Filter>GameStates</Filter>
+    </ClInclude>
+    <ClInclude Include="GameStates\Menu.hpp">
+      <Filter>GameStates</Filter>
+    </ClInclude>
+    <ClInclude Include="GameStates\Game.hpp">
+      <Filter>GameStates</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\UI.hpp">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\GeneralControls\ErrorBox.hpp">
+      <Filter>UI\GeneralControls</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\InputControls\MenuButton.hpp">
+      <Filter>UI\InputControls</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="GameStates\Intro.cpp">
+      <Filter>GameStates</Filter>
     </ClCompile>
+    <ClCompile Include="GameStates\Menu.cpp">
+      <Filter>GameStates</Filter>
+    </ClCompile>
+    <ClCompile Include="GameStates\Game.cpp">
+      <Filter>GameStates</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\UI.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\GeneralControls\ErrorBox.cpp">
+      <Filter>UI\GeneralControls</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\InputControls\MenuButton.cpp">
+      <Filter>UI\InputControls</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="GameStates">
+      <UniqueIdentifier>{05319716-9c28-4fba-a50b-b1f75c666fae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{cd8b19b3-9324-457f-aa43-ef5eaef8e693}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\GeneralControls">
+      <UniqueIdentifier>{e695081c-f04e-4d99-a5a2-816c3668ead3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\GameControls">
+      <UniqueIdentifier>{d3a33350-e7df-40cd-9f6e-3adab352cf97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\InputControls">
+      <UniqueIdentifier>{f65fe334-aaba-4127-af12-ad03640dd2d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>
