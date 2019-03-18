@@ -5,7 +5,7 @@ MenuButton::MenuButton(std::string text) {
 	m_is_clicked = false;
 }
 
-MenuButton::~MenuButton(void) {
+MenuButton::~MenuButton() {
 }
 
 void MenuButton::Load(Wasabi* const app) {

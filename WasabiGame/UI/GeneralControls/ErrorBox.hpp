@@ -7,17 +7,17 @@ class ErrorBoxPS : public WShader {
 public:
 	ErrorBoxPS(class Wasabi* const app) : WShader(app) {}
 
-	virtual void Load() {
+	virtual void Load(bool bSaveData = false) {
 		m_desc.type = W_FRAGMENT_SHADER;
 		m_desc.bound_resources = {
 			W_BOUND_RESOURCE(W_TYPE_UBO, 0,{
-				W_SHADER_VARIABLE_INFO(W_TYPE_FLOAT, 1, "alpha"),
-				W_SHADER_VARIABLE_INFO(W_TYPE_FLOAT, 2, "spriteSize"),
+				W_SHADER_VARIABLE_INFO(W_TYPE_FLOAT, "alpha"),
+				W_SHADER_VARIABLE_INFO(W_TYPE_VEC_2, "spriteSize"),
 			}),
 		};
 		LoadCodeGLSL(
 			#include "ErrorBoxPS.glsl"
-		);
+		, bSaveData);
 	}
 };
 

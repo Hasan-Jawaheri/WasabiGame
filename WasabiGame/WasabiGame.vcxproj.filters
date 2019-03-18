@@ -21,6 +21,9 @@
     <ClInclude Include="UI\InputControls\MenuButton.hpp">
       <Filter>UI\InputControls</Filter>
     </ClInclude>
+    <ClInclude Include="GameStates\BaseState.hpp">
+      <Filter>GameStates</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -41,6 +44,9 @@
     </ClCompile>
     <ClCompile Include="UI\InputControls\MenuButton.cpp">
       <Filter>UI\InputControls</Filter>
+    </ClCompile>
+    <ClCompile Include="GameStates\BaseState.cpp">
+      <Filter>GameStates</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

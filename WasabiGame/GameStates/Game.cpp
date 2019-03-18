@@ -60,8 +60,6 @@ void Game::Load() {
 	UserInterface::AddUIElement(m_ui.chatEdit = new ChatEditBox(), m_input); @TODO: CHANGE HERE*/
 	UserInterface::Load(m_app);
 
-	UserInterface::PrintError(m_app, "HELLO WORLD");
-
 	/*m_ui.playerHealth->Open();
 	m_ui.targetHealth->Open();
 	m_ui.stanceBar->Open();

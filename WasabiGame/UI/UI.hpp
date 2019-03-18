@@ -45,8 +45,7 @@ public:
 	virtual bool OnFocus() { return true; }
 	virtual bool OnLoseFocus() { return true; }
 	virtual bool OnDisableAllUpdates() { return false; }
-	std::string GetInputBuffer() { return m_input_buffer; }
-	UINT GetInputBufferSize() const { return 512; }
+	std::string& GetInputBuffer() { return m_input_buffer; }
 
 	virtual int GetPosZ() const { return 1; }
 	virtual void SetPosition(float x, float y);

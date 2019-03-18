@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.hpp" />
+    <ClInclude Include="GameStates\BaseState.hpp" />
     <ClInclude Include="GameStates\Game.hpp" />
     <ClInclude Include="GameStates\Intro.hpp" />
     <ClInclude Include="GameStates\Menu.hpp" />
@@ -29,6 +30,7 @@
     <ClInclude Include="UI\UI.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GameStates\BaseState.cpp" />
     <ClCompile Include="GameStates\Game.cpp" />
     <ClCompile Include="GameStates\Intro.cpp" />
     <ClCompile Include="GameStates\Menu.cpp" />

@@ -8,29 +8,25 @@
 class Application : public Wasabi {
 
 public:
-	Application(); //constructor
+	Application();
 
 	//***************************************************************************************
 	//This is called once at the beginning of the application asking it to initialize
 	//***************************************************************************************
-	WError Setup();
+	virtual WError Setup();
 
 	//***************************************************************************************
 	//This is called every frame asking the application to update
 	//This occurs before rendering and rendering should NOT be done here
 	//***************************************************************************************
-	bool Loop(float fDeltaTime);
+	virtual bool Loop(float fDeltaTime);
 
 	//***************************************************************************************
 	//This is called once at the end of the program if it passes the Setup function
 	//***************************************************************************************
-	void Cleanup();
+	virtual void Cleanup();
 
-	//***************************************************************************************
-	//This is called twice, once with bBeforceProcessing set to true and then false. This
-	//happens everytime windows sends a message to the window.
-	//***************************************************************************************
-	int WindowCallback(HWND wnd, UINT msg, WPARAM w, LPARAM l, bool bBeforeProcessing);
+	virtual WError Resize(unsigned int width, unsigned int height);
 
 	float fCurGameTime;
 };
