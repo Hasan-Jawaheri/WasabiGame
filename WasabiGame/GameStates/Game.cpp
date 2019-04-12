@@ -52,6 +52,7 @@ void Game::Load() {
 	// Setup and load the user interface
 	//
 	UserInterface::AddUIElement(m_input = new GameInputHandler(this), nullptr);
+	UserInterface::AddUIElement(new ErrorBox("DAFAQ"), m_input);
 	/*UserInterface::AddUIElement(m_ui.castBar = new CastBar(), m_input);
 	UserInterface::AddUIElement(m_ui.playerHealth = new HealthBar(true), m_input);
 	UserInterface::AddUIElement(m_ui.targetHealth = new HealthBar(false), m_input);

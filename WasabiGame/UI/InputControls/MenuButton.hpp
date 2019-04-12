@@ -9,7 +9,7 @@ public:
 	virtual void Load(bool bSaveData = false) {
 		m_desc.type = W_FRAGMENT_SHADER;
 		m_desc.bound_resources = {
-			W_BOUND_RESOURCE(W_TYPE_UBO, 0,{
+			W_BOUND_RESOURCE(W_TYPE_UBO, 0, "uboPerSprite", {
 				W_SHADER_VARIABLE_INFO(W_TYPE_FLOAT, "alpha"),
 			}),
 		};

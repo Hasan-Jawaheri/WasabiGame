@@ -6,14 +6,12 @@ ErrorBox::ErrorBox(std::string error) {
 }
 
 void ErrorBox::Load(Wasabi* const app) {
-	m_material = CreateSpriteMaterial<ErrorBoxPS>(app);
-	m_sprite = new WSprite(app);
-	m_sprite->SetMaterial(m_material);
-	m_sprite->Load();
+	m_sprite = app->SpriteManager->CreateSprite();
+	m_material = CreateSpriteMaterial<ErrorBoxPS>(app, m_sprite);
 	m_sprite->SetPriority(0);
 
 	SetSize(400, 200);
-	OnResize(app->WindowComponent->GetWindowWidth(), app->WindowComponent->GetWindowHeight());
+	OnResize(app->WindowAndInputComponent->GetWindowWidth(), app->WindowAndInputComponent->GetWindowHeight());
 
 	SetFade(1.0f);
 }
@@ -24,10 +22,10 @@ void ErrorBox::OnResize(UINT width, UINT height) {
 }
 
 bool ErrorBox::Update(float fDeltaTime) {
-	float x = m_sprite->GetPositionX();
-	float y = m_sprite->GetPositionY();
+	float x = m_sprite->GetPosition().x;
+	float y = m_sprite->GetPosition().y;
 	if (GetNumChildren())
-		GetChild(0)->SetPosition(x + m_sprite->GetSizeX() / 2 - 150, y + m_sprite->GetSizeY() / 2 + 50);
+		GetChild(0)->SetPosition(x + m_sprite->GetSize().x / 2 - 150, y + m_sprite->GetSize().y / 2 + 50);
 
 	m_sprite->GetAppPtr()->TextComponent->RenderText(m_error_msg, x + 20.0f, y + 20.0f, 16.0f, FONT_CALIBRI_16, WColor(1.0f, 0, 0, 1.0f));
 	return !m_is_click;

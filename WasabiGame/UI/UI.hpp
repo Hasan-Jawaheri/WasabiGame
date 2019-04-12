@@ -49,11 +49,11 @@ public:
 
 	virtual int GetPosZ() const { return 1; }
 	virtual void SetPosition(float x, float y);
-	virtual float GetPositionX() const { if (m_sprite) return m_sprite->GetPositionX(); return 0; }
-	virtual float GetPositionY() const { if (m_sprite) return m_sprite->GetPositionY(); return 0; }
+	virtual float GetPositionX() const { if (m_sprite) return m_sprite->GetPosition().x; return 0; }
+	virtual float GetPositionY() const { if (m_sprite) return m_sprite->GetPosition().y; return 0; }
 	virtual void SetSize(float sizeX, float sizeY);
-	virtual float GetSizeX() const { if (m_sprite) return m_sprite->GetSizeX(); return 0; }
-	virtual float GetSizeY() const { if (m_sprite) return m_sprite->GetSizeY(); return 0; }
+	virtual float GetSizeX() const { if (m_sprite) return m_sprite->GetSize().x; return 0; }
+	virtual float GetSizeY() const { if (m_sprite) return m_sprite->GetSize().y; return 0; }
 };
 
 class UserInterface {
@@ -77,17 +77,10 @@ public:
 };
 
 template<typename PSType>
-WMaterial* CreateSpriteMaterial(Wasabi* app) {
+WMaterial* CreateSpriteMaterial(Wasabi* app, WSprite*& sprite) {
 	PSType* ps = new PSType(app);
 	ps->Load();
-	WEffect* fx = app->SpriteManager->CreateSpriteEffect(ps);
-	ps->RemoveReference();
-	if (!fx)
-		return nullptr;
-	WMaterial* mat = new WMaterial(app);
-	WError err = mat->SetEffect(fx);
-	fx->RemoveReference();
-	if (!err)
-		W_SAFE_REMOVEREF(mat);
-	return mat;
+	sprite->ClearEffects();
+	sprite->AddEffect(app->SpriteManager->CreateSpriteEffect(app->Renderer->GetRenderTarget(), ps));
+	return sprite->GetMaterial();
 }

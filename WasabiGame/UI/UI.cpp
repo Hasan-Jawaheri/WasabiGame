@@ -10,7 +10,6 @@ UIElement::UIElement() {
 
 UIElement::~UIElement() {
 	W_SAFE_REMOVEREF(m_sprite);
-	W_SAFE_REMOVEREF(m_material);
 
 	for (UINT i = 0; i < m_children.size(); i++)
 		delete m_children[i];
@@ -18,21 +17,23 @@ UIElement::~UIElement() {
 
 void UIElement::SetFade(float fFade) {
 	m_alpha = fFade;
-	m_sprite->SetAlpha(fFade);
+	if (m_material)
+		m_material->SetVariableFloat("alpha", m_alpha);
 }
 
 void UIElement::OnResize(UINT width, UINT height) {
-	m_material->SetVariableVector2("spriteSize", WVector2((float)width, (float)height));
+	if (m_material)
+		m_material->SetVariableVector2("spriteSize", WVector2((float)width, (float)height));
 }
 
 void UIElement::SetPosition(float x, float y) {
 	if (m_sprite)
-		m_sprite->SetPosition(x, y);
+		m_sprite->SetPosition(WVector2(x, y));
 }
 
 void UIElement::SetSize(float sizeX, float sizeY) {
 	if (m_sprite)
-		m_sprite->SetSize(sizeX, sizeY);
+		m_sprite->SetSize(WVector2(sizeX, sizeY));
 }
 
 UIElement* UIElement::GetParent() const {

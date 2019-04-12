@@ -21,8 +21,8 @@ WError Application::Setup() {
 	int scrW = GetSystemMetrics(SM_CXSCREEN);
 	int scrH = GetSystemMetrics(SM_CYSCREEN);
 #ifdef _DEBUG
-	int width = 640;	//640 pixels wide
-	int height = 480;	//480 pixels high
+	int width = 800;
+	int height = 600;
 #else
 	int width = scrW;
 	int height = scrH;
@@ -38,8 +38,8 @@ WError Application::Setup() {
 	WindowComponent->SetFullScreenState(true);
 #endif
 
-	InputComponent->DisableEscapeKeyQuit();
-	CameraManager->GetDefaultCamera()->SetRange(1, 10000);
+	WindowAndInputComponent->DisableEscapeKeyQuit();
+	CameraManager->GetDefaultCamera()->SetRange(1, 1000);
 
 	//err = PhysicsComponent->Initialize();
 	//if (!err) {
