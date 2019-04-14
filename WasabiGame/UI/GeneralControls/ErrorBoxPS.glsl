@@ -14,7 +14,7 @@ layout(location = 0) out vec4 outFragColor;
 void main() {
 	float fBorder = 0.0f;
 	vec2 fScreenSpaceTex = inUV * ubo.spriteSize;
-	if (fScreenSpaceTex.x < 3 || fScreenSpaceTex.x >= ubo.spriteSize.x - 3 || fScreenSpaceTex.y < 3 || fScreenSpaceTex.y >= ubo.spriteSize.y - 3)
+	if (fScreenSpaceTex.x < 2 || fScreenSpaceTex.x >= ubo.spriteSize.x - 2 || fScreenSpaceTex.y < 2 || fScreenSpaceTex.y >= ubo.spriteSize.y - 2)
 		fBorder = 0.8f;
 	outFragColor = vec4(fBorder, fBorder, fBorder, ubo.alpha / 2.0f);
 }

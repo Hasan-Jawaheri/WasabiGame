@@ -34,6 +34,8 @@ void UIElement::SetPosition(float x, float y) {
 void UIElement::SetSize(float sizeX, float sizeY) {
 	if (m_sprite)
 		m_sprite->SetSize(WVector2(sizeX, sizeY));
+	if (m_material)
+		m_material->SetVariableVector2("spriteSize", WVector2(sizeX, sizeY));
 }
 
 UIElement* UIElement::GetParent() const {

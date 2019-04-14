@@ -25,9 +25,16 @@
     <ClInclude Include="GameStates\Intro.hpp" />
     <ClInclude Include="GameStates\Menu.hpp" />
     <ClInclude Include="Main.hpp" />
+    <ClInclude Include="Maps\Map.hpp" />
+    <ClInclude Include="Maps\MapLoader.hpp" />
+    <ClInclude Include="Maps\Maps\ICC.hpp" />
+    <ClInclude Include="ResourceManager\ResourceManager.hpp" />
     <ClInclude Include="UI\GeneralControls\ErrorBox.hpp" />
     <ClInclude Include="UI\InputControls\MenuButton.hpp" />
     <ClInclude Include="UI\UI.hpp" />
+    <ClInclude Include="Units\AI\AI.hpp" />
+    <ClInclude Include="Units\Player.hpp" />
+    <ClInclude Include="Units\Units.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameStates\BaseState.cpp" />
@@ -35,9 +42,15 @@
     <ClCompile Include="GameStates\Intro.cpp" />
     <ClCompile Include="GameStates\Menu.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Maps\Map.cpp" />
+    <ClCompile Include="Maps\MapLoader.cpp" />
+    <ClCompile Include="ResourceManager\ResourceManager.cpp" />
     <ClCompile Include="UI\GeneralControls\ErrorBox.cpp" />
     <ClCompile Include="UI\InputControls\MenuButton.cpp" />
     <ClCompile Include="UI\UI.cpp" />
+    <ClCompile Include="Units\AI\AI.cpp" />
+    <ClCompile Include="Units\Player.cpp" />
+    <ClCompile Include="Units\Units.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -91,12 +104,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(VULKAN_SDK)\include;$(OPENAL_SDK)\include;C:\Users\Hasan Al-Jawaheri\source\repos\Wasabi\Wasabi;$(IncludePath)</IncludePath>
-    <LibraryPath>$(VULKAN_SDK)\Lib32;$(OPENAL_SDK)\libs\Win32;C:\Users\Hasan Al-Jawaheri\source\repos\Wasabi\Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(VULKAN_SDK)\include;$(OPENAL_SDK)\include;C:\Users\Hasan Al-Jawaheri\source\repos\Wasabi\Wasabi;C:\Users\Hasan Al-Jawaheri\Documents\bullet3-2.88\src;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VULKAN_SDK)\Lib32;$(OPENAL_SDK)\libs\Win32;C:\Users\Hasan Al-Jawaheri\source\repos\Wasabi\Debug;C:\Users\Hasan Al-Jawaheri\Documents\bullet3-2.88\bin;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(VULKAN_SDK)\include;$(OPENAL_SDK)\Include;C:\Users\Hasan Al-Jawaheri\source\repos\Wasabi\Wasabi;$(IncludePath)</IncludePath>
-    <LibraryPath>$(VULKAN_SDK)\Lib32;$(OPENAL_SDK)\libs\Win32;C:\Users\Hasan Al-Jawaheri\source\repos\Wasabi\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(VULKAN_SDK)\include;$(OPENAL_SDK)\Include;C:\Users\Hasan Al-Jawaheri\source\repos\Wasabi\Wasabi;C:\Users\Hasan Al-Jawaheri\Documents\bullet3-2.88\src;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VULKAN_SDK)\Lib32;$(OPENAL_SDK)\libs\Win32;C:\Users\Hasan Al-Jawaheri\source\repos\Wasabi\Release;C:\Users\Hasan Al-Jawaheri\Documents\bullet3-2.88\bin;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

@@ -2,62 +2,35 @@
 
 #include "../Common.hpp"
 
-struct MODEL {
-	std::string name;
-	UINT geometries[4];
-	UINT textures[4];
-	UINT effect;
-	UINT material;
-	UINT rigidBody;
-};
-struct ALLOCATED_MODEL {
+struct LOADED_MODEL {
 	WObject* obj;
-	//WRigidBody* rb;
-};
-struct ALLOCATED_UNIT {
-	UINT ID;
-	WObject* obj;
-	WSkeleton* skeleton;
+	WRigidBody* rb;
+
+	LOADED_MODEL() : obj(nullptr), rb(nullptr) {}
 };
 
 class ResourceManager {
 
-	//
-	// Loader data
-	//
-	//static WFile* dMapFile;
-	static FILE* modelsFile;
-	static UINT curObjID;
-	static UINT curUnitAnimID;
+	static struct MAP_RESOURCES {
+		WFile* mapFile;
+		std::vector<LOADED_MODEL> loadedAssets;
 
-	//
-	// Loading utilities
-	//
-	static WGeometry* _allocGeometry(UINT ID);
-	static WImage* _allocImage(UINT ID);
-	static WEffect* _allocEffect(UINT ID);
-	static WMaterial* _allocMaterial(UINT ID);
-	static WSkeleton* _allocSkeleton(UINT ID);
+		void Cleanup();
+	} m_mapResources;
 
-	static void _releaseGeometry(UINT ID);
-	static void _releaseImage(UINT ID);
-	static void _releaseEffect(UINT ID);
-	static void _releaseMaterial(WMaterial* mat, UINT ID);
-	static void _releaseSkeleton(WSkeleton* sk, UINT ID);
+	static struct GENERAL_RESOURCES {
+		WFile* assetsFile;
+		std::unordered_map<std::string, LOADED_MODEL*> loadedAssets;
+
+		void Cleanup();
+	} m_generalResources;
 
 public:
-	static void Init(Wasabi* app);
-	static void Cleanup(void);
+	static void Init();
+	static void Cleanup();
 
-	static MODEL GetModelData(UINT modelID);
-
-	//
-	// Game asset allocation
-	//
-	static ALLOCATED_MODEL AllocModel(UINT modelID);
-	static void ReleaseModel(WObject* model, UINT modelID);
-	static ALLOCATED_UNIT AllocUnit(UINT modelID, UINT skeletonID);
-	static void ReleaseUnit(ALLOCATED_UNIT unit, UINT modelID, UINT skeletonID);
+	static void LoadMapFile(std::string mapFilename);
+	static LOADED_MODEL* LoadUnitModel(std::string unitName);
 };
 
 

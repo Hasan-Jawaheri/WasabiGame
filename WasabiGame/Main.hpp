@@ -27,6 +27,8 @@ public:
 	virtual void Cleanup();
 
 	virtual WError Resize(unsigned int width, unsigned int height);
+	virtual WRenderer* CreateRenderer();
+	virtual WPhysicsComponent* CreatePhysicsComponent();
 
 	float fCurGameTime;
 };

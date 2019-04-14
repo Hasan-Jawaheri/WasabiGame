@@ -24,6 +24,27 @@
     <ClInclude Include="GameStates\BaseState.hpp">
       <Filter>GameStates</Filter>
     </ClInclude>
+    <ClInclude Include="Maps\Map.hpp">
+      <Filter>Maps</Filter>
+    </ClInclude>
+    <ClInclude Include="Maps\MapLoader.hpp">
+      <Filter>Maps</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceManager\ResourceManager.hpp">
+      <Filter>ResourceManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Maps\Maps\ICC.hpp">
+      <Filter>Maps\Maps</Filter>
+    </ClInclude>
+    <ClInclude Include="Units\Units.hpp">
+      <Filter>Units</Filter>
+    </ClInclude>
+    <ClInclude Include="Units\Player.hpp">
+      <Filter>Units</Filter>
+    </ClInclude>
+    <ClInclude Include="Units\AI\AI.hpp">
+      <Filter>Units\AI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -48,6 +69,24 @@
     <ClCompile Include="GameStates\BaseState.cpp">
       <Filter>GameStates</Filter>
     </ClCompile>
+    <ClCompile Include="Maps\Map.cpp">
+      <Filter>Maps</Filter>
+    </ClCompile>
+    <ClCompile Include="Maps\MapLoader.cpp">
+      <Filter>Maps</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceManager\ResourceManager.cpp">
+      <Filter>ResourceManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Units\Units.cpp">
+      <Filter>Units</Filter>
+    </ClCompile>
+    <ClCompile Include="Units\Player.cpp">
+      <Filter>Units</Filter>
+    </ClCompile>
+    <ClCompile Include="Units\AI\AI.cpp">
+      <Filter>Units\AI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GameStates">
@@ -64,6 +103,21 @@
     </Filter>
     <Filter Include="UI\InputControls">
       <UniqueIdentifier>{f65fe334-aaba-4127-af12-ad03640dd2d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Maps">
+      <UniqueIdentifier>{a9f0589f-3f52-4731-8436-ac3291f99ea4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ResourceManager">
+      <UniqueIdentifier>{ccb4832c-794e-4d69-8343-c09669c3c160}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Maps\Maps">
+      <UniqueIdentifier>{3c0fcb59-009a-4866-8a95-8b3873fdddb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Units">
+      <UniqueIdentifier>{d0b0e6cc-9108-41d9-8563-fd775326d0fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Units\AI">
+      <UniqueIdentifier>{081232df-d3e4-4779-bdeb-64d7f1a7cdad}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

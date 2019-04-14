@@ -1,15 +1,16 @@
 #include "Main.hpp"
+#include <Physics/Bullet/WBulletPhysics.h>
+#include <Renderers/ForwardRenderer/WForwardRenderer.h>
 #ifndef _DEBUG
 #include "GameStates/Intro.hpp"
 #else
 #include "GameStates/Game.hpp"
 #endif
-//#include "Maps/MapLoader.hpp" @TODO: CHANGE HERE
-//#include "Entities/Player.hpp" @TODO: CHANGE HERE
-//#include "Spells/Spell.hpp" @TODO: CHANGE HERE
+#include "Maps/MapLoader.hpp"
+#include "ResourceManager/ResourceManager.hpp"
 #include "UI/UI.hpp"
 
-Application* APPHANDLE;
+Application* APPHANDLE = nullptr;
 
 Application::Application() : Wasabi() {
 }
@@ -35,23 +36,14 @@ WError Application::Setup() {
 	}
 	maxFPS = 0; // no limit for max FPS
 #ifndef _DEBUG
-	WindowComponent->SetFullScreenState(true);
+	WindowAndInputComponent->SetFullScreenState(true);
 #endif
 
+	PhysicsComponent->Start();
 	WindowAndInputComponent->DisableEscapeKeyQuit();
 	CameraManager->GetDefaultCamera()->SetRange(1, 1000);
 
-	//err = PhysicsComponent->Initialize();
-	//if (!err) {
-	//	MessageBoxA(nullptr, err.AsString().c_str(), APPNAME, MB_ICONERROR | MB_OK);
-	//	return err;
-	//}
-	// PhysicsComponent->Init(4.0f, 15000, true);
-	// PhysicsComponent->SetGravity(0.0f, -12.0f, 0.0f);
-	//PhysicsComponent->Start();
-
-	//ResourceManager::Init(this); @TODO: CHANGE HERE
-	//MapLoader::Init(); @TODO: CHANGE HERE
+	ResourceManager::Init();
 	err = UserInterface::Init(this);
 
 #ifndef _DEBUG
@@ -72,18 +64,17 @@ bool Application::Loop(float fDeltaTime) {
 
 	if (curState) { // we only need this because we destroy state in the windows callback
 		UserInterface::Update(fDeltaTime);
+		MapLoader::Update(fDeltaTime);
 	}
 
-	//PhysicsComponent->Step(fDeltaTime); @TODO: CHANGE HERE
-
-	//a null state means exit
+	// a null state means exit
 	return curState != nullptr; //returning true will allow the application to continue
 }
 
 void Application::Cleanup() {
 	UserInterface::Terminate();
-	//MapLoader::Cleanup(); @TODO: CHANGE HERE
-	//ResourceManager::Cleanup(); @TODO: CHANGE HERE
+	MapLoader::Cleanup();
+	ResourceManager::Cleanup();
 }
 
 WError Application::Resize(unsigned int width, unsigned int height) {
@@ -91,6 +82,19 @@ WError Application::Resize(unsigned int width, unsigned int height) {
 	return Wasabi::Resize(width, height);
 }
 
+WRenderer* Application::CreateRenderer() {
+	return new WForwardRenderer(this);
+}
+
+WPhysicsComponent* Application::CreatePhysicsComponent() {
+	WBulletPhysics* physics = new WBulletPhysics(this);
+	WError werr = physics->Initialize();
+	if (!werr)
+		W_SAFE_DELETE(physics);
+	return physics;
+}
+
 Wasabi* WInitialize() {
-	return new Application();
+	APPHANDLE = new Application();
+	return APPHANDLE;
 }
