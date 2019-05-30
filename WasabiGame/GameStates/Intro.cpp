@@ -1,7 +1,8 @@
 #include "Intro.hpp"
-#include "Menu.hpp"
 
-Intro::Intro(Wasabi* app) : WGameState(app) {
+Intro::Intro(Wasabi* app, std::vector<std::string> images, std::function<WGameState* ()> nextStateGenerator) : WGameState(app) {
+	m_logoFiles = images;
+	m_nextStateGenerator = nextStateGenerator;
 }
 
 Intro::~Intro() {
@@ -10,15 +11,11 @@ Intro::~Intro() {
 void Intro::Load() {
 	m_app->Renderer->GetRenderTarget()->SetClearColor(WColor(0, 0, 0));
 
-	const char* logoFilenames[] = {
-		"Media\\me3.jpg",
-	};
-
 	// load images using the above filenames
-	m_logos.resize(sizeof(logoFilenames) / sizeof(const char*));
+	m_logos.resize(m_logoFiles.size());
 	for (unsigned int i = 0; i < m_logos.size(); i++) {
 		m_logos[i] = new WImage(m_app); // allocate a new image
-		m_logos[i]->Load(logoFilenames[i]); // load the image from file
+		m_logos[i]->Load(m_logoFiles[i]); // load the image from file
 	}
 
 	// setup the sprite to display the current logo
@@ -53,7 +50,7 @@ void Intro::Update(float fDeltaTime) {
 			m_fade_in = true;
 			m_cur_logo_index++; //jump to the new logo
 			if (m_cur_logo_index >= m_logos.size()) { //no more logos! switch to the game state!
-				m_app->SwitchState(new Menu(m_app));
+				m_app->SwitchState(m_nextStateGenerator());
 				return; //dont execute any further, we're done.
 			}
 		}

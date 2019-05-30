@@ -15,9 +15,10 @@ public:
 				W_SHADER_VARIABLE_INFO(W_TYPE_VEC_2, "spriteSize"),
 			}),
 		};
-		LoadCodeGLSL(
-			#include "ErrorBoxPS.glsl"
-		, bSaveData);
+		vector<byte> code = {
+			#include "ErrorBox.frag.glsl.spv"
+		};
+		LoadCodeSPIRV((char*)code.data(), code.size(), bSaveData);
 	}
 };
 

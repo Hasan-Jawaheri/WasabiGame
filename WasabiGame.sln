@@ -5,6 +5,16 @@ VisualStudioVersion = 16.0.28809.33
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WasabiGame", "WasabiGame\WasabiGame.vcxproj", "{37CD303B-4AA4-4203-86E6-93F2B95B3F25}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Roll The Ball", "Roll The Ball\Roll The Ball.vcxproj", "{40C05BBC-F1F4-4175-BFEF-76594BEBD1E8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{37CD303B-4AA4-4203-86E6-93F2B95B3F25} = {37CD303B-4AA4-4203-86E6-93F2B95B3F25}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RPG", "RPG\RPG.vcxproj", "{38161054-86A8-449E-8514-0AC1B9965694}"
+	ProjectSection(ProjectDependencies) = postProject
+		{37CD303B-4AA4-4203-86E6-93F2B95B3F25} = {37CD303B-4AA4-4203-86E6-93F2B95B3F25}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +31,22 @@ Global
 		{37CD303B-4AA4-4203-86E6-93F2B95B3F25}.Release|x64.Build.0 = Release|x64
 		{37CD303B-4AA4-4203-86E6-93F2B95B3F25}.Release|x86.ActiveCfg = Release|Win32
 		{37CD303B-4AA4-4203-86E6-93F2B95B3F25}.Release|x86.Build.0 = Release|Win32
+		{40C05BBC-F1F4-4175-BFEF-76594BEBD1E8}.Debug|x64.ActiveCfg = Debug|x64
+		{40C05BBC-F1F4-4175-BFEF-76594BEBD1E8}.Debug|x64.Build.0 = Debug|x64
+		{40C05BBC-F1F4-4175-BFEF-76594BEBD1E8}.Debug|x86.ActiveCfg = Debug|Win32
+		{40C05BBC-F1F4-4175-BFEF-76594BEBD1E8}.Debug|x86.Build.0 = Debug|Win32
+		{40C05BBC-F1F4-4175-BFEF-76594BEBD1E8}.Release|x64.ActiveCfg = Release|x64
+		{40C05BBC-F1F4-4175-BFEF-76594BEBD1E8}.Release|x64.Build.0 = Release|x64
+		{40C05BBC-F1F4-4175-BFEF-76594BEBD1E8}.Release|x86.ActiveCfg = Release|Win32
+		{40C05BBC-F1F4-4175-BFEF-76594BEBD1E8}.Release|x86.Build.0 = Release|Win32
+		{38161054-86A8-449E-8514-0AC1B9965694}.Debug|x64.ActiveCfg = Debug|x64
+		{38161054-86A8-449E-8514-0AC1B9965694}.Debug|x64.Build.0 = Debug|x64
+		{38161054-86A8-449E-8514-0AC1B9965694}.Debug|x86.ActiveCfg = Debug|Win32
+		{38161054-86A8-449E-8514-0AC1B9965694}.Debug|x86.Build.0 = Debug|Win32
+		{38161054-86A8-449E-8514-0AC1B9965694}.Release|x64.ActiveCfg = Release|x64
+		{38161054-86A8-449E-8514-0AC1B9965694}.Release|x64.Build.0 = Release|x64
+		{38161054-86A8-449E-8514-0AC1B9965694}.Release|x86.ActiveCfg = Release|Win32
+		{38161054-86A8-449E-8514-0AC1B9965694}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

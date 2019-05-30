@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..//Main.hpp"
+#include "..//Common.hpp"
 
 class UIElement {
 	friend class UserInterface;

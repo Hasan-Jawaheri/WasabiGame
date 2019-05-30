@@ -1,15 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="Common.hpp" />
-    <ClInclude Include="Main.hpp" />
     <ClInclude Include="GameStates\Intro.hpp">
       <Filter>GameStates</Filter>
     </ClInclude>
     <ClInclude Include="GameStates\Menu.hpp">
-      <Filter>GameStates</Filter>
-    </ClInclude>
-    <ClInclude Include="GameStates\Game.hpp">
       <Filter>GameStates</Filter>
     </ClInclude>
     <ClInclude Include="UI\UI.hpp">
@@ -33,28 +28,23 @@
     <ClInclude Include="ResourceManager\ResourceManager.hpp">
       <Filter>ResourceManager</Filter>
     </ClInclude>
-    <ClInclude Include="Maps\Maps\ICC.hpp">
-      <Filter>Maps\Maps</Filter>
-    </ClInclude>
     <ClInclude Include="Units\Units.hpp">
       <Filter>Units</Filter>
     </ClInclude>
-    <ClInclude Include="Units\Player.hpp">
+    <ClInclude Include="Units\UnitsManager.hpp">
       <Filter>Units</Filter>
     </ClInclude>
-    <ClInclude Include="Units\AI\AI.hpp">
-      <Filter>Units\AI</Filter>
+    <ClInclude Include="Common.hpp" />
+    <ClInclude Include="Main.hpp" />
+    <ClInclude Include="Units\AI.hpp">
+      <Filter>Units</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp" />
     <ClCompile Include="GameStates\Intro.cpp">
       <Filter>GameStates</Filter>
     </ClCompile>
     <ClCompile Include="GameStates\Menu.cpp">
-      <Filter>GameStates</Filter>
-    </ClCompile>
-    <ClCompile Include="GameStates\Game.cpp">
       <Filter>GameStates</Filter>
     </ClCompile>
     <ClCompile Include="UI\UI.cpp">
@@ -81,11 +71,12 @@
     <ClCompile Include="Units\Units.cpp">
       <Filter>Units</Filter>
     </ClCompile>
-    <ClCompile Include="Units\Player.cpp">
+    <ClCompile Include="Units\UnitsManager.cpp">
       <Filter>Units</Filter>
     </ClCompile>
-    <ClCompile Include="Units\AI\AI.cpp">
-      <Filter>Units\AI</Filter>
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Units\AI.cpp">
+      <Filter>Units</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -110,14 +101,16 @@
     <Filter Include="ResourceManager">
       <UniqueIdentifier>{ccb4832c-794e-4d69-8343-c09669c3c160}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Maps\Maps">
-      <UniqueIdentifier>{3c0fcb59-009a-4866-8a95-8b3873fdddb0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Units">
       <UniqueIdentifier>{d0b0e6cc-9108-41d9-8563-fd775326d0fa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Units\AI">
-      <UniqueIdentifier>{081232df-d3e4-4779-bdeb-64d7f1a7cdad}</UniqueIdentifier>
-    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="UI\InputControls\MenuButton.frag.glsl">
+      <Filter>UI\InputControls</Filter>
+    </None>
+    <None Include="UI\GeneralControls\ErrorBox.frag.glsl">
+      <Filter>UI\GeneralControls</Filter>
+    </None>
   </ItemGroup>
 </Project>

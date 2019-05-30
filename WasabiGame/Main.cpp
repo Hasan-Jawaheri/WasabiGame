@@ -1,21 +1,18 @@
 #include "Main.hpp"
 #include <Physics/Bullet/WBulletPhysics.h>
 #include <Renderers/ForwardRenderer/WForwardRenderer.h>
-#ifndef _DEBUG
-#include "GameStates/Intro.hpp"
-#else
-#include "GameStates/Game.hpp"
-#endif
-#include "Maps/MapLoader.hpp"
-#include "ResourceManager/ResourceManager.hpp"
-#include "UI/UI.hpp"
 
-Application* APPHANDLE = nullptr;
+#include "../WasabiGame/Maps/MapLoader.hpp"
+#include "../WasabiGame/Units/UnitsManager.hpp"
+#include "../WasabiGame/ResourceManager/ResourceManager.hpp"
+#include "../WasabiGame/UI/UI.hpp"
 
-Application::Application() : Wasabi() {
+Wasabi* APPHANDLE = nullptr;
+
+WasabiRPG::WasabiRPG() : Wasabi() {
 }
 
-WError Application::Setup() {
+WError WasabiRPG::Setup() {
 	//
 	//Initialize the engine. This must be done to create the window and initialize it
 	//
@@ -30,32 +27,35 @@ WError Application::Setup() {
 #endif
 	bool vsync = false;//enable vsync (prevents screen tearing)
 	WError err = StartEngine(width, height);
-	if (!err) {
-		MessageBoxA(nullptr, err.AsString().c_str(), APPNAME, MB_ICONERROR | MB_OK);
-		return err;
-	}
 	maxFPS = 0; // no limit for max FPS
 #ifndef _DEBUG
 	WindowAndInputComponent->SetFullScreenState(true);
 #endif
 
-	PhysicsComponent->Start();
-	WindowAndInputComponent->DisableEscapeKeyQuit();
-	CameraManager->GetDefaultCamera()->SetRange(1, 1000);
+	if (err) {
+		PhysicsComponent->Start();
+		WindowAndInputComponent->DisableEscapeKeyQuit();
+		CameraManager->GetDefaultCamera()->SetRange(1, 1000);
 
-	ResourceManager::Init();
-	err = UserInterface::Init(this);
+		err = ResourceManager::Init();
+		if (err) {
+			err = UserInterface::Init(this);
 
-#ifndef _DEBUG
-	SwitchState(new Intro(this));
-#else
-	SwitchState(new Game(this));
-#endif
+			if (err) {
+				SwitchToInitialState();
+			}
+		}
+	}
+
+	if (!err) {
+		MessageBoxA(nullptr, err.AsString().c_str(), APPNAME, MB_ICONERROR | MB_OK);
+		return err;
+	}
 
 	return err;
 }
 
-bool Application::Loop(float fDeltaTime) {
+bool WasabiRPG::Loop(float fDeltaTime) {
 	fCurGameTime = Timer.GetElapsedTime();
 
 	char text[256];
@@ -65,36 +65,32 @@ bool Application::Loop(float fDeltaTime) {
 	if (curState) { // we only need this because we destroy state in the windows callback
 		UserInterface::Update(fDeltaTime);
 		MapLoader::Update(fDeltaTime);
+		UnitsManager::Update(fDeltaTime);
 	}
 
 	// a null state means exit
 	return curState != nullptr; //returning true will allow the application to continue
 }
 
-void Application::Cleanup() {
+void WasabiRPG::Cleanup() {
 	UserInterface::Terminate();
 	MapLoader::Cleanup();
 	ResourceManager::Cleanup();
 }
 
-WError Application::Resize(unsigned int width, unsigned int height) {
+WError WasabiRPG::Resize(unsigned int width, unsigned int height) {
 	UserInterface::OnResize(width, height);
 	return Wasabi::Resize(width, height);
 }
 
-WRenderer* Application::CreateRenderer() {
-	return new WForwardRenderer(this);
+WError WasabiRPG::SetupRenderer() {
+	return Wasabi::SetupRenderer();
 }
 
-WPhysicsComponent* Application::CreatePhysicsComponent() {
+WPhysicsComponent* WasabiRPG::CreatePhysicsComponent() {
 	WBulletPhysics* physics = new WBulletPhysics(this);
 	WError werr = physics->Initialize();
 	if (!werr)
 		W_SAFE_DELETE(physics);
 	return physics;
-}
-
-Wasabi* WInitialize() {
-	APPHANDLE = new Application();
-	return APPHANDLE;
 }

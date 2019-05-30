@@ -20,17 +20,19 @@ class ResourceManager {
 
 	static struct GENERAL_RESOURCES {
 		WFile* assetsFile;
-		std::unordered_map<std::string, LOADED_MODEL*> loadedAssets;
+		std::unordered_map<LOADED_MODEL*, std::string> loadedAssets;
 
 		void Cleanup();
 	} m_generalResources;
 
 public:
-	static void Init();
+	static WError Init();
 	static void Cleanup();
 
 	static void LoadMapFile(std::string mapFilename);
+
 	static LOADED_MODEL* LoadUnitModel(std::string unitName);
+	static void DestroyUnitModel(LOADED_MODEL* model);
 };
 
 

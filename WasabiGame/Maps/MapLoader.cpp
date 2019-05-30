@@ -1,16 +1,22 @@
 #include "MapLoader.hpp"
 #include "../ResourceManager/ResourceManager.hpp"
-#include "Maps/ICC.hpp"
 
 Map* MapLoader::m_currentMap = nullptr;
+std::unordered_map<uint, std::function<class Map* ()>> MapLoader::m_mapGenerators;
 
-void MapLoader::SetMap(MAP_NAME mapName) {
+void MapLoader::RegisterMap(uint id, std::function<class Map* ()> mapGenerator) {
+	m_mapGenerators.insert(std::make_pair(id, mapGenerator));
+}
+
+void MapLoader::ResetMaps() {
+	m_mapGenerators.clear();
+}
+
+void MapLoader::SetMap(uint mapId) {
 	Map* newMap = nullptr;
-	switch (mapName) {
-	case MAP_ICC:
-		newMap = new ICCMap();
-		break;
-	}
+	auto it = m_mapGenerators.find(mapId);
+	if (it != m_mapGenerators.end())
+		newMap = it->second();
 
 	Cleanup();
 	m_currentMap = newMap;

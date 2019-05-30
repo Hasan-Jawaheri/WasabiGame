@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="GameStates\Game.cpp">
+      <Filter>GameStates</Filter>
+    </ClCompile>
+    <ClCompile Include="Maps\RTBMaps.cpp">
+      <Filter>Maps</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="GameStates">
+      <UniqueIdentifier>{63982398-3ae3-47c4-a049-a1c044cedf01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Maps">
+      <UniqueIdentifier>{257f2f42-1f11-414e-b307-d22e125c5003}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GameStates\Game.hpp">
+      <Filter>GameStates</Filter>
+    </ClInclude>
+    <ClInclude Include="Maps\RTBMaps.hpp">
+      <Filter>Maps</Filter>
+    </ClInclude>
+    <ClInclude Include="Maps\Test.hpp">
+      <Filter>Maps</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

@@ -21,24 +21,21 @@
   <ItemGroup>
     <ClInclude Include="Common.hpp" />
     <ClInclude Include="GameStates\BaseState.hpp" />
-    <ClInclude Include="GameStates\Game.hpp" />
     <ClInclude Include="GameStates\Intro.hpp" />
     <ClInclude Include="GameStates\Menu.hpp" />
     <ClInclude Include="Main.hpp" />
     <ClInclude Include="Maps\Map.hpp" />
     <ClInclude Include="Maps\MapLoader.hpp" />
-    <ClInclude Include="Maps\Maps\ICC.hpp" />
     <ClInclude Include="ResourceManager\ResourceManager.hpp" />
     <ClInclude Include="UI\GeneralControls\ErrorBox.hpp" />
     <ClInclude Include="UI\InputControls\MenuButton.hpp" />
     <ClInclude Include="UI\UI.hpp" />
-    <ClInclude Include="Units\AI\AI.hpp" />
-    <ClInclude Include="Units\Player.hpp" />
+    <ClInclude Include="Units\AI.hpp" />
     <ClInclude Include="Units\Units.hpp" />
+    <ClInclude Include="Units\UnitsManager.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameStates\BaseState.cpp" />
-    <ClCompile Include="GameStates\Game.cpp" />
     <ClCompile Include="GameStates\Intro.cpp" />
     <ClCompile Include="GameStates\Menu.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -48,9 +45,13 @@
     <ClCompile Include="UI\GeneralControls\ErrorBox.cpp" />
     <ClCompile Include="UI\InputControls\MenuButton.cpp" />
     <ClCompile Include="UI\UI.cpp" />
-    <ClCompile Include="Units\AI\AI.cpp" />
-    <ClCompile Include="Units\Player.cpp" />
+    <ClCompile Include="Units\AI.cpp" />
     <ClCompile Include="Units\Units.cpp" />
+    <ClCompile Include="Units\UnitsManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="UI\GeneralControls\ErrorBox.frag.glsl" />
+    <None Include="UI\InputControls\MenuButton.frag.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -60,13 +61,13 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -106,10 +107,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(VULKAN_SDK)\include;$(OPENAL_SDK)\include;C:\Users\Hasan Al-Jawaheri\source\repos\Wasabi\Wasabi;C:\Users\Hasan Al-Jawaheri\Documents\bullet3-2.88\src;$(IncludePath)</IncludePath>
     <LibraryPath>$(VULKAN_SDK)\Lib32;$(OPENAL_SDK)\libs\Win32;C:\Users\Hasan Al-Jawaheri\source\repos\Wasabi\Debug;C:\Users\Hasan Al-Jawaheri\Documents\bullet3-2.88\bin;$(LibraryPath)</LibraryPath>
+    <TargetName>WasabiRPG</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(VULKAN_SDK)\include;$(OPENAL_SDK)\Include;C:\Users\Hasan Al-Jawaheri\source\repos\Wasabi\Wasabi;C:\Users\Hasan Al-Jawaheri\Documents\bullet3-2.88\src;$(IncludePath)</IncludePath>
     <LibraryPath>$(VULKAN_SDK)\Lib32;$(OPENAL_SDK)\libs\Win32;C:\Users\Hasan Al-Jawaheri\source\repos\Wasabi\Release;C:\Users\Hasan Al-Jawaheri\Documents\bullet3-2.88\bin;$(LibraryPath)</LibraryPath>
+    <TargetName>WasabiRPG</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -121,6 +124,12 @@
     <Link>
       <AdditionalDependencies>wasabi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>python compile-glsl-code.py</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Compile Shaders</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -144,6 +153,12 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>Wasabi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>python compile-glsl-code.py</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Compile Shaders</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

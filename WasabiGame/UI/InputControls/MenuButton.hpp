@@ -13,9 +13,10 @@ public:
 				W_SHADER_VARIABLE_INFO(W_TYPE_FLOAT, "alpha"),
 			}),
 		};
-		LoadCodeGLSL(
-			#include "MenuButtonPS.glsl"
-		, bSaveData);
+		vector<byte> code = {
+			#include "MenuButton.frag.glsl.spv"
+		};
+		LoadCodeSPIRV((char*)code.data(), code.size(), bSaveData);
 	}
 };
 
