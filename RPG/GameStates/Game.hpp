@@ -22,7 +22,7 @@ public:
 	virtual int GetPosZ() const { return 0; }
 };
 
-class Game : public BaseGame {
+class Game : public BaseState {
 
 	friend class GameInputHandler;
 

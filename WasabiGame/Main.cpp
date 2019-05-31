@@ -66,6 +66,7 @@ bool WasabiRPG::Loop(float fDeltaTime) {
 	TextComponent->RenderText(text, 5, 5, 20, FONT_DEFAULT, WColor(1.0, 0.0, 0.0));
 
 	if (curState) { // we only need this because we destroy state in the windows callback
+		fDeltaTime = fmin(fDeltaTime, 1.0f / 15.0f);
 		UserInterface::Update(fDeltaTime);
 		MapLoader::Update(fDeltaTime);
 		UnitsManager::Update(fDeltaTime);

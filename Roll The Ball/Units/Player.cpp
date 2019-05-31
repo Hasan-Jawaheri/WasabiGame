@@ -84,8 +84,15 @@ void Player::Update(float fDeltaTime) {
 
 	// make camera follow player's model
 	WVector3 rbPos = O()->GetPosition();
-	if (WVec3LengthSq(rbPos - m_cameraPivot) > 0.1)
-		m_cameraPivot = m_cameraPivot + (rbPos - m_cameraPivot) * 10.0f * fDeltaTime;
+	float camToPlayerDistSquare = WVec3LengthSq(rbPos - m_cameraPivot);
+	if (camToPlayerDistSquare > 0.05f) {
+		m_cameraPivot = m_cameraPivot + (rbPos - m_cameraPivot) * (camToPlayerDistSquare / 2.0f) * fDeltaTime;
+	}
+
+	/*static std::array<float, 300> Xs;
+	for (uint i = 0; i < Xs.size() - 1; i++)
+		Xs[i] = Xs[i + 1];
+	Xs[Xs.size() - 1] = rbPos.x;*/
 }
 
 PlayerAI::PlayerAI(Unit* unit) : AI(unit) {

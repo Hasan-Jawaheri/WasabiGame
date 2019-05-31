@@ -16,7 +16,7 @@ public:
 		SetupRPGUnits();
 
 #ifndef _DEBUG
-		SwitchState(new Intro(this, { "Media/me3.jpg" }, []() { return new Menu(this) }));
+		SwitchState(new Intro(this, { "Media/me3.jpg" }, [this]() { return new Menu(this, [this]() { return new Game(this); }); }));
 #else
 		SwitchState(new Game(this));
 #endif

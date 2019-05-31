@@ -51,6 +51,6 @@ void BallUnit::Jump(WVector3 direction) {
 void BallUnit::Move(WVector3 direction) {
 	if (m_state.isGrounded) {
 		WRigidBody* rb = RB();
-		rb->ApplyForce(WVec3Normalize(direction) * m_properties.movementSpeed, WVector3(0, 0.3, 0));
+		rb->ApplyForce(WVec3Normalize(direction) * m_properties.movementSpeed, WVector3(0.0f, 0.3f, 0.0f));
 	}
 }

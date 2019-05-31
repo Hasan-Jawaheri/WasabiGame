@@ -9,7 +9,10 @@ void ResourceManager::MAP_RESOURCES::Cleanup() {
 		W_SAFE_REMOVEREF(asset.obj);
 		W_SAFE_REMOVEREF(asset.rb);
 	}
+	for (auto light : loadedLights)
+		W_SAFE_REMOVEREF(light);
 	loadedAssets.clear();
+	loadedLights.clear();
 
 	if (mapFile) {
 		mapFile->Close();
@@ -75,6 +78,11 @@ void ResourceManager::LoadMapFile(std::string mapFilename) {
 					asset.rb->BindObject(asset.obj, asset.obj);
 				}
 				m_mapResources.loadedAssets.push_back(asset);
+			} else if (type == WLight::_GetTypeName()) {
+				WLight* light = nullptr;
+				WError err = m_mapResources.mapFile->LoadAsset<WLight>(name, &light, WLight::LoadArgs());
+				if (err)
+					m_mapResources.loadedLights.push_back(light);
 			}
 		}
 	}

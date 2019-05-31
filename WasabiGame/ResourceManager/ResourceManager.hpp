@@ -14,6 +14,7 @@ class ResourceManager {
 	static struct MAP_RESOURCES {
 		WFile* mapFile;
 		std::vector<LOADED_MODEL> loadedAssets;
+		std::vector<WLight*> loadedLights;
 
 		void Cleanup();
 	} m_mapResources;

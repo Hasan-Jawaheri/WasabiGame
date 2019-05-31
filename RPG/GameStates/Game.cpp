@@ -7,7 +7,7 @@
 
 #include "../../WasabiGame/UI/GeneralControls/ErrorBox.hpp"
 
-Game::Game(Wasabi* app) : BaseGame(app) {
+Game::Game(Wasabi* app) : BaseState(app) {
 	m_player = nullptr;
 }
 

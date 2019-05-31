@@ -66,10 +66,11 @@ public:
 	bool GeneratePlayer() {
 		WGeometry* ball = new WGeometry(m_app);
 		ball->SetName("player-geometry");
-		ball->CreateSphere(1.0f);
-		WObject* ballObj = new WObject(m_app);
+		ball->CreateSphere(1.0f, 16, 16);
+		WObject* ballObj = m_app->ObjectManager->CreateObject();
 		ballObj->SetName("player");
 		ballObj->SetGeometry(ball);
+		ballObj->GetMaterial()->SetVariableColor("color", WColor(0.8f, 0.6f, 0.55f, 1.0f));
 		WRigidBody* rb = m_app->PhysicsComponent->CreateRigidBody();
 		W_RIGID_BODY_CREATE_INFO rbCreateInfo = W_RIGID_BODY_CREATE_INFO::ForSphere(1.0f, 20.0f);
 		rb->Create(rbCreateInfo, true);

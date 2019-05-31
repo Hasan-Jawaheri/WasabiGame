@@ -76,13 +76,13 @@ bool GenerateTestMap(Wasabi* app, WFile* mapFile) {
 	W_SAFE_REMOVEREF(plain);
 
 	for (uint i = 0; i < boxes.size(); i++) {
-		boxes[i]->SetName("test-box-" + i);
+		boxes[i]->SetName("test-box-" + std::to_string(i));
 		mapFile->SaveAsset(boxes[i]);
 		W_SAFE_REMOVEREF(boxes[i]);
 	}
 
 	for (uint i = 0; i < lights.size(); i++) {
-		lights[i]->SetName("test-light-" + i);
+		lights[i]->SetName("test-light-" + std::to_string(i));
 		mapFile->SaveAsset(lights[i]);
 		W_SAFE_REMOVEREF(lights[i]);
 	}

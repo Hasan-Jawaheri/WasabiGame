@@ -134,10 +134,6 @@ void GameInputHandler::OnKeyup(short key) {
 }
 
 void GameInputHandler::OnMouseButton(int mx, int my, bool bDown) {
-	if (bDown)
-		m_game->m_player->BeginDragCamera();
-	else
-		m_game->m_player->EndDragCamera();
 	/*
 	if (bDown) {
 		if (WImage* img = m_game->m_ui.stanceBar->GetCurrentImage()) {
@@ -152,6 +148,10 @@ void GameInputHandler::OnMouseButton(int mx, int my, bool bDown) {
 }
 
 void GameInputHandler::OnMouseButton2(int mx, int my, bool bDown) {
+	if (bDown)
+		m_game->m_player->BeginDragCamera();
+	else
+		m_game->m_player->EndDragCamera();
 	/*
 	if (bDown) {
 		if (WImage* img = m_game->m_ui.stanceBar->GetCurrentImage()) {

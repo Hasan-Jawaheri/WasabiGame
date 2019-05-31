@@ -14,6 +14,7 @@ public:
 	RTB() : WasabiRPG() {
 		m_settings.debugVulkan = true;
 		m_settings.debugPhysics = true;
+		m_settings.fullscreen = false;
 
 		if (GENERATE_ASSETS) {
 			if (!AssetGenerator().Generate())
@@ -28,7 +29,7 @@ public:
 		PhysicsComponent->SetGravity(0, -40, 0);
 
 #ifndef _DEBUG
-		SwitchState(new Intro(this, { "Media/me3.jpg" }, []() { return new Menu(this) }));
+		SwitchState(new Intro(this, { "Media/me3.jpg" }, [this]() { return new Menu(this, [this]() { return new Game(this); }); }));
 #else
 		SwitchState(new Game(this));
 #endif
