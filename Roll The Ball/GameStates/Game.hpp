@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../WasabiGame/Main.hpp"
+#include "../../WasabiGame/GameStates/BaseState.hpp"
 #include "../../WasabiGame/UI/UI.hpp"
 
 class Game;
@@ -21,7 +22,7 @@ public:
 	virtual int GetPosZ() const { return 0; }
 };
 
-class Game : public WGameState {
+class Game : public BaseState {
 
 	friend class GameInputHandler;
 

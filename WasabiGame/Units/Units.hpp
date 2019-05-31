@@ -17,6 +17,7 @@ protected:
 public:
 
 	WOrientation* O() const;
+	WRigidBody* RB() const;
 
 	void LoadModel(std::string modelName);
 

@@ -22,11 +22,19 @@
     <ClCompile Include="GameStates\Game.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Maps\RTBMaps.cpp" />
+    <ClCompile Include="Units\BallUnit.cpp" />
+    <ClCompile Include="Units\Player.cpp" />
+    <ClCompile Include="Units\RTBUnits.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AssetsGenerator\AssetsGenerator.hpp" />
+    <ClInclude Include="AssetsGenerator\Maps\Test.hpp" />
     <ClInclude Include="GameStates\Game.hpp" />
     <ClInclude Include="Maps\RTBMaps.hpp" />
     <ClInclude Include="Maps\Test.hpp" />
+    <ClInclude Include="Units\BallUnit.hpp" />
+    <ClInclude Include="Units\Player.hpp" />
+    <ClInclude Include="Units\RTBUnits.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

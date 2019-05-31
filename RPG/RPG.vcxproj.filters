@@ -11,9 +11,6 @@
     <ClCompile Include="Units\RPGUnits.cpp">
       <Filter>Units</Filter>
     </ClCompile>
-    <ClCompile Include="Units\AI\PlayerAI.cpp">
-      <Filter>Units\AI</Filter>
-    </ClCompile>
     <ClCompile Include="Units\Player.cpp">
       <Filter>Units</Filter>
     </ClCompile>
@@ -30,9 +27,6 @@
     </ClInclude>
     <ClInclude Include="Units\RPGUnits.hpp">
       <Filter>Units</Filter>
-    </ClInclude>
-    <ClInclude Include="Units\AI\PlayerAI.hpp">
-      <Filter>Units\AI</Filter>
     </ClInclude>
     <ClInclude Include="Units\Player.hpp">
       <Filter>Units</Filter>

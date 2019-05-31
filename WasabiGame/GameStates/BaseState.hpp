@@ -7,7 +7,7 @@ class BaseState : public WGameState {
 
 public:
 	BaseState(Wasabi* app);
-	~BaseState();
+	virtual ~BaseState();
 
 	virtual void OnKeyDown(char c);
 	virtual void OnKeyUp(char c);

@@ -1,6 +1,8 @@
 #include "../WasabiGame/Main.hpp"
 #include "../WasabiGame/GameStates/Intro.hpp"
 #include "../WasabiGame/GameStates/Menu.hpp"
+#include "Maps/RPGMaps.hpp"
+#include "Units/RPGUnits.hpp"
 #include "GameStates/Game.hpp"
 
 class RPG : public WasabiRPG {
@@ -10,6 +12,9 @@ public:
 	}
 
 	void SwitchToInitialState() {
+		SetupRPGMaps();
+		SetupRPGUnits();
+
 #ifndef _DEBUG
 		SwitchState(new Intro(this, { "Media/me3.jpg" }, []() { return new Menu(this) }));
 #else

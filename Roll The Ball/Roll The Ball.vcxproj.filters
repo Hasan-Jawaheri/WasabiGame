@@ -8,6 +8,15 @@
     <ClCompile Include="Maps\RTBMaps.cpp">
       <Filter>Maps</Filter>
     </ClCompile>
+    <ClCompile Include="Units\RTBUnits.cpp">
+      <Filter>Units</Filter>
+    </ClCompile>
+    <ClCompile Include="Units\Player.cpp">
+      <Filter>Units</Filter>
+    </ClCompile>
+    <ClCompile Include="Units\BallUnit.cpp">
+      <Filter>Units</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GameStates">
@@ -15,6 +24,15 @@
     </Filter>
     <Filter Include="Maps">
       <UniqueIdentifier>{257f2f42-1f11-414e-b307-d22e125c5003}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Units">
+      <UniqueIdentifier>{624393c4-0dcf-4b0b-8916-72172d99c8ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AssetsGenerator">
+      <UniqueIdentifier>{4aeb6922-1ce9-4677-9476-9a2faa63be5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AssetsGenerator\Maps">
+      <UniqueIdentifier>{15dcdfe2-18e6-4751-97fa-df79bc390ba2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -26,6 +44,21 @@
     </ClInclude>
     <ClInclude Include="Maps\Test.hpp">
       <Filter>Maps</Filter>
+    </ClInclude>
+    <ClInclude Include="Units\RTBUnits.hpp">
+      <Filter>Units</Filter>
+    </ClInclude>
+    <ClInclude Include="Units\Player.hpp">
+      <Filter>Units</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetsGenerator\AssetsGenerator.hpp">
+      <Filter>AssetsGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetsGenerator\Maps\Test.hpp">
+      <Filter>AssetsGenerator\Maps</Filter>
+    </ClInclude>
+    <ClInclude Include="Units\BallUnit.hpp">
+      <Filter>Units</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

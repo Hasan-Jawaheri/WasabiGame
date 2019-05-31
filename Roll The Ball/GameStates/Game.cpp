@@ -1,10 +1,14 @@
 #include "Game.hpp"
-#include "../../WasabiGame/UI/GeneralControls/ErrorBox.hpp"
 #include "../Maps/RTBMaps.hpp"
-#include "../../WasabiGame/Maps/MapLoader.hpp"
+#include "../Units/RTBUnits.hpp"
+#include "../Units/Player.hpp"
+
+#include "../../WasabiGame/Maps/MapLoader.cpp"
 #include "../../WasabiGame/Units/UnitsManager.hpp"
 
-Game::Game(Wasabi* app) : WGameState(app) {
+#include "../../WasabiGame/UI/GeneralControls/ErrorBox.hpp"
+
+Game::Game(Wasabi* app) : BaseState(app) {
 	m_player = nullptr;
 }
 
@@ -12,21 +16,16 @@ Game::~Game() {
 }
 
 void Game::Load() {
-	SetupRTBMaps();
-
 	// Setup and load the user interface
 	UserInterface::AddUIElement(m_input = new GameInputHandler(this), nullptr);
 	UIElement* ok = new MenuButton("sure");
-	UIElement* no = new MenuButton("nop");
 	UIElement* err = new ErrorBox("what??");
 	UserInterface::AddUIElement(err, m_input);
-	UserInterface::AddUIElement(no, err);
 	UserInterface::AddUIElement(ok, err);
 	UserInterface::Load(m_app);
 
 	// Load the player
-	//m_player = (Player*)UnitsManager::LoadUnit(UNIT_PLAYER);
-	//m_player->O()->SetPosition(0, 30, 0);
+	m_player = (Player*)UnitsManager::LoadUnit(UNIT_PLAYER);
 
 	// Load the map
 	MapLoader::SetMap(MAP_TEST);
@@ -135,6 +134,10 @@ void GameInputHandler::OnKeyup(short key) {
 }
 
 void GameInputHandler::OnMouseButton(int mx, int my, bool bDown) {
+	if (bDown)
+		m_game->m_player->BeginDragCamera();
+	else
+		m_game->m_player->EndDragCamera();
 	/*
 	if (bDown) {
 		if (WImage* img = m_game->m_ui.stanceBar->GetCurrentImage()) {

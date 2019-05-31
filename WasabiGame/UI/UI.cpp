@@ -8,10 +8,9 @@ UIElement::UIElement() {
 }
 
 UIElement::~UIElement() {
-	W_SAFE_REMOVEREF(m_sprite);
+	UserInterface::RemoveUIElement(this);
 
-	for (UINT i = 0; i < m_children.size(); i++)
-		delete m_children[i];
+	W_SAFE_REMOVEREF(m_sprite);
 }
 
 void UIElement::SetFade(float fFade) {
@@ -71,7 +70,7 @@ UINT UIElement::GetNumChildren() const {
 	return m_children.size();
 }
 
-vector<UIElement*> UserInterface::UI;
+std::unordered_map<UIElement*, bool> UserInterface::UI;
 UIElement* UserInterface::focus = nullptr;
 
 WError UserInterface::Init(Wasabi* app) {
@@ -98,68 +97,61 @@ void UserInterface::AddUIElement(UIElement* element, UIElement* m_parent) {
 	element->SetParent(m_parent);
 	if (m_parent)
 		m_parent->AddChild(element);
-	UI.push_back(element);
+	UI.insert(std::make_pair(element, true));
 
 	if (UI.size() == 1)
 		focus = element;
 }
 
 void UserInterface::RemoveUIElement(UIElement* element) {
-	for (UINT i = 0; i < UI.size(); i++) {
-		if (UI[i] == element) {
-			if (focus == element) {
-				bool bFoundFocus = false;
-				for (UINT n = 0; n < UI.size(); n++)
-					if (UI[n] != focus && UI[n]->OnFocus()) {
-						focus = UI[n];
-						bFoundFocus = true;
-						break;
-					}
-				if (!bFoundFocus)
-					focus = nullptr;
+	auto it = UI.find(element);
+	if (it != UI.end()) {
+		if (element == focus) {
+			focus = nullptr;
+			for (auto it : UI) {
+				UIElement* curElem = it.first;
+				if (curElem != element && curElem->OnFocus()) {
+					focus = curElem;
+					break;
+				}
 			}
-			UI.erase(UI.begin() + i);
-			for (UINT n = 0; n < element->m_children.size(); n++)
-				RemoveUIElement(element->m_children[n]);
 		}
+
+		UI.erase(it);
+		for (auto child : element->m_children)
+			RemoveUIElement(child);
+		delete element;
 	}
 }
 
 void UserInterface::Load(Wasabi* app) {
-	for (UINT i = 0; i < UI.size(); i++) {
-		if (!UI[i]->m_is_loaded)
-			UI[i]->Load(app);
-		UI[i]->m_is_loaded = true;
+	for (auto it : UI) {
+		UIElement* curElem = it.first;
+		if (!curElem->m_is_loaded)
+			curElem->Load(app);
+		curElem->m_is_loaded = true;
 	}
 }
 
 void UserInterface::Terminate() {
-	for (UINT i = 0; i < UI.size(); i++) {
-		while (UI[i]->GetNumChildren()) UI[i]->RemoveChild((UINT)0); //remove all children for safe deleting of the elements
-		delete UI[i];
-	}
-	UI.clear();
+	while (UI.size())
+		RemoveUIElement(UI.begin()->first);
 	focus = nullptr;
 }
 
 void UserInterface::Update(float fDeltaTime) {
 	//check for update disablers
-	for (unsigned int i = 0; i < UI.size(); i++) {
-		if (UI[i]->OnDisableAllUpdates()) {
-			if (!UI[i]->Update(fDeltaTime)) {
-				UIElement* element = UI[i];
-				RemoveUIElement(element);
-				delete element;
-				i--;
+	for (auto it : UI) {
+		UIElement* curElem = it.first;
+		if (curElem->OnDisableAllUpdates()) {
+			if (!curElem->Update(fDeltaTime)) {
+				RemoveUIElement(curElem);
 			} else {
 				//update children too
-				for (UINT n = 0; n < UI[i]->GetNumChildren(); n++) {
-					if (!UI[i]->GetChild(n)->Update(fDeltaTime)) {
-						UIElement* element = UI[i]->GetChild(n);
-						UI[i]->RemoveChild(n);
-						RemoveUIElement(element);
-						delete element;
-						n--;
+				for (auto child : curElem->m_children) {
+					if (!child->Update(fDeltaTime)) {
+						curElem->RemoveChild(child);
+						RemoveUIElement(child);
 					}
 				}
 			}
@@ -167,24 +159,26 @@ void UserInterface::Update(float fDeltaTime) {
 		}
 	}
 
-	for (UINT i = 0; i < UI.size(); i++) {
-		if (!UI[i]->Update(fDeltaTime)) {
-			UIElement* element = UI[i];
-			RemoveUIElement(element);
-			delete element;
-			i--;
+	std::vector<UIElement*> elementsToDelete;
+	for (auto it : UI) {
+		UIElement* curElem = it.first;
+		if (!curElem->Update(fDeltaTime)) {
+			elementsToDelete.push_back(curElem);
 		}
 	}
+
+	for (auto it : elementsToDelete)
+		RemoveUIElement(it);
 }
 
 void UserInterface::SetFade(float fFade) {
-	for (UINT i = 0; i < UI.size(); i++)
-		UI[i]->SetFade(fFade);
+	for (auto it : UI)
+		it.first->SetFade(fFade);
 }
 
 void UserInterface::OnResize(UINT width, UINT height) {
-	for (UINT i = 0; i < UI.size(); i++)
-		UI[i]->OnResize(width, height);
+	for (auto it : UI)
+		it.first->OnResize(width, height);
 }
 
 void UserInterface::SetFocus(UIElement* element) {
@@ -197,14 +191,15 @@ UIElement* UserInterface::GetFocus() {
 
 UIElement* UserInterface::GetElementAt(int mx, int my) {
 	vector<UIElement*> possibilities;
-	for (UINT i = 0; i < UI.size(); i++) {
-		float posX = UI[i]->GetPositionX();
-		float posY = UI[i]->GetPositionY();
-		float sX = UI[i]->GetSizeX();
-		float sY = UI[i]->GetSizeY();
-		if (mx > UI[i]->GetPositionX() && mx < UI[i]->GetPositionX() + UI[i]->GetSizeX() &&
-			my > UI[i]->GetPositionY() && my < UI[i]->GetPositionY() + UI[i]->GetSizeY())
-			possibilities.push_back(UI[i]);
+	for (auto it : UI) {
+		UIElement* curElem = it.first;
+		float posX = curElem->GetPositionX();
+		float posY = curElem->GetPositionY();
+		float sX = curElem->GetSizeX();
+		float sY = curElem->GetSizeY();
+		if (mx > curElem->GetPositionX() && mx < curElem->GetPositionX() + curElem->GetSizeX() &&
+			my > curElem->GetPositionY() && my < curElem->GetPositionY() + curElem->GetSizeY())
+			possibilities.push_back(curElem);
 	}
 	if (possibilities.size()) {
 		int lowestZ = possibilities[0]->GetPosZ();
@@ -219,9 +214,9 @@ UIElement* UserInterface::GetElementAt(int mx, int my) {
 			return possibilities[index];
 	}
 
-	for (UINT i = 0; i < UI.size(); i++) {
-		if (UI[i]->GetSizeX() == 0 && UI[i]->GetSizeY() == 0)
-			return UI[i];
+	for (auto it : UI) {
+		if (it.first->GetSizeX() == 0 && it.first->GetSizeY() == 0)
+			return it.first;
 	}
 
 	return nullptr;

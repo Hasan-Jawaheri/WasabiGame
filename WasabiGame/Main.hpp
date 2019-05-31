@@ -3,6 +3,15 @@
 #include "..//WasabiGame/Common.hpp"
 
 class WasabiRPG : public Wasabi {
+protected:
+	struct {
+		bool debugVulkan;
+		bool debugPhysics;
+		int screenWidth;
+		int screenHeight;
+		bool fullscreen;
+		int maxFPS;
+	} m_settings;
 
 public:
 	WasabiRPG();

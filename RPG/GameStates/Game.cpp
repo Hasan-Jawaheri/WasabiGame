@@ -1,11 +1,13 @@
 #include "Game.hpp"
-#include "../../WasabiGame/UI/GeneralControls/ErrorBox.hpp"
 #include "../Maps/RPGMaps.hpp"
 #include "../Units/RPGUnits.hpp"
-#include "../../WasabiGame/Maps/MapLoader.hpp"
+
+#include "../../WasabiGame/Maps/MapLoader.cpp"
 #include "../../WasabiGame/Units/UnitsManager.hpp"
 
-Game::Game(Wasabi* app) : WGameState(app) {
+#include "../../WasabiGame/UI/GeneralControls/ErrorBox.hpp"
+
+Game::Game(Wasabi* app) : BaseGame(app) {
 	m_player = nullptr;
 }
 
@@ -13,9 +15,6 @@ Game::~Game() {
 }
 
 void Game::Load() {
-	SetupRPGMaps();
-	SetupRPGUnits();
-
 	// Setup and load the user interface
 	UserInterface::AddUIElement(m_input = new GameInputHandler(this), nullptr);
 	UIElement* ok = new MenuButton("sure");
@@ -27,7 +26,7 @@ void Game::Load() {
 	UserInterface::Load(m_app);
 
 	// Load the player
-	UnitsManager::LoadUnit(UNIT_PLAYER);
+	m_player = (Player*)UnitsManager::LoadUnit(UNIT_PLAYER);
 
 	// Load the map
 	MapLoader::SetMap(MAP_ICC);

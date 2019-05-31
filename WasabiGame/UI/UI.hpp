@@ -17,7 +17,7 @@ protected:
 
 public:
 	UIElement();
-	~UIElement();
+	virtual ~UIElement();
 
 	UIElement* GetParent() const;
 	void SetParent(UIElement* p);
@@ -57,7 +57,7 @@ public:
 };
 
 class UserInterface {
-	static vector<UIElement*> UI;
+	static std::unordered_map<UIElement*, bool> UI;
 	static UIElement* focus;
 
 public:

@@ -19,6 +19,10 @@ WOrientation* Unit::O() const {
 	return m_model->obj;
 }
 
+WRigidBody* Unit::RB() const {
+	return m_model->rb;
+}
+
 void Unit::LoadModel(std::string modelName) {
 	if (m_model) {
 		ResourceManager::DestroyUnitModel(m_model);

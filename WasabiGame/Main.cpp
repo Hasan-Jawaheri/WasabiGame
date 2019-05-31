@@ -10,27 +10,30 @@
 Wasabi* APPHANDLE = nullptr;
 
 WasabiRPG::WasabiRPG() : Wasabi() {
+	m_settings.debugVulkan = true;
+	m_settings.debugPhysics = false;
+	m_settings.maxFPS = 0;
+#ifdef _DEBUG
+	m_settings.screenWidth = 800;
+	m_settings.screenHeight = 600;
+	m_settings.fullscreen = false;
+#else
+	m_settings.screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	m_settings.screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	m_settings.fullscreen = true;
+#endif
 }
 
 WError WasabiRPG::Setup() {
+	engineParams["enableVulkanValidation"] = (void*)m_settings.debugVulkan;
+
 	//
 	//Initialize the engine. This must be done to create the window and initialize it
 	//
-	int scrW = GetSystemMetrics(SM_CXSCREEN);
-	int scrH = GetSystemMetrics(SM_CYSCREEN);
-#ifdef _DEBUG
-	int width = 800;
-	int height = 600;
-#else
-	int width = scrW;
-	int height = scrH;
-#endif
-	bool vsync = false;//enable vsync (prevents screen tearing)
-	WError err = StartEngine(width, height);
-	maxFPS = 0; // no limit for max FPS
-#ifndef _DEBUG
-	WindowAndInputComponent->SetFullScreenState(true);
-#endif
+	WError err = StartEngine(m_settings.screenWidth, m_settings.screenHeight);
+	maxFPS = m_settings.maxFPS;
+	if (m_settings.fullscreen)
+		WindowAndInputComponent->SetFullScreenState(m_settings.fullscreen);
 
 	if (err) {
 		PhysicsComponent->Start();
@@ -89,7 +92,7 @@ WError WasabiRPG::SetupRenderer() {
 
 WPhysicsComponent* WasabiRPG::CreatePhysicsComponent() {
 	WBulletPhysics* physics = new WBulletPhysics(this);
-	WError werr = physics->Initialize();
+	WError werr = physics->Initialize(m_settings.debugPhysics);
 	if (!werr)
 		W_SAFE_DELETE(physics);
 	return physics;

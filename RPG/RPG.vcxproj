@@ -22,7 +22,6 @@
     <ClCompile Include="GameStates\Game.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Maps\RPGMaps.cpp" />
-    <ClCompile Include="Units\AI\PlayerAI.cpp" />
     <ClCompile Include="Units\Player.cpp" />
     <ClCompile Include="Units\RPGUnits.cpp" />
   </ItemGroup>
@@ -30,7 +29,6 @@
     <ClInclude Include="GameStates\Game.hpp" />
     <ClInclude Include="Maps\ICC.hpp" />
     <ClInclude Include="Maps\RPGMaps.hpp" />
-    <ClInclude Include="Units\AI\PlayerAI.hpp" />
     <ClInclude Include="Units\Player.hpp" />
     <ClInclude Include="Units\RPGUnits.hpp" />
   </ItemGroup>

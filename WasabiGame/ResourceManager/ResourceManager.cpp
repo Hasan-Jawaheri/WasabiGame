@@ -1,4 +1,5 @@
 #include "ResourceManager.hpp"
+#include <Physics/Bullet/WBulletRigidBody.h>
 
 ResourceManager::MAP_RESOURCES ResourceManager::m_mapResources = {};
 ResourceManager::GENERAL_RESOURCES ResourceManager::m_generalResources = {};
@@ -69,7 +70,10 @@ void ResourceManager::LoadMapFile(std::string mapFilename) {
 				WError err = m_mapResources.mapFile->LoadAsset<WObject>(name, &asset.obj, WObject::LoadArgs());
 				asset.rb = APPHANDLE->PhysicsComponent->CreateRigidBody();
 				err = asset.rb->Create(W_RIGID_BODY_CREATE_INFO::ForComplexObject(asset.obj));
-				asset.rb->BindObject(asset.obj, asset.obj);
+				if (err) {
+					asset.rb->SetFriction(1.0f);
+					asset.rb->BindObject(asset.obj, asset.obj);
+				}
 				m_mapResources.loadedAssets.push_back(asset);
 			}
 		}
@@ -84,10 +88,11 @@ LOADED_MODEL* ResourceManager::LoadUnitModel(std::string unitName) {
 		return nullptr;
 	}
 
-	asset->rb = APPHANDLE->PhysicsComponent->CreateRigidBody();
-	err = asset->rb->Create(W_RIGID_BODY_CREATE_INFO::ForSphere(5.0f, 1.0f));
-	asset->rb->BindObject(asset->obj, asset->obj);
 	m_generalResources.loadedAssets.insert(std::make_pair(asset, unitName));
+
+	err = m_generalResources.assetsFile->LoadAsset<WBulletRigidBody>(unitName + "-rigidbody", (WBulletRigidBody**)&asset->rb, WBulletRigidBody::LoadArgs());
+	if (asset->rb)
+		asset->rb->BindObject(asset->obj, asset->obj);
 
 	WSkeleton* skeleton = nullptr;
 	err = m_generalResources.assetsFile->LoadAsset<WSkeleton>(unitName + "-skeleton", &skeleton, WSkeleton::LoadArgs());
