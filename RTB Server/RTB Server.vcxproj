@@ -19,16 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Clients\Client.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Server.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Clients\Client.hpp" />
-    <ClInclude Include="Lib\Config.hpp" />
-    <ClInclude Include="Lib\Scheduler.hpp" />
-    <ClInclude Include="Selectable.hpp" />
-    <ClInclude Include="Server.hpp" />
+    <ClInclude Include="Lib\Client.hpp" />
+    <ClInclude Include="Lib\Selectable.hpp" />
+    <ClInclude Include="Lib\Server.hpp" />
+    <ClInclude Include="Lib\Utilities\CircularBuffer.hpp" />
+    <ClInclude Include="Lib\Utilities\Config.hpp" />
+    <ClInclude Include="Lib\Utilities\Scheduler.hpp" />
+    <ClInclude Include="Lib\Utilities\Semaphore.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

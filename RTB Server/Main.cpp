@@ -1,7 +1,7 @@
 #include <WinSock2.h>
 #include <Wasabi.h>
-#include "Server.hpp"
-#include "Clients/Client.hpp"
+#include "Lib/Server.hpp"
+#include "Lib/Client.hpp"
 
 /*
 #include <Wasabi.h>

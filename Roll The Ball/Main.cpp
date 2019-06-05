@@ -1,3 +1,6 @@
+#include "../RTB Server/Lib/Server.hpp"
+#include "../RTB Server/Lib/Client.hpp"
+
 #include "../WasabiGame/Main.hpp"
 #include "../WasabiGame/GameStates/Intro.hpp"
 #include "../WasabiGame/GameStates/Menu.hpp"
@@ -6,6 +9,8 @@
 #include "Units/RTBUnits.hpp"
 
 #include "AssetsGenerator/AssetsGenerator.hpp"
+
+#include <thread>
 
 #define GENERATE_ASSETS true
 
@@ -36,7 +41,25 @@ public:
 	}
 };
 
+void NetworkingThread() {
+	WSADATA wsa;
+	WSAStartup(MAKEWORD(2, 2), &wsa);
+
+	RPGNet::ServerT<RPGNet::Client> server;
+	server.Config.Set<int>("tcpPort", 0);
+	server.Config.Set<int>("udpPort", 0);
+	server.Config.Set<int>("numWorkers", 1);
+
+	RPGNet::Client tcpConnection(&server);
+	RPGNet::Client udpConnection(&server);
+
+	server.Run();
+}
+
 Wasabi* WInitialize() {
+	std::thread networkingThread(NetworkingThread);
+	networkingThread.detach();
+
 	APPHANDLE = new RTB();
 	return APPHANDLE;
 }

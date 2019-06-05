@@ -11,6 +11,7 @@ namespace HBUtils {
 	public:
 		Config() {
 			m_configTable = {
+				{"numWorkers", (void*)8},
 				{"tcpPort", (void*)9965},
 				{"udpPort", (void*)9966},
 				{"hostname", (void*)"0.0.0.0"},
@@ -26,6 +27,11 @@ namespace HBUtils {
 		template<>
 		std::string Get<std::string>(std::string propertyName) {
 			return std::string((char*)m_configTable[propertyName]);
+		}
+
+		template<typename T>
+		void Set(std::string propertyName, T value) {
+			m_configTable[propertyName] = (void*)value;
 		}
 	};
 
