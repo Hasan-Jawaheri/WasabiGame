@@ -17,6 +17,9 @@
     <ClCompile Include="Units\BallUnit.cpp">
       <Filter>Units</Filter>
     </ClCompile>
+    <ClCompile Include="Networking\Networking.cpp">
+      <Filter>Networking</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GameStates">
@@ -33,6 +36,9 @@
     </Filter>
     <Filter Include="AssetsGenerator\Maps">
       <UniqueIdentifier>{15dcdfe2-18e6-4751-97fa-df79bc390ba2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Networking">
+      <UniqueIdentifier>{9d4544d1-63b1-4776-b4ee-6cb65413a7c6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -59,6 +65,9 @@
     </ClInclude>
     <ClInclude Include="Units\BallUnit.hpp">
       <Filter>Units</Filter>
+    </ClInclude>
+    <ClInclude Include="Networking\Networking.hpp">
+      <Filter>Networking</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -31,6 +31,10 @@ namespace HBUtils {
 			delete[] mem;
 		}
 
+		void Clear() {
+			start = end = 0;
+		}
+
 		inline char* GetMem() {
 			return mem + start;
 		}

@@ -1,5 +1,4 @@
-#include "../RTB Server/Lib/Server.hpp"
-#include "../RTB Server/Lib/Client.hpp"
+#include "Networking/Networking.hpp"
 
 #include "../WasabiGame/Main.hpp"
 #include "../WasabiGame/GameStates/Intro.hpp"
@@ -14,7 +13,10 @@
 
 #define GENERATE_ASSETS true
 
+RTBNet::RTBClientNetworking* gRTBNetworking;
+
 class RTB : public WasabiRPG {
+
 public:
 	RTB() : WasabiRPG() {
 		m_settings.debugVulkan = true;
@@ -25,6 +27,14 @@ public:
 			if (!AssetGenerator().Generate())
 				return;
 		}
+
+		gRTBNetworking = new RTBNet::RTBClientNetworking();
+		gRTBNetworking->Initialize();
+	}
+
+	~RTB() {
+		gRTBNetworking->Destroy();
+		delete gRTBNetworking;
 	}
 
 	void SwitchToInitialState() {
@@ -41,25 +51,7 @@ public:
 	}
 };
 
-void NetworkingThread() {
-	WSADATA wsa;
-	WSAStartup(MAKEWORD(2, 2), &wsa);
-
-	RPGNet::ServerT<RPGNet::Client> server;
-	server.Config.Set<int>("tcpPort", 0);
-	server.Config.Set<int>("udpPort", 0);
-	server.Config.Set<int>("numWorkers", 1);
-
-	RPGNet::Client tcpConnection(&server);
-	RPGNet::Client udpConnection(&server);
-
-	server.Run();
-}
-
 Wasabi* WInitialize() {
-	std::thread networkingThread(NetworkingThread);
-	networkingThread.detach();
-
 	APPHANDLE = new RTB();
 	return APPHANDLE;
 }

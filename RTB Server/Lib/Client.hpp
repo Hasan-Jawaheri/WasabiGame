@@ -13,6 +13,7 @@
 namespace RPGNet {
 
 	class Client : public Selectable {
+	protected:
 		class Server* m_server;
 		std::string m_IP;
 		int m_port;
@@ -43,10 +44,7 @@ namespace RPGNet {
 		}
 
 		~Client() {
-			if (m_fd > 0) {
-				closesocket(m_fd);
-				m_fd = 0;
-			}
+			Close();
 		}
 
 		virtual int Connect(std::string hostname, int port) {
@@ -70,9 +68,18 @@ namespace RPGNet {
 			m_port = port;
 			m_IP = hostname;
 
+			m_inBuffer.Clear();
+			m_outBuffer.Clear();
 			m_server->RegisterSelectable(this, false);
 
 			return 0;
+		}
+
+		virtual void Close() {
+			if (m_fd > 0) {
+				closesocket(m_fd);
+				m_fd = 0;
+			}
 		}
 
 		virtual bool HasPendingWrites() {
@@ -80,7 +87,7 @@ namespace RPGNet {
 		}
 
 		virtual bool OnReadReady() {
-			int numRead = 1, totalRead = 0;
+			int numRead = m_fd > 0 ? 1 : 0, totalRead = 0;
 			while (numRead > 0) {
 				int readSize = m_inBuffer.GetAvailableContigiousInsert();
 				if (readSize == 0) {
@@ -104,13 +111,16 @@ namespace RPGNet {
 			if (totalRead > 0)
 				return ConsumeBuffer(&m_inBuffer);
 
+			if (numRead == 0 && m_fd > 0)
+				Close();
+
 			return numRead > 0;
 		}
 
 		virtual bool OnWriteReady() {
 			m_writingSemaphore.wait();
 
-			int numWritten = 1, totalWritten = 0;
+			int numWritten = m_fd > 0 ? 1 : 0, totalWritten = 0;
 			while (m_outBuffer.GetSize() > 0 && numWritten > 0) {
 				int writeSize = m_outBuffer.GetAvailableContigiousConsume();
 				numWritten = send(m_fd, m_outBuffer.GetMem(), writeSize, 0);
@@ -127,6 +137,9 @@ namespace RPGNet {
 			}
 
 			m_writingSemaphore.notify();
+
+			if (numWritten == 0 && m_fd > 0)
+				Close();
 
 			return numWritten > 0;
 		}
@@ -155,6 +168,48 @@ namespace RPGNet {
 			m_writingSemaphore.notify();
 
 			m_server->NotifyWriteAvailable();
+		}
+	};
+
+	class ReconnectingClient : public Client {
+		HBUtils::Semaphore m_connectingSemaphore;
+
+	public:
+		ReconnectingClient(class Server* server) : Client(server) {}
+
+		virtual int Connect(std::string hostname, int port) {
+			m_connectingSemaphore.wait();
+			int ret = 0;
+			if (hostname != m_IP || port != m_port)
+				Close();
+			if (fd() == 0)
+				ret = Client::Connect(hostname, port);
+			m_connectingSemaphore.notify();
+			return ret;
+		}
+
+		void Reconnect() {
+			m_server->Scheduler.LaunchThread("reconnect-client-" + std::to_string((uintptr_t)this), [this]() {
+				while (this->fd() == 0) {
+					this->Connect(m_IP, m_port);
+					if (this->fd() == 0)
+						std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+				}
+			});
+		}
+
+		virtual bool OnReadReady() {
+			bool bKeep = Client::OnReadReady();
+			if (!bKeep)
+				Reconnect();
+			return bKeep;
+		}
+
+		virtual bool OnWriteReady() {
+			bool bKeep = Client::OnWriteReady();
+			if (!bKeep)
+				Reconnect();
+			return bKeep;
 		}
 	};
 
