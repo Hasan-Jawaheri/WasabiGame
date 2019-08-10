@@ -1,0 +1,144 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\src\WasabiGame\GameStates\BaseState.cpp">
+      <Filter>src\WasabiGame\GameStates</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\src\WasabiGame\GameStates\Intro.cpp">
+      <Filter>src\WasabiGame\GameStates</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\src\WasabiGame\GameStates\Menu.cpp">
+      <Filter>src\WasabiGame\GameStates</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\src\WasabiGame\Main.cpp">
+      <Filter>src\WasabiGame</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\src\WasabiGame\Maps\Map.cpp">
+      <Filter>src\WasabiGame\Maps</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\src\WasabiGame\Maps\MapLoader.cpp">
+      <Filter>src\WasabiGame\Maps</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\src\WasabiGame\ResourceManager\ResourceManager.cpp">
+      <Filter>src\WasabiGame\ResourceManager</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\src\WasabiGame\UI\GeneralControls\ErrorBox.cpp">
+      <Filter>src\WasabiGame\UI\GeneralControls</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\src\WasabiGame\UI\InputControls\MenuButton.cpp">
+      <Filter>src\WasabiGame\UI\InputControls</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\src\WasabiGame\UI\UI.cpp">
+      <Filter>src\WasabiGame\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\src\WasabiGame\Units\AI.cpp">
+      <Filter>src\WasabiGame\Units</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\src\WasabiGame\Units\Units.cpp">
+      <Filter>src\WasabiGame\Units</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\src\WasabiGame\Units\UnitsManager.cpp">
+      <Filter>src\WasabiGame\Units</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\include\WasabiGame\GameStates\BaseState.hpp">
+      <Filter>include\WasabiGame\GameStates</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\include\WasabiGame\GameStates\Intro.hpp">
+      <Filter>include\WasabiGame\GameStates</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\include\WasabiGame\GameStates\Menu.hpp">
+      <Filter>include\WasabiGame\GameStates</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\include\WasabiGame\Main.hpp">
+      <Filter>include\WasabiGame</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\include\WasabiGame\Maps\Map.hpp">
+      <Filter>include\WasabiGame\Maps</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\include\WasabiGame\Maps\MapLoader.hpp">
+      <Filter>include\WasabiGame\Maps</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\include\WasabiGame\ResourceManager\ResourceManager.hpp">
+      <Filter>include\WasabiGame\ResourceManager</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\include\WasabiGame\UI\GeneralControls\ErrorBox.hpp">
+      <Filter>include\WasabiGame\UI\GeneralControls</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\include\WasabiGame\UI\InputControls\MenuButton.hpp">
+      <Filter>include\WasabiGame\UI\InputControls</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\include\WasabiGame\UI\UI.hpp">
+      <Filter>include\WasabiGame\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\include\WasabiGame\Units\AI.hpp">
+      <Filter>include\WasabiGame\Units</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\include\WasabiGame\Units\Units.hpp">
+      <Filter>include\WasabiGame\Units</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\include\WasabiGame\Units\UnitsManager.hpp">
+      <Filter>include\WasabiGame\Units</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Hasan Al-Jawaheri\source\repos\WasabiGame\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{736B5F9D-2A48-3B2B-A8D8-D44CB380BB8E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\WasabiGame">
+      <UniqueIdentifier>{F5AC890C-601D-336B-A262-93151D870071}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\WasabiGame\GameStates">
+      <UniqueIdentifier>{1B3E7CDB-0890-30F1-AD2A-A5D2976659B2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\WasabiGame\Maps">
+      <UniqueIdentifier>{37E9BAEE-F6BE-3D24-AD6F-DB208FFF810C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\WasabiGame\ResourceManager">
+      <UniqueIdentifier>{A7786B67-2BC3-373D-B335-82A287C08AE4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\WasabiGame\UI">
+      <UniqueIdentifier>{702AACAD-F682-326F-AF6D-61DAE3ABD987}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\WasabiGame\UI\GeneralControls">
+      <UniqueIdentifier>{BFF6084D-2122-3341-A92C-7095B9A0FF4B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\WasabiGame\UI\InputControls">
+      <UniqueIdentifier>{E25D7E2B-FE51-3701-9E09-68BF2B56DF7E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\WasabiGame\Units">
+      <UniqueIdentifier>{883A059A-1DB7-3F54-A236-78111F0157C3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{370E4D8C-EA75-3062-A23C-BAE837227DCA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\WasabiGame">
+      <UniqueIdentifier>{B8E6851A-08FC-3679-BF90-320FD287C015}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\WasabiGame\GameStates">
+      <UniqueIdentifier>{E0E3DEFF-90C7-3F9D-80F2-AA2F0BAFF7AA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\WasabiGame\Maps">
+      <UniqueIdentifier>{DFF3402D-AAF2-304E-AD2E-59DB604A48B7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\WasabiGame\ResourceManager">
+      <UniqueIdentifier>{0CC7ED5B-4492-3578-A2B1-C309711EBD2E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\WasabiGame\UI">
+      <UniqueIdentifier>{61F1D196-B5F9-32F1-A431-B5C0C835CCC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\WasabiGame\UI\GeneralControls">
+      <UniqueIdentifier>{8320D7AC-A732-3DEB-BB4F-CC4514EFAE66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\WasabiGame\UI\InputControls">
+      <UniqueIdentifier>{08B6E348-A1C0-3BF2-B00C-729AB35B47F2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\WasabiGame\Units">
+      <UniqueIdentifier>{FD6A2FD9-AE55-3FAC-B03A-138118F5EE1A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
