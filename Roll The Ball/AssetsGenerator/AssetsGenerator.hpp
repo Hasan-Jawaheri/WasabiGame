@@ -3,6 +3,9 @@
 #include <Wasabi.h>
 #include <Physics/Bullet/WBulletPhysics.h>
 
+#include <filesystem>
+typedef std::experimental::filesystem::path stdpath;
+
 #include "Maps/Test.hpp"
 
 class WasabiGenerator : public Wasabi {
@@ -38,11 +41,13 @@ public:
 class AssetGenerator {
 	Wasabi* m_app;
 	WFile* m_resourcesFile;
+	std::string m_outputFolder;
 
 public:
-	AssetGenerator() {
+	AssetGenerator(std::string outputFolder = "Media/") {
 		m_app = new WasabiGenerator();
 		m_resourcesFile = nullptr;
+		m_outputFolder = outputFolder;
 	}
 
 	~AssetGenerator() {
@@ -92,7 +97,7 @@ public:
 
 	bool GenerateMap(std::string mapName, std::function<bool(Wasabi*, WFile*)> generator) {
 		WFile mapFile(m_app);
-		if (!CreateAndOpenFile(&mapFile, "Media/Maps/" + mapName + ".WSBI"))
+		if (!CreateAndOpenFile(&mapFile, (stdpath(m_outputFolder) / stdpath("Maps") / stdpath(mapName + ".WSBI")).string()))
 			return false;
 
 		bool b = generator(m_app, &mapFile);
@@ -107,7 +112,7 @@ public:
 		m_resourcesFile = new WFile(m_app);
 
 		return
-			CreateAndOpenFile(m_resourcesFile, "Media/resources.WSBI") &&
+			CreateAndOpenFile(m_resourcesFile, (stdpath(m_outputFolder) / stdpath("resources.WSBI")).string()) &&
 			GeneratePlayer() &&
 			GenerateMap("test", GenerateTestMap);
 	}

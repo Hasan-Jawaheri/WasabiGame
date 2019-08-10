@@ -29,6 +29,10 @@ namespace HBUtils {
 			m_isRunning = false;
 		}
 
+		bool IsRunning() {
+			return m_isRunning;
+		}
+
 		virtual void Run() = 0;
 	};
 

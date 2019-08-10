@@ -2,21 +2,7 @@
 #include <Wasabi.h>
 #include "Lib/Server.hpp"
 #include "Lib/Client.hpp"
-
-/*
-#include <Wasabi.h>
-#include <Physics/Bullet/WBulletPhysics.h>
-
-class PhysicsOnlyWasabi : public Wasabi {
-public:
-	WError Setup() {
-		PhysicsComponent = new WBulletPhysics(this);
-		return WError();
-	}
-	bool Loop(float fDeltaTime) { return true; }
-	void Cleanup() {}
-};
-*/
+#include "Simulation/Simulation.hpp"
 
 void RedirectIOToConsole() {
 #ifdef _WIN32
@@ -33,8 +19,11 @@ Wasabi* WInitialize() {
 	RedirectIOToConsole();
 
 	RPGNet::ServerT<RPGNet::Client> server;
+	RPGNet::ServerSimulation* simulation = new RPGNet::ServerSimulation(&server);
+	server.Scheduler.LaunchThread("simulation-thread", [simulation]() {
+		simulation->Run();
+		delete simulation;
+	});
 	server.Run();
-
-	RunWasabi(nullptr); // this forces the linker to find WinMain in WCore.cpp in Wasabi.lib...
 	return nullptr;
 }

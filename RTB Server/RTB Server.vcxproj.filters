@@ -2,6 +2,9 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Simulation\Simulation.cpp">
+      <Filter>Simulation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lib\Client.hpp">
@@ -25,6 +28,9 @@
     <ClInclude Include="Lib\Utilities\Scheduler.hpp">
       <Filter>Lib\Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Simulation\Simulation.hpp">
+      <Filter>Simulation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Lib">
@@ -32,6 +38,9 @@
     </Filter>
     <Filter Include="Lib\Utilities">
       <UniqueIdentifier>{56cddbe8-1d03-4529-8422-05005a90c148}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Simulation">
+      <UniqueIdentifier>{40c3ad1b-cee0-4930-9d5d-723dcfc162a6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

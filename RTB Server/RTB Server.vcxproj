@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Simulation\Simulation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lib\Client.hpp" />
@@ -29,6 +30,7 @@
     <ClInclude Include="Lib\Utilities\Config.hpp" />
     <ClInclude Include="Lib\Utilities\Scheduler.hpp" />
     <ClInclude Include="Lib\Utilities\Semaphore.hpp" />
+    <ClInclude Include="Simulation\Simulation.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
