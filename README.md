@@ -3,7 +3,7 @@ Game showcase for the Wasabi Engine. This is a WIP port for [this older version,
 
 # Building
 This project uses the CMake build system.
-- Clone and build [Wasabi]()
+- Clone and build [Wasabi](https://github.com/Hasan-Jawaheri/Wasabi) and make sure Vulkan is installed.
 - Run
 ```bash
 mkdir build
