@@ -1,4 +1,6 @@
 #include "WasabiGame/GameStates/BaseState.hpp"
+#include "WasabiGame/Main.hpp"
+#include "WasabiGame/UI/UI.hpp"
 
 BaseState::BaseState(Wasabi* app) : WGameState(app) {
 }
@@ -7,50 +9,50 @@ BaseState::~BaseState() {
 }
 
 void BaseState::OnKeyDown(char c) {
-	if (UserInterface::GetFocus()) {
-		if (UserInterface::GetFocus()->OnInput())
-			UserInterface::GetFocus()->OnKeydown(c);
+	if (((WasabiRPG*)m_app)->UI->GetFocus()) {
+		if (((WasabiRPG*)m_app)->UI->GetFocus()->OnInput())
+			((WasabiRPG*)m_app)->UI->GetFocus()->OnKeydown(c);
 		else //if it does not accept input, see if it's parent does
-			if (UserInterface::GetFocus()->GetParent())
-				if (UserInterface::GetFocus()->GetParent()->OnInput())
-					UserInterface::GetFocus()->GetParent()->OnKeydown(c);
+			if (((WasabiRPG*)m_app)->UI->GetFocus()->GetParent())
+				if (((WasabiRPG*)m_app)->UI->GetFocus()->GetParent()->OnInput())
+					((WasabiRPG*)m_app)->UI->GetFocus()->GetParent()->OnKeydown(c);
 	}
 }
 
 void BaseState::OnKeyUp(char c) {
-	if (UserInterface::GetFocus()) {
-		if (UserInterface::GetFocus()->OnInput())
-			UserInterface::GetFocus()->OnKeyup(c);
+	if (((WasabiRPG*)m_app)->UI->GetFocus()) {
+		if (((WasabiRPG*)m_app)->UI->GetFocus()->OnInput())
+			((WasabiRPG*)m_app)->UI->GetFocus()->OnKeyup(c);
 		else //if it does not accept input, see if it's parent does
-			if (UserInterface::GetFocus()->GetParent())
-				if (UserInterface::GetFocus()->GetParent()->OnInput())
-					UserInterface::GetFocus()->GetParent()->OnKeyup(c);
+			if (((WasabiRPG*)m_app)->UI->GetFocus()->GetParent())
+				if (((WasabiRPG*)m_app)->UI->GetFocus()->GetParent()->OnInput())
+					((WasabiRPG*)m_app)->UI->GetFocus()->GetParent()->OnKeyup(c);
 	}
 }
 
 void BaseState::OnMouseDown(W_MOUSEBUTTON button, int mx, int my) {
 	if (button == MOUSE_LEFT) {
-		UIElement* targetElement = UserInterface::GetElementAt(mx, my);
+		UIElement* targetElement = ((WasabiRPG*)m_app)->UI->GetElementAt(mx, my);
 		if (targetElement) {
 			targetElement->OnMouseButton(mx, my, true);
 			if (targetElement->GetSizeX() != 0 && targetElement->GetSizeY() != 0) {
 				bool bGiveFocus = true;
-				if (UserInterface::GetFocus())
-					if (!UserInterface::GetFocus()->OnLoseFocus()) {
+				if (((WasabiRPG*)m_app)->UI->GetFocus())
+					if (!((WasabiRPG*)m_app)->UI->GetFocus()->OnLoseFocus()) {
 						bool bIsChild = false;
-						for (UINT i = 0; i < UserInterface::GetFocus()->GetNumChildren(); i++)
-							if (UserInterface::GetFocus()->GetChild(i) == targetElement)
+						for (UINT i = 0; i < ((WasabiRPG*)m_app)->UI->GetFocus()->GetNumChildren(); i++)
+							if (((WasabiRPG*)m_app)->UI->GetFocus()->GetChild(i) == targetElement)
 								bIsChild = true;
 						if (!bIsChild)
 							bGiveFocus = false;
 					}
 
 				if (targetElement->OnFocus() && bGiveFocus)
-					UserInterface::SetFocus(targetElement);
+					((WasabiRPG*)m_app)->UI->SetFocus(targetElement);
 			}
 		}
 	} else if (button == MOUSE_RIGHT) {
-		UIElement* targetElement = UserInterface::GetElementAt(mx, my);
+		UIElement* targetElement = ((WasabiRPG*)m_app)->UI->GetElementAt(mx, my);
 		if (targetElement)
 			targetElement->OnMouseButton2(mx, my, true);
 	}
@@ -58,14 +60,14 @@ void BaseState::OnMouseDown(W_MOUSEBUTTON button, int mx, int my) {
 
 void BaseState::OnMouseUp(W_MOUSEBUTTON button, int mx, int my) {
 	if (button == MOUSE_LEFT) {
-		UIElement* targetElement = UserInterface::GetElementAt(mx, my);
+		UIElement* targetElement = ((WasabiRPG*)m_app)->UI->GetElementAt(mx, my);
 		if (targetElement) {
 			bool bProcceed = true;
-			if (UserInterface::GetFocus())
-				if (!UserInterface::GetFocus()->OnLoseFocus()) {
+			if (((WasabiRPG*)m_app)->UI->GetFocus())
+				if (!((WasabiRPG*)m_app)->UI->GetFocus()->OnLoseFocus()) {
 					bool bIsChild = false;
-					for (UINT i = 0; i < UserInterface::GetFocus()->GetNumChildren(); i++)
-						if (UserInterface::GetFocus()->GetChild(i) == targetElement)
+					for (UINT i = 0; i < ((WasabiRPG*)m_app)->UI->GetFocus()->GetNumChildren(); i++)
+						if (((WasabiRPG*)m_app)->UI->GetFocus()->GetChild(i) == targetElement)
 							bIsChild = true;
 					if (!bIsChild)
 						bProcceed = false;
@@ -75,22 +77,22 @@ void BaseState::OnMouseUp(W_MOUSEBUTTON button, int mx, int my) {
 				targetElement->OnMouseButton(mx, my, false);
 		}
 	} else if (button == MOUSE_RIGHT) {
-		UIElement* targetElement = UserInterface::GetElementAt(mx, my);
+		UIElement* targetElement = ((WasabiRPG*)m_app)->UI->GetElementAt(mx, my);
 		if (targetElement)
 			targetElement->OnMouseButton2(mx, my, false);
 	}
 }
 
 void BaseState::OnMouseMove(int mx, int my) {
-	UIElement* targetElement = UserInterface::GetElementAt(mx, my);
+	UIElement* targetElement = ((WasabiRPG*)m_app)->UI->GetElementAt(mx, my);
 	if (targetElement)
 		targetElement->OnMouseMove(mx, my);
 }
 
 void BaseState::OnInput(char c) {
-	if (UserInterface::GetFocus()) {
+	if (((WasabiRPG*)m_app)->UI->GetFocus()) {
 		// give input to the focus or the first ancestor that accepts input
-		UIElement* target_element = UserInterface::GetFocus();
+		UIElement* target_element = ((WasabiRPG*)m_app)->UI->GetFocus();
 		do {
 			if (target_element->OnInput())
 				break;
@@ -132,12 +134,12 @@ void BaseState::OnInput(char c) {
 							if (focusIndex != -1) {
 								if (cur_child->OnTab()) {
 									if (cur_child->OnFocus())
-										UserInterface::SetFocus(cur_child);
+										((WasabiRPG*)m_app)->UI->SetFocus(cur_child);
 									break;
 								}
 							}
 
-							if (cur_child == UserInterface::GetFocus())
+							if (cur_child == ((WasabiRPG*)m_app)->UI->GetFocus())
 								focusIndex = i;
 						}
 					}

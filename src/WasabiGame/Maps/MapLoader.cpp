@@ -1,8 +1,10 @@
 #include "WasabiGame/Maps/MapLoader.hpp"
-#include "WasabiGame/ResourceManager/ResourceManager.hpp"
 
-Map* MapLoader::m_currentMap = nullptr;
-std::unordered_map<uint, std::function<class Map* ()>> MapLoader::m_mapGenerators;
+MapLoader::MapLoader(Wasabi* app, ResourceManager* resourceManager) {
+	m_app = app;
+	m_resourceManager = resourceManager;
+	m_currentMap = nullptr;
+}
 
 void MapLoader::RegisterMap(uint id, std::function<class Map* ()> mapGenerator) {
 	m_mapGenerators.insert(std::make_pair(id, mapGenerator));
@@ -23,10 +25,10 @@ void MapLoader::SetMap(uint mapId) {
 
 	if (m_currentMap) {
 		Map::MAP_DESCRIPTION desc = m_currentMap->GetDescription();
-		ResourceManager::LoadMapFile(desc.mapFilename);
+		m_resourceManager->LoadMapFile(desc.mapFilename);
 		m_currentMap->OnLoaded();
 	} else
-		ResourceManager::LoadMapFile("");
+		m_resourceManager->LoadMapFile("");
 }
 
 void MapLoader::Update(float fDeltaTime) {

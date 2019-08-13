@@ -2,7 +2,7 @@
 
 const char* BallUnit::modelName = "small-ball";
 
-BallUnit::BallUnit() : Unit() {
+BallUnit::BallUnit(Wasabi* app, ResourceManager* resourceManager) : Unit(app, resourceManager) {
 	m_state.isGrounded = false;
 	m_state.didDash = true;
 	m_state.jumpDirection = WVector3(0.0f, 0.0f, 0.0f);
@@ -25,7 +25,7 @@ bool BallUnit::IsOnGround() const {
 void BallUnit::Update(float fDeltaTime) {
 	WRigidBody* rb = RB();
 	WVector3 rbPos = O()->GetPosition();
-	m_state.isGrounded = APPHANDLE->PhysicsComponent->RayCast(rbPos + WVector3(0.0f, -0.98f, 0.0f), rbPos + WVector3(0.0f, -1.2f, 0.0f));
+	m_state.isGrounded = m_app->PhysicsComponent->RayCast(rbPos + WVector3(0.0f, -0.98f, 0.0f), rbPos + WVector3(0.0f, -1.2f, 0.0f));
 
 	if (m_state.isGrounded)
 		rb->SetLinearDamping(0.8f);

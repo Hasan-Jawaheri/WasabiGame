@@ -11,6 +11,8 @@ class Player : public BallUnit {
 	WVector3 m_cameraPivot;
 	float m_yaw, m_pitch, m_dist;
 	bool m_draggingCamera;
+	bool m_mouseHidden;
+	int m_lastMouseX, m_lastMouseY;
 
 	void ApplyMousePivot();
 
@@ -22,7 +24,7 @@ public:
 
 	static const char* modelName;
 
-	Player();
+	Player(Wasabi* app, ResourceManager* resourceManager);
 	virtual ~Player();
 
 	void BeginDragCamera();

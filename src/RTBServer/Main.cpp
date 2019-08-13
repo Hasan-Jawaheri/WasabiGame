@@ -7,20 +7,7 @@
 
 #include "RTBServer/Simulation/Simulation.hpp"
 
-void RedirectIOToConsole() {
-#ifdef _WIN32
-	// allocate a console for this app
-	AllocConsole();
-
-	FILE *scout, *scin;
-	freopen_s(&scout, "CONOUT$", "w", stdout);
-	freopen_s(&scin, "CONIN$", "r", stdin);
-#endif
-}
-
-Wasabi* WInitialize() {
-	RedirectIOToConsole();
-
+void RunRTBServer() {
 	RPGNet::ServerT<RPGNet::Client> server;
 
 	RPGNet::ServerSimulation* simulation = new RPGNet::ServerSimulation(&server);
@@ -46,5 +33,4 @@ Wasabi* WInitialize() {
 	});
 
 	server.Run();
-	return nullptr;
 }

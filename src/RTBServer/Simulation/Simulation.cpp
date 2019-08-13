@@ -15,10 +15,15 @@ class SimulationWasabi : public Wasabi {
 
 	float fYaw, fPitch, fDist;
 	WVector3 vPos;
+	bool bMouseHidden;
+	int lastX, lastY;
 
 	std::unordered_map<uint32_t, WBulletRigidBody*> m_rigidBodies;
 
 public:
+	ResourceManager* Resources;
+	MapLoader* Maps;
+
 	SimulationWasabi(RPGNet::ServerSimulation* simulation, RPGNet::Server* server) : Wasabi() {
 		m_simulationThread = simulation;
 		m_server = server;
@@ -26,6 +31,10 @@ public:
 		fYaw = 0;
 		fPitch = 30;
 		fDist = -15;
+		bMouseHidden = false;
+
+		Resources = new ResourceManager(this);
+		Maps = new MapLoader(this, Resources);
 	}
 
 	WError Setup() {
@@ -38,15 +47,15 @@ public:
 		PhysicsComponent = new WBulletPhysics(this);
 		PhysicsComponent->Initialize();
 
-		status = ResourceManager::Init("Media/RollTheBall");
+		status = Resources->Init("Media/RollTheBall");
 		if (!status) {
 			WindowAndInputComponent->ShowErrorMessage("Failed to initialize the resource manager");
 			return status;
 		}
 
-		SetupRTBMaps();
+		SetupRTBMaps(Maps);
 
-		MapLoader::SetMap(MAP_TEST);
+		Maps->SetMap(MAP_TEST);
 
 		return status;
 	}
@@ -57,20 +66,19 @@ public:
 	}
 
 	void Cleanup() {
+		W_SAFE_DELETE(Maps);
+		W_SAFE_DELETE(Resources);
 	}
-
 
 	void ApplyMousePivot() {
 		WCamera* cam = CameraManager->GetDefaultCamera();
-		static bool bMouseHidden = false;
-		static int lx, ly;
 		if (WindowAndInputComponent->MouseClick(MOUSE_LEFT)) {
 			if (!bMouseHidden) {
 				WindowAndInputComponent->ShowCursor(false);
 				bMouseHidden = true;
 
-				lx = WindowAndInputComponent->MouseX(MOUSEPOS_DESKTOP, 0);
-				ly = WindowAndInputComponent->MouseY(MOUSEPOS_DESKTOP, 0);
+				lastX = WindowAndInputComponent->MouseX(MOUSEPOS_DESKTOP, 0);
+				lastY = WindowAndInputComponent->MouseY(MOUSEPOS_DESKTOP, 0);
 
 				WindowAndInputComponent->SetMousePosition(640 / 2, 480 / 2, MOUSEPOS_VIEWPORT);
 			}
@@ -96,7 +104,7 @@ public:
 				WindowAndInputComponent->ShowCursor(true);
 				bMouseHidden = false;
 
-				WindowAndInputComponent->SetMousePosition(lx, ly, MOUSEPOS_DESKTOP);
+				WindowAndInputComponent->SetMousePosition(lastX, lastY, MOUSEPOS_DESKTOP);
 			}
 		}
 
@@ -124,7 +132,6 @@ void RPGNet::ServerSimulation::Run() {
 	}
 
 	SimulationWasabi* wasabi = new SimulationWasabi(this, m_server);
-	APPHANDLE = wasabi;
 	RunWasabi(wasabi);
 	delete wasabi;
 }

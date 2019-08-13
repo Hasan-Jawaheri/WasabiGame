@@ -1,7 +1,9 @@
 #include "WasabiGame/Units/UnitsManager.hpp"
 
-std::unordered_map<uint, std::function<class Unit* ()>> UnitsManager::m_unitGenerators;
-std::unordered_map<uint, std::pair<uint, Unit*>> UnitsManager::m_units;
+UnitsManager::UnitsManager(Wasabi* app, ResourceManager* resourceManager) {
+	m_app = app;
+	m_resourceManager = resourceManager;
+}
 
 void UnitsManager::RegisterUnit(uint id, std::function<class Unit* ()> unitGenerator) {
 	m_unitGenerators.insert(std::make_pair(id, unitGenerator));
@@ -38,5 +40,12 @@ void UnitsManager::DestroyUnit(Unit* unit) {
 void UnitsManager::Update(float fDeltaTime) {
 	for (auto unit : m_units)
 		unit.second.second->Update(fDeltaTime);
+}
+
+void UnitsManager::Cleanup() {
+	for (auto unit : m_units)
+		delete unit.second.second;
+	m_units.clear();
+	ResetUnits();
 }
 

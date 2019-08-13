@@ -5,6 +5,8 @@
 class UIElement {
 	friend class UserInterface;
 
+	class UserInterface* m_UI;
+
 	UIElement* m_parent;
 	std::vector<UIElement*> m_children;
 	bool m_is_loaded;
@@ -16,7 +18,7 @@ protected:
 	std::string m_input_buffer;
 
 public:
-	UIElement();
+	UIElement(class UserInterface* ui);
 	virtual ~UIElement();
 
 	UIElement* GetParent() const;
@@ -57,23 +59,26 @@ public:
 };
 
 class UserInterface {
-	static std::unordered_map<UIElement*, bool> UI;
-	static UIElement* focus;
+	Wasabi* m_app;
+
+	std::unordered_map<UIElement*, bool> UI;
+	UIElement* focus;
 
 public:
+	UserInterface(Wasabi* app);
 
-	static WError Init(Wasabi* app);
-	static void Update(float fDeltaTime);
-	static void Terminate();
-	static void Load(Wasabi* app);
-	static void SetFade(float fFade);
-	static void OnResize(UINT width, UINT height);
-	static UIElement* PrintError(Wasabi* const app, std::string errorMessage);
-	static void AddUIElement(UIElement* element, UIElement* parent);
-	static void RemoveUIElement(UIElement* element);
-	static void SetFocus(UIElement* element);
-	static UIElement* GetFocus();
-	static UIElement* GetElementAt(int mx, int my);
+	WError Init(Wasabi* app);
+	void Update(float fDeltaTime);
+	void Terminate();
+	void Load(Wasabi* app);
+	void SetFade(float fFade);
+	void OnResize(UINT width, UINT height);
+	UIElement* PrintError(Wasabi* const app, std::string errorMessage);
+	void AddUIElement(UIElement* element, UIElement* parent);
+	void RemoveUIElement(UIElement* element);
+	void SetFocus(UIElement* element);
+	UIElement* GetFocus();
+	UIElement* GetElementAt(int mx, int my);
 };
 
 template<typename PSType>

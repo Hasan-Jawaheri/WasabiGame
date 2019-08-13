@@ -7,4 +7,4 @@ enum MAP_NAME {
 	MAP_TEST = 1,
 };
 
-void SetupRTBMaps();
+void SetupRTBMaps(MapLoader* loader);

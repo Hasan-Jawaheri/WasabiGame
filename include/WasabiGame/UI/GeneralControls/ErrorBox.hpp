@@ -8,7 +8,7 @@ class ErrorBox : public UIElement {
 	bool m_is_click;
 
 public:
-	ErrorBox(std::string error);
+	ErrorBox(UserInterface* ui, std::string error);
 	~ErrorBox() {}
 
 	virtual void Load(Wasabi* const app);
@@ -32,6 +32,6 @@ public:
 
 class ErrorButton : public MenuButton {
 public:
-	ErrorButton(std::string text) : MenuButton(text) {};
+	ErrorButton(UserInterface* ui, std::string text) : MenuButton(ui, text) {};
 	virtual int GetPosZ() const { return 10; }
 };

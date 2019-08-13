@@ -8,7 +8,7 @@ class MenuButton : public UIElement {
 	bool m_is_clicked;
 
 public:
-	MenuButton(std::string text);
+	MenuButton(UserInterface* ui, std::string text);
 	~MenuButton();
 
 	virtual void Load(Wasabi* const app);

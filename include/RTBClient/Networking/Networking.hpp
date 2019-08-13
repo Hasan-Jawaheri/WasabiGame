@@ -44,6 +44,4 @@ namespace RTBNet {
 	enum UpdateTypeEnum {
 		UPDATE_TYPE_UNIT = 1,
 	};
-
-	extern RTBClientNetworking* gRTBNetworking;
 };

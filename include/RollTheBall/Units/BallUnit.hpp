@@ -17,7 +17,7 @@ public:
 
 	static const char* modelName;
 
-	BallUnit();
+	BallUnit(Wasabi* app, ResourceManager* resourceManager);
 	virtual ~BallUnit();
 
 	struct {

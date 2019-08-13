@@ -10,10 +10,10 @@ struct LOADED_MODEL {
 };
 
 class ResourceManager {
+	Wasabi* m_app;
+	std::string m_mediaFolder;
 
-	static std::string m_mediaFolder;
-
-	static struct MAP_RESOURCES {
+	struct MAP_RESOURCES {
 		WFile* mapFile;
 		std::vector<LOADED_MODEL> loadedAssets;
 		std::vector<WLight*> loadedLights;
@@ -21,7 +21,7 @@ class ResourceManager {
 		void Cleanup();
 	} m_mapResources;
 
-	static struct GENERAL_RESOURCES {
+	struct GENERAL_RESOURCES {
 		WFile* assetsFile;
 		std::unordered_map<LOADED_MODEL*, std::string> loadedAssets;
 
@@ -29,13 +29,15 @@ class ResourceManager {
 	} m_generalResources;
 
 public:
-	static WError Init(std::string mediaFolder);
-	static void Cleanup();
+	ResourceManager(Wasabi* app);
 
-	static void LoadMapFile(std::string mapFilename);
+	WError Init(std::string mediaFolder);
+	void Cleanup();
 
-	static LOADED_MODEL* LoadUnitModel(std::string unitName);
-	static void DestroyUnitModel(LOADED_MODEL* model);
+	void LoadMapFile(std::string mapFilename);
+
+	LOADED_MODEL* LoadUnitModel(std::string unitName);
+	void DestroyUnitModel(LOADED_MODEL* model);
 };
 
 

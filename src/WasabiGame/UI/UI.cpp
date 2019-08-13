@@ -1,14 +1,17 @@
 #include "WasabiGame/UI/UI.hpp"
 #include "WasabiGame/UI/GeneralControls/ErrorBox.hpp"
 
-UIElement::UIElement() {
+UIElement::UIElement(UserInterface* ui) {
+	m_UI = ui;
+	m_parent = nullptr;
 	m_sprite = nullptr;
 	m_material = nullptr;
 	m_is_loaded = false;
+	m_alpha = 1.0f;
 }
 
 UIElement::~UIElement() {
-	UserInterface::RemoveUIElement(this);
+	m_UI->RemoveUIElement(this);
 
 	W_SAFE_REMOVEREF(m_sprite);
 }
@@ -70,8 +73,11 @@ UINT UIElement::GetNumChildren() const {
 	return m_children.size();
 }
 
-std::unordered_map<UIElement*, bool> UserInterface::UI;
-UIElement* UserInterface::focus = nullptr;
+
+UserInterface::UserInterface(Wasabi* app) {
+	m_app = app;
+	focus = nullptr;
+}
 
 WError UserInterface::Init(Wasabi* app) {
 	WError err = app->TextComponent->CreateTextFont(FONT_CALIBRI_16, "Calibri");
@@ -84,8 +90,8 @@ WError UserInterface::Init(Wasabi* app) {
 }
 
 UIElement* UserInterface::PrintError(Wasabi* const app, std::string error_message) {
-	ErrorBox* errBox = new ErrorBox(error_message);
-	MenuButton* errorButton = new ErrorButton("Ok");
+	ErrorBox* errBox = new ErrorBox(this, error_message);
+	MenuButton* errorButton = new ErrorButton(this, "Ok");
 	AddUIElement(errBox, nullptr);
 	AddUIElement(errorButton, errBox);
 	Load(app);

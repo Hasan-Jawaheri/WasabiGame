@@ -18,7 +18,7 @@ public:
 	}
 };
 
-MenuButton::MenuButton(std::string text) {
+MenuButton::MenuButton(UserInterface* ui, std::string text) : UIElement(ui) {
 	m_text = text;
 	m_is_clicked = false;
 }

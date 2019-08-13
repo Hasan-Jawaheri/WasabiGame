@@ -1,16 +1,23 @@
 #pragma once
 
+#include "Common.hpp"
 #include "WasabiGame/Maps/Map.hpp"
+#include "WasabiGame/ResourceManager/ResourceManager.hpp"
 
 class MapLoader {
-	static class Map* m_currentMap;
-	static std::unordered_map<uint, std::function<class Map* ()>> m_mapGenerators;
+	Wasabi* m_app;
+	ResourceManager* m_resourceManager;
+
+	class Map* m_currentMap;
+	std::unordered_map<uint, std::function<class Map* ()>> m_mapGenerators;
 
 public:
-	static void RegisterMap(uint id, std::function<class Map*()> mapGenerator);
-	static void ResetMaps();
+	MapLoader(Wasabi* app, ResourceManager* resourceManager);
 
-	static void SetMap(uint mapId);
-	static void Update(float fDeltaTime);
-	static void Cleanup();
+	void RegisterMap(uint id, std::function<class Map*()> mapGenerator);
+	void ResetMaps();
+
+	void SetMap(uint mapId);
+	void Update(float fDeltaTime);
+	void Cleanup();
 };

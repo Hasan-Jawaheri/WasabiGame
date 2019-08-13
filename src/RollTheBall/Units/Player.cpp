@@ -2,8 +2,8 @@
 
 const char* Player::modelName = "player";
 
-Player::Player() {
-	m_camera = APPHANDLE->CameraManager->GetDefaultCamera();
+Player::Player(Wasabi* app, ResourceManager* resourceManager) : BallUnit(app, resourceManager) {
+	m_camera = m_app->CameraManager->GetDefaultCamera();
 	m_camera->AddReference();
 	m_cameraPivot = WVector3(0.0f, 0.0f, 0.0f);
 
@@ -11,6 +11,7 @@ Player::Player() {
 	m_pitch = 30.0f;
 	m_dist = -10.0f;
 	m_draggingCamera = false;
+	m_mouseHidden = false;
 }
 
 Player::~Player() {
@@ -18,21 +19,19 @@ Player::~Player() {
 }
 
 void Player::ApplyMousePivot() {
-	static bool bMouseHidden = false;
-	static int lx, ly;
 	if (m_draggingCamera) {
-		if (!bMouseHidden) {
-			APPHANDLE->WindowAndInputComponent->ShowCursor(false);
-			bMouseHidden = true;
+		if (!m_mouseHidden) {
+			m_app->WindowAndInputComponent->ShowCursor(false);
+			m_mouseHidden = true;
 
-			lx = APPHANDLE->WindowAndInputComponent->MouseX(MOUSEPOS_DESKTOP, 0);
-			ly = APPHANDLE->WindowAndInputComponent->MouseY(MOUSEPOS_DESKTOP, 0);
+			m_lastMouseX = m_app->WindowAndInputComponent->MouseX(MOUSEPOS_DESKTOP, 0);
+			m_lastMouseY = m_app->WindowAndInputComponent->MouseY(MOUSEPOS_DESKTOP, 0);
 
-			APPHANDLE->WindowAndInputComponent->SetMousePosition(640 / 2, 480 / 2, MOUSEPOS_VIEWPORT);
+			m_app->WindowAndInputComponent->SetMousePosition(640 / 2, 480 / 2, MOUSEPOS_VIEWPORT);
 		}
 
-		int mx = APPHANDLE->WindowAndInputComponent->MouseX(MOUSEPOS_VIEWPORT, 0);
-		int my = APPHANDLE->WindowAndInputComponent->MouseY(MOUSEPOS_VIEWPORT, 0);
+		int mx = m_app->WindowAndInputComponent->MouseX(MOUSEPOS_VIEWPORT, 0);
+		int my = m_app->WindowAndInputComponent->MouseY(MOUSEPOS_VIEWPORT, 0);
 
 		int dx = mx - 640 / 2;
 		int dy = my - 480 / 2;
@@ -46,19 +45,19 @@ void Player::ApplyMousePivot() {
 		m_pitch += (float)dy / 2.0f;
 
 		if (dx || dy)
-			APPHANDLE->WindowAndInputComponent->SetMousePosition(640 / 2, 480 / 2);
+			m_app->WindowAndInputComponent->SetMousePosition(640 / 2, 480 / 2);
 	} else {
-		if (bMouseHidden) {
-			APPHANDLE->WindowAndInputComponent->ShowCursor(true);
-			bMouseHidden = false;
+		if (m_mouseHidden) {
+			m_app->WindowAndInputComponent->ShowCursor(true);
+			m_mouseHidden = false;
 
-			APPHANDLE->WindowAndInputComponent->SetMousePosition(lx, ly, MOUSEPOS_DESKTOP);
+			m_app->WindowAndInputComponent->SetMousePosition(m_lastMouseX, m_lastMouseY, MOUSEPOS_DESKTOP);
 		}
 	}
 
-	float fMouseZ = (float)APPHANDLE->WindowAndInputComponent->MouseZ();
+	float fMouseZ = (float)m_app->WindowAndInputComponent->MouseZ();
 	m_dist += fMouseZ * (abs(m_dist) / 10.0f);
-	APPHANDLE->WindowAndInputComponent->SetMouseZ(0);
+	m_app->WindowAndInputComponent->SetMouseZ(0);
 	m_dist = fmin(-1.0f, m_dist);
 
 	m_camera->SetPosition(m_cameraPivot);
@@ -88,11 +87,6 @@ void Player::Update(float fDeltaTime) {
 	if (camToPlayerDistSquare > 0.05f) {
 		m_cameraPivot = m_cameraPivot + (rbPos - m_cameraPivot) * (camToPlayerDistSquare / 2.0f) * fDeltaTime;
 	}
-
-	/*static std::array<float, 300> Xs;
-	for (uint i = 0; i < Xs.size() - 1; i++)
-		Xs[i] = Xs[i + 1];
-	Xs[Xs.size() - 1] = rbPos.x;*/
 }
 
 PlayerAI::PlayerAI(Unit* unit) : AI(unit) {
@@ -110,18 +104,18 @@ void PlayerAI::Update(float fDeltaTime) {
 	WVector3 right = WVec3TransformNormal(WVector3(1, 0, 0), WRotationMatrixY(W_DEGTORAD(player->m_yaw)));
 
 	WVector3 inputDirection(0, 0, 0);
-	if (APPHANDLE->WindowAndInputComponent->KeyDown('W'))
+	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('W'))
 		inputDirection += direction;
-	if (APPHANDLE->WindowAndInputComponent->KeyDown('S'))
+	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('S'))
 		inputDirection -= direction;
-	if (APPHANDLE->WindowAndInputComponent->KeyDown('A'))
+	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('A'))
 		inputDirection -= right;
-	if (APPHANDLE->WindowAndInputComponent->KeyDown('D'))
+	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('D'))
 		inputDirection += right;
 
 	bool isDirection = WVec3LengthSq(inputDirection) > 0.1f;
 
-	if (!APPHANDLE->WindowAndInputComponent->KeyDown(' '))
+	if (!m_unit->GetApp()->WindowAndInputComponent->KeyDown(' '))
 		m_isJumpKeyDown = true;
 	else if (m_isJumpKeyDown) {
 		m_isJumpKeyDown = false;

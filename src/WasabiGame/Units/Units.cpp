@@ -1,13 +1,12 @@
 #include "WasabiGame/Units/Units.hpp"
 #include "WasabiGame/Units/AI.hpp"
-#include "WasabiGame/ResourceManager/ResourceManager.hpp"
 
-Unit::Unit() : m_model(nullptr), m_AI(nullptr) {
+Unit::Unit(Wasabi* app, ResourceManager* resourceManager) : m_app(app), m_resourceManager(resourceManager), m_model(nullptr), m_AI(nullptr) {
 }
 
 Unit::~Unit() {
 	if (m_model) {
-		ResourceManager::DestroyUnitModel(m_model);
+		m_resourceManager->DestroyUnitModel(m_model);
 		m_model = nullptr;
 	}
 	W_SAFE_DELETE(m_AI);
@@ -15,6 +14,10 @@ Unit::~Unit() {
 
 uint Unit::GetId() const {
 	return m_id;
+}
+
+Wasabi* Unit::GetApp() const {
+	return m_app;
 }
 
 WOrientation* Unit::O() const {
@@ -29,11 +32,11 @@ WRigidBody* Unit::RB() const {
 
 void Unit::LoadModel(std::string modelName) {
 	if (m_model) {
-		ResourceManager::DestroyUnitModel(m_model);
+		m_resourceManager->DestroyUnitModel(m_model);
 		m_model = nullptr;
 	}
 
-	m_model = ResourceManager::LoadUnitModel(modelName);
+	m_model = m_resourceManager->LoadUnitModel(modelName);
 }
 
 void Unit::Update(float fDeltaTime) {

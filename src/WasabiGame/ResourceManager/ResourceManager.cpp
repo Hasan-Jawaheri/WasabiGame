@@ -1,9 +1,12 @@
 #include "WasabiGame/ResourceManager/ResourceManager.hpp"
 #include <Wasabi/Physics/Bullet/WBulletRigidBody.h>
 
-std::string ResourceManager::m_mediaFolder = "";
-ResourceManager::MAP_RESOURCES ResourceManager::m_mapResources = {};
-ResourceManager::GENERAL_RESOURCES ResourceManager::m_generalResources = {};
+ResourceManager::ResourceManager(Wasabi* app) {
+	m_app = app;
+	m_mediaFolder = "";
+	m_mapResources = {};
+	m_generalResources = {};
+}
 
 void ResourceManager::MAP_RESOURCES::Cleanup() {
 	for (auto asset : loadedAssets) {
@@ -40,10 +43,10 @@ WError ResourceManager::Init(std::string mediaFolder) {
 		m_mediaFolder += '/';
 
 	m_generalResources.Cleanup();
-	m_generalResources.assetsFile = new WFile(APPHANDLE);
+	m_generalResources.assetsFile = new WFile(m_app);
 	WError err = m_generalResources.assetsFile->Open(m_mediaFolder + "resources.WSBI");
 	if (!err) {
-		APPHANDLE->WindowAndInputComponent->ShowErrorMessage("Failed to load resources: " + err.AsString());
+		m_app->WindowAndInputComponent->ShowErrorMessage("Failed to load resources: " + err.AsString());
 		Cleanup();
 	}
 
@@ -60,10 +63,10 @@ void ResourceManager::LoadMapFile(std::string mapFilename) {
 
 	if (mapFilename != "") {
 		std::string fullMapFilename = m_mediaFolder + "Maps/" + mapFilename + ".WSBI";
-		m_mapResources.mapFile = new WFile(APPHANDLE);
+		m_mapResources.mapFile = new WFile(m_app);
 		WError err = m_mapResources.mapFile->Open(fullMapFilename);
 		if (!err) {
-			APPHANDLE->WindowAndInputComponent->ShowErrorMessage("Failed to load map: " + err.AsString());
+			m_app->WindowAndInputComponent->ShowErrorMessage("Failed to load map: " + err.AsString());
 			m_mapResources.Cleanup();
 			return;
 		}
@@ -76,7 +79,7 @@ void ResourceManager::LoadMapFile(std::string mapFilename) {
 			if (type == WObject::_GetTypeName()) {
 				LOADED_MODEL asset;
 				WError err = m_mapResources.mapFile->LoadAsset<WObject>(name, &asset.obj, WObject::LoadArgs());
-				asset.rb = APPHANDLE->PhysicsComponent->CreateRigidBody();
+				asset.rb = m_app->PhysicsComponent->CreateRigidBody();
 				err = asset.rb->Create(W_RIGID_BODY_CREATE_INFO::ForComplexObject(asset.obj));
 				if (err) {
 					asset.rb->SetFriction(1.0f);

@@ -3,7 +3,7 @@
 
 template<typename T> Map* MapGen() { return new T(); };
 
-void SetupRTBMaps() {
-	MapLoader::ResetMaps();
-	MapLoader::RegisterMap(MAP_TEST, MapGen<TestMap>);
+void SetupRTBMaps(MapLoader* loader) {
+	loader->ResetMaps();
+	loader->RegisterMap(MAP_TEST, MapGen<TestMap>);
 }

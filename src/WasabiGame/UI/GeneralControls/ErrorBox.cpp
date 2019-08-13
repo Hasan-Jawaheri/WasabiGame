@@ -19,7 +19,7 @@ public:
 	}
 };
 
-ErrorBox::ErrorBox(std::string error) {
+ErrorBox::ErrorBox(UserInterface* ui, std::string error) : UIElement(ui) {
 	m_error_msg = error;
 	m_is_click = false;
 }

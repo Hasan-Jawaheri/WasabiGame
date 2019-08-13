@@ -1,3 +1,4 @@
+#include "WasabiGame/Main.hpp"
 #include "RTBClient/GameStates/Game.hpp"
 
 #include "RollTheBall/Maps/RTBMaps.hpp"
@@ -20,38 +21,38 @@ Game::~Game() {
 
 void Game::Load() {
 	// Setup and load the user interface
-	UserInterface::AddUIElement(m_input = new GameInputHandler(this), nullptr);
-	UIElement* ok = new MenuButton("sure");
-	UIElement* err = new ErrorBox("what??");
-	UserInterface::AddUIElement(err, m_input);
-	UserInterface::AddUIElement(ok, err);
-	UserInterface::Load(m_app);
+	((WasabiRPG*)m_app)->UI->AddUIElement(m_input = new GameInputHandler(this), nullptr);
+	UIElement* ok = new MenuButton(((WasabiRPG*)m_app)->UI, "sure");
+	UIElement* err = new ErrorBox(((WasabiRPG*)m_app)->UI, "what??");
+	((WasabiRPG*)m_app)->UI->AddUIElement(err, m_input);
+	((WasabiRPG*)m_app)->UI->AddUIElement(ok, err);
+	((WasabiRPG*)m_app)->UI->Load(m_app);
 
 	// Load the player
-	m_player = (Player*)UnitsManager::LoadUnit(UNIT_PLAYER, 0); // player always has id 0
+	m_player = (Player*)((WasabiRPG*)m_app)->Units->LoadUnit(UNIT_PLAYER, 0); // player always has id 0
 
 	// Load the map
-	MapLoader::SetMap(MAP_TEST);
+	((WasabiRPG*)m_app)->Maps->SetMap(MAP_TEST);
 }
 
 void Game::Update(float fDeltaTime) {
 }
 
 void Game::Cleanup() {
-	MapLoader::SetMap(MAP_NONE);
+	((WasabiRPG*)m_app)->Maps->SetMap(MAP_NONE);
 }
 
-GameInputHandler::GameInputHandler(class Game* g) {
+GameInputHandler::GameInputHandler(class Game* g) : UIElement(((WasabiRPG*)g->m_app)->UI) {
 	m_game = g;
 }
 
 bool GameInputHandler::OnEnter() {
 	/*
-	if (UserInterface::GetFocus() != (UIElement*)m_game->m_ui.chatEdit) {
+	if (((WasabiRPG*)m_app)->UI->GetFocus() != (UIElement*)m_game->m_ui.chatEdit) {
 		m_game->ui.chatEdit->OnFocus();
-		UserInterface::SetFocus(m_game->m_ui.chatEdit);
+		((WasabiRPG*)m_app)->UI->SetFocus(m_game->m_ui.chatEdit);
 	} else {
-		UserInterface::SetFocus(this);
+		((WasabiRPG*)m_app)->UI->SetFocus(this);
 		char str[512];
 		m_game->ui.chatEdit->GetText(str, 512);
 		if (strlen(str)) {
@@ -169,6 +170,6 @@ void GameInputHandler::OnMouseButton2(int mx, int my, bool bDown) {
 }
 
 bool GameInputHandler::OnEscape() {
-	APPHANDLE->SwitchState(nullptr);
+	m_game->m_app->SwitchState(nullptr);
 	return false;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.hpp"
+#include "WasabiGame/ResourceManager/ResourceManager.hpp"
 
 class Unit {
 	friend class UnitsManager;
@@ -10,7 +11,10 @@ class Unit {
 	uint m_id;
 
 protected:
-	Unit();
+	Wasabi* m_app;
+	ResourceManager* m_resourceManager;
+
+	Unit(Wasabi* app, ResourceManager* resourceManager);
 	virtual ~Unit();
 
 	virtual void Update(float fDeltaTime);
@@ -18,6 +22,7 @@ protected:
 public:
 
 	uint GetId() const;
+	Wasabi* GetApp() const;
 
 	WOrientation* O() const;
 	WRigidBody* RB() const;

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Common.hpp"
-#include "WasabiGame/UI/UI.hpp"
 
 class BaseState : public WGameState {
 

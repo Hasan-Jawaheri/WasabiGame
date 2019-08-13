@@ -7,8 +7,6 @@
 #include "WasabiGame/ResourceManager/ResourceManager.hpp"
 #include "WasabiGame/UI/UI.hpp"
 
-Wasabi* APPHANDLE = nullptr;
-
 WasabiRPG::WasabiRPG() : Wasabi() {
 	m_settings.debugVulkan = true;
 	m_settings.debugPhysics = false;
@@ -23,6 +21,11 @@ WasabiRPG::WasabiRPG() : Wasabi() {
 	m_settings.screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	m_settings.fullscreen = true;
 #endif
+
+	Resources = new ResourceManager(this);
+	UI = new UserInterface(this);
+	Maps = new MapLoader(this, Resources);
+	Units = new UnitsManager(this, Resources);
 }
 
 WError WasabiRPG::Setup() {
@@ -41,9 +44,9 @@ WError WasabiRPG::Setup() {
 		WindowAndInputComponent->DisableEscapeKeyQuit();
 		CameraManager->GetDefaultCamera()->SetRange(1, 1000);
 
-		err = ResourceManager::Init(m_settings.mediaFolder);
+		err = Resources->Init(m_settings.mediaFolder);
 		if (err) {
-			err = UserInterface::Init(this);
+			err = UI->Init(this);
 
 			if (err) {
 				SwitchToInitialState();
@@ -68,9 +71,9 @@ bool WasabiRPG::Loop(float fDeltaTime) {
 
 	if (curState) { // we only need this because we destroy state in the windows callback
 		fDeltaTime = fmin(fDeltaTime, 1.0f / 15.0f);
-		UserInterface::Update(fDeltaTime);
-		MapLoader::Update(fDeltaTime);
-		UnitsManager::Update(fDeltaTime);
+		UI->Update(fDeltaTime);
+		Maps->Update(fDeltaTime);
+		Units->Update(fDeltaTime);
 	}
 
 	// a null state means exit
@@ -78,13 +81,19 @@ bool WasabiRPG::Loop(float fDeltaTime) {
 }
 
 void WasabiRPG::Cleanup() {
-	UserInterface::Terminate();
-	MapLoader::Cleanup();
-	ResourceManager::Cleanup();
+	UI->Terminate();
+	Maps->Cleanup();
+	Units->Cleanup();
+	Resources->Cleanup();
+
+	W_SAFE_DELETE(UI);
+	W_SAFE_DELETE(Maps);
+	W_SAFE_DELETE(Units);
+	W_SAFE_DELETE(Resources);
 }
 
 WError WasabiRPG::Resize(unsigned int width, unsigned int height) {
-	UserInterface::OnResize(width, height);
+	UI->OnResize(width, height);
 	return Wasabi::Resize(width, height);
 }
 

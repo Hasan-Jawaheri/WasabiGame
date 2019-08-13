@@ -1,4 +1,5 @@
-#include "RTBClient/Networking/Networking.hpp"
+#include <WinSock2.h>
+#include "RTBClient/Main.hpp"
 
 #include "WasabiGame/Main.hpp"
 #include "WasabiGame/GameStates/Intro.hpp"
@@ -9,55 +10,42 @@
 
 #include "RollTheBall/AssetsGenerator/AssetsGenerator.hpp"
 
-#include <thread>
-
 #define GENERATE_ASSETS true
 
-RTBNet::RTBClientNetworking* gRTBNetworking;
+RTB::RTB() : WasabiRPG() {
+	m_settings.debugVulkan = true;
+	m_settings.debugPhysics = true;
+	m_settings.fullscreen = false;
+	m_settings.mediaFolder = "Media/RollTheBall";
 
-class RTB : public WasabiRPG {
-
-public:
-	RTB() : WasabiRPG() {
-		m_settings.debugVulkan = true;
-		m_settings.debugPhysics = true;
-		m_settings.fullscreen = false;
-		m_settings.mediaFolder = "Media/RollTheBall";
-
-		if (GENERATE_ASSETS) {
-			if (!AssetGenerator(m_settings.mediaFolder).Generate())
-				return;
-		}
-
-		gRTBNetworking = new RTBNet::RTBClientNetworking();
-		gRTBNetworking->Initialize();
-
-		gRTBNetworking->RegisterNetworkUpdateCallback(RTBNet::UPDATE_TYPE_UNIT, [](RPGNet::NetworkUpdate& update) {
-			uint32_t unitId = update.targetId;
-			Unit* unit = UnitsManager::GetUnit(unitId);
-		});
+	if (GENERATE_ASSETS) {
+		if (!AssetGenerator(m_settings.mediaFolder).Generate())
+			return;
 	}
 
-	~RTB() {
-		gRTBNetworking->Destroy();
-		delete gRTBNetworking;
-	}
+	RTBNetworking = new RTBNet::RTBClientNetworking();
+	RTBNetworking->Initialize();
 
-	void SwitchToInitialState() {
-		SetupRTBMaps();
-		SetupRTBUnits();
+	RTBNetworking->RegisterNetworkUpdateCallback(RTBNet::UPDATE_TYPE_UNIT, [this](RPGNet::NetworkUpdate& update) {
+		uint32_t unitId = update.targetId;
+		Unit* unit = Units->GetUnit(unitId);
+	});
+}
 
-		PhysicsComponent->SetGravity(0, -40, 0);
+RTB::~RTB() {
+	RTBNetworking->Destroy();
+	delete RTBNetworking;
+}
+
+void RTB::SwitchToInitialState() {
+	SetupRTBMaps(Maps);
+	SetupRTBUnits(Units);
+
+	PhysicsComponent->SetGravity(0, -40, 0);
 
 #ifndef _DEBUG
-		SwitchState(new Intro(this, { "Media/RollTheBall/me3.jpg" }, [this]() { return new Menu(this, [this]() { return new Game(this); }); }));
+	SwitchState(new Intro(this, { "Media/RollTheBall/me3.jpg" }, [this]() { return new Menu(this, [this]() { return new Game(this); }); }));
 #else
-		SwitchState(new Game(this));
+	SwitchState(new Game(this));
 #endif
-	}
-};
-
-Wasabi* WInitialize() {
-	APPHANDLE = new RTB();
-	return APPHANDLE;
 }

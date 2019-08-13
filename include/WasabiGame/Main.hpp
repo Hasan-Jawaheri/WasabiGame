@@ -1,6 +1,10 @@
 #pragma once
 
 #include "Common.hpp"
+#include "WasabiGame/ResourceManager/ResourceManager.hpp"
+#include "WasabiGame/UI/UI.hpp"
+#include "WasabiGame/Maps/MapLoader.hpp"
+#include "WasabiGame/Units/UnitsManager.hpp"
 
 class WasabiRPG : public Wasabi {
 protected:
@@ -28,4 +32,9 @@ public:
 	virtual WPhysicsComponent* CreatePhysicsComponent();
 
 	float fCurGameTime;
+
+	ResourceManager* Resources;
+	UserInterface* UI;
+	MapLoader* Maps;
+	UnitsManager* Units;
 };

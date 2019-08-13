@@ -7,4 +7,4 @@ enum UNIT_TYPE {
 	UNIT_TEST_BALL = 1,
 };
 
-void SetupRTBUnits();
+void SetupRTBUnits(UnitsManager* manager);
