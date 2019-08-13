@@ -57,7 +57,7 @@ void Player::ApplyMousePivot() {
 	}
 
 	float fMouseZ = (float)APPHANDLE->WindowAndInputComponent->MouseZ();
-	m_dist += (fMouseZ / 120.0f) * (abs(m_dist) / 10.0f);
+	m_dist += fMouseZ * (abs(m_dist) / 10.0f);
 	APPHANDLE->WindowAndInputComponent->SetMouseZ(0);
 	m_dist = fmin(-1.0f, m_dist);
 

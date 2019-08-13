@@ -1,4 +1,5 @@
-#include "RollTheBall/GameStates/Game.hpp"
+#include "RTBClient/GameStates/Game.hpp"
+
 #include "RollTheBall/Maps/RTBMaps.hpp"
 #include "RollTheBall/Units/RTBUnits.hpp"
 #include "RollTheBall/Units/Player.hpp"
@@ -10,6 +11,7 @@
 #include "WasabiGame/UI/GeneralControls/ErrorBox.hpp"
 
 Game::Game(Wasabi* app) : BaseState(app) {
+	m_input = nullptr;
 	m_player = nullptr;
 }
 
@@ -26,7 +28,7 @@ void Game::Load() {
 	UserInterface::Load(m_app);
 
 	// Load the player
-	m_player = (Player*)UnitsManager::LoadUnit(UNIT_PLAYER);
+	m_player = (Player*)UnitsManager::LoadUnit(UNIT_PLAYER, 0); // player always has id 0
 
 	// Load the map
 	MapLoader::SetMap(MAP_TEST);

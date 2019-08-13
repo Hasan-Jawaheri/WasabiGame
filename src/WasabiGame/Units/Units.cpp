@@ -13,6 +13,10 @@ Unit::~Unit() {
 	W_SAFE_DELETE(m_AI);
 }
 
+uint Unit::GetId() const {
+	return m_id;
+}
+
 WOrientation* Unit::O() const {
 	if (m_model->rb)
 		return m_model->rb;

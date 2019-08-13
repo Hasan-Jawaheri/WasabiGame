@@ -1,9 +1,9 @@
 #pragma once
 
-#include "RTBServer/Lib/Selectable.hpp"
-#include "RTBServer/Lib/Server.hpp"
-#include "RTBServer/Lib/Utilities/Semaphore.hpp"
-#include "RTBServer/Lib/Utilities/CircularBuffer.hpp"
+#include "RollTheBall/Networking/Selectable.hpp"
+#include "RollTheBall/Networking/Server.hpp"
+#include "RollTheBall/Utilities/Semaphore.hpp"
+#include "RollTheBall/Utilities/CircularBuffer.hpp"
 
 #include <WinSock2.h>
 #include <WS2tcpip.h>
@@ -173,9 +173,10 @@ namespace RPGNet {
 
 	class ReconnectingClient : public Client {
 		HBUtils::Semaphore m_connectingSemaphore;
+		std::function<bool(HBUtils::CircularBuffer*)> m_consumeBufferCallback;
 
 	public:
-		ReconnectingClient(class Server* server) : Client(server) {}
+		ReconnectingClient(class Server* server) : Client(server), m_consumeBufferCallback(nullptr) {}
 
 		virtual int Connect(std::string hostname, int port) {
 			m_connectingSemaphore.wait();
@@ -210,6 +211,17 @@ namespace RPGNet {
 			if (!bKeep)
 				Reconnect();
 			return bKeep;
+		}
+
+		virtual bool ConsumeBuffer(HBUtils::CircularBuffer* buffer) {
+			if (m_consumeBufferCallback)
+				return m_consumeBufferCallback(buffer);
+			buffer->start = buffer->end; // instant consume, should be implemented elsewhere
+			return true;
+		}
+
+		void SetConsumeBufferCallback(std::function<bool(HBUtils::CircularBuffer*)> callback) {
+			m_consumeBufferCallback = callback;
 		}
 	};
 

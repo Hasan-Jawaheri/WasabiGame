@@ -1,6 +1,0 @@
-C:/Users/Hasan Al-Jawaheri/source/repos/WasabiGame/build/CMakeFiles/rtb_server.dir
-C:/Users/Hasan Al-Jawaheri/source/repos/WasabiGame/build/CMakeFiles/wasabi_game.dir
-C:/Users/Hasan Al-Jawaheri/source/repos/WasabiGame/build/CMakeFiles/roll_the_ball.dir
-C:/Users/Hasan Al-Jawaheri/source/repos/WasabiGame/build/CMakeFiles/rpg.dir
-C:/Users/Hasan Al-Jawaheri/source/repos/WasabiGame/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/Hasan Al-Jawaheri/source/repos/WasabiGame/build/CMakeFiles/ZERO_CHECK.dir

@@ -5,7 +5,7 @@
 
 class UnitsManager {
 	static std::unordered_map<uint, std::function<class Unit* ()>> m_unitGenerators;
-	static std::unordered_map<class Unit*, uint> m_units;
+	static std::unordered_map<uint, std::pair<uint, class Unit*>> m_units;
 
 public:
 
@@ -20,7 +20,8 @@ public:
 	static void RegisterUnit(uint id, std::function<class Unit* ()> unitGenerator);
 	static void ResetUnits();
 
-	static Unit* LoadUnit(uint type);
+	static Unit* LoadUnit(uint type, uint id);
+	static Unit* GetUnit(uint id);
 	static void DestroyUnit(Unit* unit);
 	static void Update(float fDeltaTime);
 };

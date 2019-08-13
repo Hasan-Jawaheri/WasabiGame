@@ -1,7 +1,8 @@
 #include <WinSock2.h>
 #include <Wasabi/Wasabi.h>
-#include "RTBServer/Lib/Server.hpp"
-#include "RTBServer/Lib/Client.hpp"
+
+#include "RollTheBall/Networking/Server.hpp"
+#include "RollTheBall/Networking/Client.hpp"
 #include "RTBServer/Simulation/Simulation.hpp"
 
 void RedirectIOToConsole() {

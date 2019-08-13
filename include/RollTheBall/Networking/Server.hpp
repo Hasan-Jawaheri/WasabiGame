@@ -4,10 +4,10 @@
 #include <WS2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
 
-#include "RTBServer/Lib/Utilities/Scheduler.hpp"
-#include "RTBServer/Lib/Utilities/Config.hpp"
-#include "RTBServer/Lib/Utilities/Semaphore.hpp"
-#include "RTBServer/Lib/Selectable.hpp"
+#include "RollTheBall/Utilities/Scheduler.hpp"
+#include "RollTheBall/Utilities/Config.hpp"
+#include "RollTheBall/Utilities/Semaphore.hpp"
+#include "RollTheBall/Networking/Selectable.hpp"
 
 #include <unordered_map>
 #include <functional>

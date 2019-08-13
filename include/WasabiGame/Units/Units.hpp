@@ -7,6 +7,7 @@ class Unit {
 
 	struct LOADED_MODEL* m_model;
 	class AI* m_AI;
+	uint m_id;
 
 protected:
 	Unit();
@@ -15,6 +16,8 @@ protected:
 	virtual void Update(float fDeltaTime);
 
 public:
+
+	uint GetId() const;
 
 	WOrientation* O() const;
 	WRigidBody* RB() const;

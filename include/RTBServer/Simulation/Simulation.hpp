@@ -1,7 +1,7 @@
 #pragma once
 
-#include "RTBServer/Lib/Server.hpp"
-#include "RTBServer/Lib/Utilities/Scheduler.hpp"
+#include "RollTheBall/Networking/Server.hpp"
+#include "RollTheBall/Utilities/Scheduler.hpp"
 
 namespace RPGNet {
 	class ServerSimulation : public HBUtils::SchedulerThread {

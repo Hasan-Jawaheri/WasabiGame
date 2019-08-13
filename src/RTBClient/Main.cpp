@@ -1,9 +1,9 @@
-#include "RollTheBall/Networking/Networking.hpp"
+#include "RTBClient/Networking/Networking.hpp"
 
 #include "WasabiGame/Main.hpp"
 #include "WasabiGame/GameStates/Intro.hpp"
 #include "WasabiGame/GameStates/Menu.hpp"
-#include "RollTheBall/GameStates/Game.hpp"
+#include "RTBClient/GameStates/Game.hpp"
 #include "RollTheBall/Maps/RTBMaps.hpp"
 #include "RollTheBall/Units/RTBUnits.hpp"
 
@@ -31,6 +31,11 @@ public:
 
 		gRTBNetworking = new RTBNet::RTBClientNetworking();
 		gRTBNetworking->Initialize();
+
+		gRTBNetworking->RegisterNetworkUpdateCallback(RTBNet::UPDATE_TYPE_UNIT, [](RTBNet::NetworkUpdate& update) {
+			uint32_t unitId = update.targetId;
+			Unit* unit = UnitsManager::GetUnit(unitId);
+		});
 	}
 
 	~RTB() {
