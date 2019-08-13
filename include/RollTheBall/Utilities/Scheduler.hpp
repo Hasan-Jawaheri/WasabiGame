@@ -89,7 +89,7 @@ namespace HBUtils {
 			m_threadsLock.lock();
 			std::thread* newThread = new std::thread([t]() {
 				t->Run();
-				});
+			});
 			m_threads.insert(std::make_pair(name, std::make_pair(newThread, t)));
 			m_threadsLock.unlock();
 		}

@@ -6,7 +6,7 @@
 #include <filesystem>
 typedef std::experimental::filesystem::path stdpath;
 
-#include "RollTheBall/AssetsGenerator/Maps/Test.hpp"
+#include "RollTheBall/Maps/Test.hpp"
 
 class WasabiGenerator : public Wasabi {
 public:
@@ -142,6 +142,6 @@ public:
 			CreateAndOpenFile(m_resourcesFile, (stdpath(m_outputFolder) / stdpath("resources.WSBI")).string()) &&
 			GeneratePlayer() &&
 			GenerateUnits() &&
-			GenerateMap("test", GenerateTestMap);
+			GenerateMap("test", TestMap::Generate);
 	}
 };
