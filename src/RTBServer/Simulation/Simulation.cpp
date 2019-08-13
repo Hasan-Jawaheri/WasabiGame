@@ -121,12 +121,13 @@ public:
 	}
 };
 
-RPGNet::ServerSimulation::ServerSimulation(Server* server) {
+RPGNet::ServerSimulation::ServerSimulation(Server* server, bool generateAssets) {
 	m_server = server;
+	m_generateAssets = generateAssets;
 }
 
 void RPGNet::ServerSimulation::Run() {
-	{
+	if (m_generateAssets) {
 		AssetGenerator ag("Media/RollTheBall");
 		ag.Generate();
 	}

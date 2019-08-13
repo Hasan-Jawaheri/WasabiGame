@@ -4,17 +4,19 @@
 
 #include <thread>
 
-#define NUM_CLIENTS 1
+#define NUM_CLIENTS 2
 
 Wasabi* WInitialize() {
 	std::thread serverThread([]() {
-		RunRTBServer();
+		RunRTBServer(true);
 	});
+
+	Sleep(2000);
 
 	std::vector<std::thread> clientThreads;
 	for (int i = 0; i < NUM_CLIENTS; i++) {
 		clientThreads.push_back(std::thread([]() {
-			Wasabi* client = new RTB();
+			Wasabi* client = new RTB(false, false);
 			RunWasabi(client);
 			delete client;
 		}));

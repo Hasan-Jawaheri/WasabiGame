@@ -10,15 +10,20 @@
 
 #include "RollTheBall/AssetsGenerator/AssetsGenerator.hpp"
 
-#define GENERATE_ASSETS true
-
-RTB::RTB() : WasabiRPG() {
-	m_settings.debugVulkan = true;
-	m_settings.debugPhysics = true;
+RTB::RTB(bool generateAssets, bool enableVulkanDebugging) : WasabiRPG() {
+#ifdef _DEBUG
+	m_settings.debugVulkan = enableVulkanDebugging;
+	m_settings.debugPhysics = false;
 	m_settings.fullscreen = false;
+#else
+	m_settings.debugVulkan = false;
+	m_settings.debugPhysics = false;
+	m_settings.fullscreen = false;
+#endif
+
 	m_settings.mediaFolder = "Media/RollTheBall";
 
-	if (GENERATE_ASSETS) {
+	if (generateAssets) {
 		if (!AssetGenerator(m_settings.mediaFolder).Generate())
 			return;
 	}

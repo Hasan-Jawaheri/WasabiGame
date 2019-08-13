@@ -1,3 +1,3 @@
 #pragma once
 
-void RunRTBServer();
+void RunRTBServer(bool generateAssets = true);

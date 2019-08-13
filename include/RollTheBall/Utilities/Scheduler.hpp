@@ -25,7 +25,7 @@ namespace HBUtils {
 			m_scheduler = nullptr;
 		}
 
-		void Stop() {
+		virtual void Stop() {
 			m_isRunning = false;
 		}
 
@@ -44,6 +44,8 @@ namespace HBUtils {
 		struct WorkUnit {
 			std::function<void*(void)> perform;
 			std::function<void(void*)> callback;
+
+			WorkUnit() : perform(nullptr), callback(nullptr) {}
 		};
 		std::mutex m_workMutex;
 		std::condition_variable m_workCondition;
@@ -57,21 +59,31 @@ namespace HBUtils {
 			virtual void Run() {
 				while (m_isRunning) {
 					WorkUnit w = m_scheduler->GetWork();
-					void* result = w.perform();
-					if (w.callback)
-						w.callback(result);
+					if (w.perform) {
+						void* result = w.perform();
+						if (w.callback)
+							w.callback(result);
+					}
 				}
+			}
+
+			virtual void Stop() {
+				SchedulerThread::Stop();
+				m_scheduler->m_workCondition.notify_all();
 			}
 		};
 
 		WorkUnit GetWork() {
 			std::unique_lock<std::mutex> ul(m_workMutex);
-			m_workCondition.wait(ul, [this]() { return m_workQueue.size() > 0; });
-			WorkUnit w = m_workQueue.front();
-			m_workQueue.pop();
-			ul.unlock();
-			m_workCondition.notify_one();
-			return w;
+			m_workCondition.wait(ul, [this]() { return m_workQueue.size() > 0 || !m_isRunning; });
+			if (m_isRunning) {
+				WorkUnit w = m_workQueue.front();
+				m_workQueue.pop();
+				ul.unlock();
+				m_workCondition.notify_one();
+				return w;
+			} else
+				return WorkUnit();
 		}
 
 	public:
@@ -188,6 +200,10 @@ namespace HBUtils {
 
 		void Stop() {
 			m_isRunning = false;
+		}
+
+		bool IsRunning() const {
+			return m_isRunning;
 		}
 	};
 

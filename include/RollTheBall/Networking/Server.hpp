@@ -202,6 +202,7 @@ namespace RPGNet {
 
 		void Stop() {
 			m_isRunning = false;
+			NotifyWriteAvailable();
 		}
 
 		// Called to notify the server that a write is now available (and select should be re-called)
@@ -221,7 +222,7 @@ namespace RPGNet {
 
 		void SelectablesLoop() {
 			std::vector<std::pair<Selectable*, ClientMetadata>> clientsToDelete;
-			while (m_isRunning) {
+			while (m_isRunning && Scheduler.IsRunning()) {
 				fd_set readFDs, writeFDs;
 				int maxFDs = 0;
 
@@ -255,7 +256,8 @@ namespace RPGNet {
 				}
 
 				if (maxFDs > 0) {
-					select(maxFDs, &readFDs, &writeFDs, NULL, NULL);
+					timeval timeout = { 1, 0 };
+					select(maxFDs, &readFDs, &writeFDs, NULL, &timeout);
 
 					if (FD_ISSET(m_TCPServer.sock, &readFDs)) {
 						// pending TCP connection

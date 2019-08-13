@@ -7,16 +7,17 @@
 
 #include "RTBServer/Simulation/Simulation.hpp"
 
-void RunRTBServer() {
-	RPGNet::ServerT<RPGNet::Client> server;
+void RunRTBServer(bool generateAssets) {
+	RPGNet::ServerT<RPGNet::Client>* server = new RPGNet::ServerT<RPGNet::Client>();
 
-	RPGNet::ServerSimulation* simulation = new RPGNet::ServerSimulation(&server);
-	server.Scheduler.LaunchThread("simulation-thread", [simulation]() {
+	RPGNet::ServerSimulation* simulation = new RPGNet::ServerSimulation(server, generateAssets);
+	server->Scheduler.LaunchThread("simulation-thread", [server, simulation]() {
 		simulation->Run();
 		delete simulation;
+		server->Scheduler.Stop();
 	});
 
-	server.SetOnClientConnected([](RPGNet::Selectable* _client) {
+	server->SetOnClientConnected([](RPGNet::Selectable* _client) {
 		RPGNet::Client* client = (RPGNet::Client*)_client;
 
 		RPGNet::NetworkUpdate update;
@@ -27,10 +28,11 @@ void RunRTBServer() {
 		client->Write(packet, size);
 	});
 
-	server.SetOnClientDisconnected([](RPGNet::Selectable* _client) {
+	server->SetOnClientDisconnected([](RPGNet::Selectable* _client) {
 		RPGNet::Client* client = (RPGNet::Client*)_client;
 
 	});
 
-	server.Run();
+	server->Run();
+	delete server;
 }

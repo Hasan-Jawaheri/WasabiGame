@@ -6,7 +6,7 @@
 
 class RTB : public WasabiRPG {
 public:
-	RTB();
+	RTB(bool generateAssets = true, bool enableVulkanDebugging = true);
 	~RTB();
 
 	void SwitchToInitialState();
