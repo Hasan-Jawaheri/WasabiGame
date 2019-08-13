@@ -32,7 +32,7 @@ public:
 		gRTBNetworking = new RTBNet::RTBClientNetworking();
 		gRTBNetworking->Initialize();
 
-		gRTBNetworking->RegisterNetworkUpdateCallback(RTBNet::UPDATE_TYPE_UNIT, [](RTBNet::NetworkUpdate& update) {
+		gRTBNetworking->RegisterNetworkUpdateCallback(RTBNet::UPDATE_TYPE_UNIT, [](RPGNet::NetworkUpdate& update) {
 			uint32_t unitId = update.targetId;
 			Unit* unit = UnitsManager::GetUnit(unitId);
 		});

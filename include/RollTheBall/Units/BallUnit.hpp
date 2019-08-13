@@ -14,6 +14,9 @@ protected:
 	virtual void Update(float fDeltaTime);
 
 public:
+
+	static const char* modelName;
+
 	BallUnit();
 	virtual ~BallUnit();
 

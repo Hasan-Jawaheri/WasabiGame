@@ -15,10 +15,14 @@
 namespace RPGNet {
 
 	typedef std::function<Selectable* (class Server*, SOCKET, struct sockaddr_in)> CreateClientFunction;
+	typedef std::function<void(Selectable*)> ClientConnectedFunction;
+	typedef std::function<void(Selectable*)> ClientDisconnectedFunction;
 
 	class Server {
 		bool m_isRunning;
 		CreateClientFunction m_createClient;
+		ClientConnectedFunction m_clientConnected;
+		ClientDisconnectedFunction m_clientDisconnected;
 
 		struct ClientMetadata {
 			bool deleteOnDisconnect;
@@ -143,6 +147,8 @@ namespace RPGNet {
 		Server(CreateClientFunction createClient) : Config(), Scheduler() {
 			m_isRunning = true;
 			m_createClient = createClient;
+			m_clientConnected = nullptr;
+			m_clientDisconnected = nullptr;
 			m_TCPServer = { 0 };
 			m_UDPServer = { 0 };
 		}
@@ -203,6 +209,14 @@ namespace RPGNet {
 			// @TODO: implement (write to an fd that select always wants to read from, and dump data away)
 		}
 
+		void SetOnClientConnected(ClientConnectedFunction callback) {
+			m_clientConnected = callback;
+		}
+
+		void SetOnClientDisconnected(ClientDisconnectedFunction callback) {
+			m_clientDisconnected = callback;
+		}
+
 	private:
 
 		void SelectablesLoop() {
@@ -246,8 +260,11 @@ namespace RPGNet {
 					if (FD_ISSET(m_TCPServer.sock, &readFDs)) {
 						// pending TCP connection
 						Selectable* newClient = m_TCPServer.AcceptConnection(this);
-						if (newClient)
+						if (newClient) {
 							RegisterSelectable(newClient, true);
+							if (m_clientConnected)
+								m_clientConnected(newClient);
+						}
 					}
 					if (FD_ISSET(m_UDPServer.sock, &readFDs)) {
 						// pending UDP packet
@@ -269,8 +286,11 @@ namespace RPGNet {
 
 					for (auto client : clientsToDelete) {
 						m_clients.erase(client.first);
-						if (client.second.deleteOnDisconnect)
+						if (client.second.deleteOnDisconnect) {
+							if (m_clientDisconnected)
+								m_clientDisconnected(client.first);
 							delete client.first;
+						}
 					}
 					clientsToDelete.clear();
 				} else

@@ -95,6 +95,33 @@ public:
 		return true;
 	}
 
+	bool GenerateUnits() {
+		WGeometry* ball = new WGeometry(m_app);
+		ball->SetName("small-ball-geometry");
+		ball->CreateSphere(0.7f, 16, 16);
+		WObject* ballObj = m_app->ObjectManager->CreateObject();
+		ballObj->SetName("small-ball");
+		ballObj->SetGeometry(ball);
+		ballObj->GetMaterial()->SetVariableColor("color", WColor(0.8f, 0.6f, 0.55f, 1.0f));
+		WRigidBody* rb = m_app->PhysicsComponent->CreateRigidBody();
+		W_RIGID_BODY_CREATE_INFO rbCreateInfo = W_RIGID_BODY_CREATE_INFO::ForSphere(0.7f, 20.0f);
+		rb->Create(rbCreateInfo, true);
+		rb->SetName("small-ball-rigidbody");
+
+		rb->SetLinearDamping(0.8f);
+		rb->SetAngularDamping(0.6f);
+		rb->SetFriction(1.0f);
+		rb->SetBouncingPower(0.2f);
+
+		if (!m_resourcesFile->SaveAsset(ballObj))
+			return false;
+
+		if (!m_resourcesFile->SaveAsset(rb))
+			return false;
+
+		return true;
+	}
+
 	bool GenerateMap(std::string mapName, std::function<bool(Wasabi*, WFile*)> generator) {
 		WFile mapFile(m_app);
 		if (!CreateAndOpenFile(&mapFile, (stdpath(m_outputFolder) / stdpath("Maps") / stdpath(mapName + ".WSBI")).string()))
@@ -114,6 +141,7 @@ public:
 		return
 			CreateAndOpenFile(m_resourcesFile, (stdpath(m_outputFolder) / stdpath("resources.WSBI")).string()) &&
 			GeneratePlayer() &&
+			GenerateUnits() &&
 			GenerateMap("test", GenerateTestMap);
 	}
 };

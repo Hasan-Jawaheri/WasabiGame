@@ -1,5 +1,7 @@
 #include "RollTheBall/Units/BallUnit.hpp"
 
+const char* BallUnit::modelName = "small-ball";
+
 BallUnit::BallUnit() : Unit() {
 	m_state.isGrounded = false;
 	m_state.didDash = true;
