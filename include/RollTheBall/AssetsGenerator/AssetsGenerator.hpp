@@ -4,7 +4,7 @@
 #include <Wasabi/Physics/Bullet/WBulletPhysics.h>
 
 #include <filesystem>
-typedef std::experimental::filesystem::path stdpath;
+typedef std::filesystem::path stdpath;
 
 #include "RollTheBall/Maps/Test.hpp"
 
