@@ -99,6 +99,7 @@ namespace RPGNet {
 				if (numRead > 0) {
 					m_inBuffer.OnInserted(numRead);
 					totalRead += numRead;
+					break;
 				} else if (numRead < 0) {
 					// handle socket error
 					int err = WSAGetLastError();

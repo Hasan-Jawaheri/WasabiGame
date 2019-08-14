@@ -37,7 +37,13 @@ namespace RPGNet {
 			SOCKET sock;
 
 			int Initialize() {
-				if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
+				struct sockaddr_in addr = { 0 };
+				addr.sin_family = AF_INET;
+				addr.sin_port = htons(port);
+				inet_pton(addr.sin_family, host, &addr.sin_addr);
+				//addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+				if ((sock = socket(addr.sin_family, SOCK_STREAM, 0)) == INVALID_SOCKET) {
 					//LOG(fatal) << "Failed to create TCP server socket (" << WSAGetLastError() << ").";
 					return 1;
 				}
@@ -50,13 +56,7 @@ namespace RPGNet {
 					return 2;
 				}
 
-				struct sockaddr_in addr = { 0 };
-				addr.sin_family = AF_INET;
-				addr.sin_port = htons(port);
-				inet_pton(AF_INET, host, &addr.sin_addr);
-				//addr.sin_addr.s_addr = INADDR_ANY;
-
-				if (bind(sock, (struct sockaddr*) & addr, sizeof(addr)) == SOCKET_ERROR) {
+				if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR) {
 					//LOG(fatal) << "Failed to bind TCP server socket to (" << host << ":" << port << ") (" << WSAGetLastError() << ").";
 					closesocket(sock);
 					sock = 0;
@@ -101,7 +101,12 @@ namespace RPGNet {
 			SOCKET sock;
 
 			int Initialize() {
-				if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET) {
+				struct sockaddr_in addr = { 0 };
+				addr.sin_family = AF_INET;
+				addr.sin_port = htons(port);
+				addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+				if ((sock = socket(addr.sin_family, SOCK_DGRAM, 0)) == INVALID_SOCKET) {
 					//LOG(fatal) << "Failed to create TCP server socket (" << WSAGetLastError() << ").";
 					return 1;
 				}
@@ -113,11 +118,6 @@ namespace RPGNet {
 					sock = 0;
 					return 2;
 				}
-
-				struct sockaddr_in addr = { 0 };
-				addr.sin_family = AF_INET;
-				addr.sin_port = htons(port);
-				addr.sin_addr.s_addr = INADDR_ANY;
 
 				if (bind(sock, (struct sockaddr*) & addr, sizeof(addr)) == SOCKET_ERROR) {
 					//LOG(fatal) << "Failed to bind TCP server socket to (" << host << ":" << port << ") (" << WSAGetLastError() << ").";
@@ -257,44 +257,46 @@ namespace RPGNet {
 
 				if (maxFDs > 0) {
 					timeval timeout = { 1, 0 };
-					select(maxFDs, &readFDs, &writeFDs, NULL, &timeout);
+					int numDescriptors = select(maxFDs, &readFDs, &writeFDs, NULL, &timeout);
 
-					if (FD_ISSET(m_TCPServer.sock, &readFDs)) {
-						// pending TCP connection
-						Selectable* newClient = m_TCPServer.AcceptConnection(this);
-						if (newClient) {
-							RegisterSelectable(newClient, true);
-							if (m_clientConnected)
-								m_clientConnected(newClient);
-						}
-					}
-					if (FD_ISSET(m_UDPServer.sock, &readFDs)) {
-						// pending UDP packet
-						m_UDPServer.ReadPacket();
-					}
-
-					for (auto client : m_clients) {
-						if (FD_ISSET(client.first->fd(), &readFDs)) {
-							if (!client.first->OnReadReady()) {
-								clientsToDelete.push_back(client);
+					if (numDescriptors > 0) {
+						if (FD_ISSET(m_TCPServer.sock, &readFDs)) {
+							// pending TCP connection
+							Selectable* newClient = m_TCPServer.AcceptConnection(this);
+							if (newClient) {
+								RegisterSelectable(newClient, true);
+								if (m_clientConnected)
+									m_clientConnected(newClient);
 							}
 						}
-						if (FD_ISSET(client.first->fd(), &writeFDs)) {
-							if (!client.first->OnWriteReady()) {
-								clientsToDelete.push_back(client);
+						if (FD_ISSET(m_UDPServer.sock, &readFDs)) {
+							// pending UDP packet
+							m_UDPServer.ReadPacket();
+						}
+
+						for (auto client : m_clients) {
+							if (FD_ISSET(client.first->fd(), &readFDs)) {
+								if (!client.first->OnReadReady()) {
+									clientsToDelete.push_back(client);
+								}
+							}
+							if (FD_ISSET(client.first->fd(), &writeFDs)) {
+								if (!client.first->OnWriteReady()) {
+									clientsToDelete.push_back(client);
+								}
 							}
 						}
-					}
 
-					for (auto client : clientsToDelete) {
-						m_clients.erase(client.first);
-						if (client.second.deleteOnDisconnect) {
-							if (m_clientDisconnected)
-								m_clientDisconnected(client.first);
-							delete client.first;
+						for (auto client : clientsToDelete) {
+							m_clients.erase(client.first);
+							if (client.second.deleteOnDisconnect) {
+								if (m_clientDisconnected)
+									m_clientDisconnected(client.first);
+								delete client.first;
+							}
 						}
+						clientsToDelete.clear();
 					}
-					clientsToDelete.clear();
 				} else
 					std::this_thread::sleep_for(std::chrono::milliseconds(200));
 			}

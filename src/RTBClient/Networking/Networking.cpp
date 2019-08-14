@@ -42,7 +42,7 @@ void RTBNet::RTBClientNetworking::Destroy() {
 
 void RTBNet::RTBClientNetworking::Login() {
 	Status = CONNECTION_CONNECTING;
-	if (m_tcpConnection->Connect("127.0.0.1", 9987) == 0)
+	if (m_tcpConnection->Connect("127.0.0.1", 9965) == 0)
 		Status = CONNECTION_CONNECTED;
 	else
 		Status = CONNECTION_NOT_CONNECTED;

@@ -38,7 +38,9 @@ public:
 	}
 
 	WError Setup() {
-		engineParams["enableVulkanValidation"] = 0;
+		SetEngineParam("appName", "RTBServer");
+		SetEngineParam("enableVulkanValidation", 0);
+
 		WError status = StartEngine(640, 480);
 		if (!status) {
 			return status;

@@ -32,13 +32,13 @@ namespace RPGNet {
 			dataSize = htons(dataSize);
 
 			memcpy(packet, (char*)& type, sizeof(NetworkUpdateType));
-			memcpy(packet, (char*)& purpose, sizeof(PacketPurpose));
-			memcpy(packet, (char*)& targetId, sizeof(uint32_t));
-			memcpy(packet, (char*)& dataSize, sizeof(uint16_t));
+			memcpy(packet + 2, (char*)& purpose, sizeof(PacketPurpose));
+			memcpy(packet + 4, (char*)& targetId, sizeof(uint32_t));
+			memcpy(packet + 8, (char*)& dataSize, sizeof(uint16_t));
 			if (hdataSize > 0)
-				memcpy(packet, (char*)data, hdataSize);
+				memcpy(packet + 10, (char*)data, hdataSize);
 
-			return sizeof(NetworkUpdateType) + sizeof(PacketPurpose) + sizeof(uint32_t);
+			return 10 + hdataSize;
 		}
 
 		size_t readPacket(HBUtils::CircularBuffer* packet) {

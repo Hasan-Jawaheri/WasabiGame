@@ -21,6 +21,9 @@ void RunRTBServer(bool generateAssets) {
 		RPGNet::Client* client = (RPGNet::Client*)_client;
 
 		RPGNet::NetworkUpdate update;
+		update.type = 0;
+		update.targetId = 0;
+		update.purpose = 0;
 		update.dataSize = 0;
 
 		char packet[RPGNet::MAX_PACKET_SIZE];

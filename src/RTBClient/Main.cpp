@@ -10,10 +10,12 @@
 
 #include "RollTheBall/AssetsGenerator/AssetsGenerator.hpp"
 
-RTB::RTB(bool generateAssets, bool enableVulkanDebugging) : WasabiRPG() {
+RTB::RTB(bool generateAssets, bool enableVulkanDebugging, bool enablePhysicsDebugging) : WasabiRPG() {
+	SetEngineParam("appName", "RTBClient");
+
 #ifdef _DEBUG
 	m_settings.debugVulkan = enableVulkanDebugging;
-	m_settings.debugPhysics = false;
+	m_settings.debugPhysics = enablePhysicsDebugging;
 	m_settings.fullscreen = false;
 #else
 	m_settings.debugVulkan = false;

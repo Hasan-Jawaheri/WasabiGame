@@ -1,4 +1,4 @@
-#include "WasabiGame/Main.hpp"
+#include "RTBClient/Main.hpp"
 #include "RTBClient/GameStates/Game.hpp"
 
 #include "RollTheBall/Maps/RTBMaps.hpp"
@@ -21,25 +21,28 @@ Game::~Game() {
 
 void Game::Load() {
 	// Setup and load the user interface
-	((WasabiRPG*)m_app)->UI->AddUIElement(m_input = new GameInputHandler(this), nullptr);
-	UIElement* ok = new MenuButton(((WasabiRPG*)m_app)->UI, "sure");
-	UIElement* err = new ErrorBox(((WasabiRPG*)m_app)->UI, "what??");
-	((WasabiRPG*)m_app)->UI->AddUIElement(err, m_input);
-	((WasabiRPG*)m_app)->UI->AddUIElement(ok, err);
-	((WasabiRPG*)m_app)->UI->Load(m_app);
+	((RTB*)m_app)->UI->AddUIElement(m_input = new GameInputHandler(this), nullptr);
+	UIElement* ok = new MenuButton(((RTB*)m_app)->UI, "sure");
+	UIElement* err = new ErrorBox(((RTB*)m_app)->UI, "what??");
+	((RTB*)m_app)->UI->AddUIElement(err, m_input);
+	((RTB*)m_app)->UI->AddUIElement(ok, err);
+	((RTB*)m_app)->UI->Load(m_app);
 
 	// Load the player
-	m_player = (Player*)((WasabiRPG*)m_app)->Units->LoadUnit(UNIT_PLAYER, 0); // player always has id 0
+	m_player = (Player*)((RTB*)m_app)->Units->LoadUnit(UNIT_PLAYER, 0); // player always has id 0
 
 	// Load the map
-	((WasabiRPG*)m_app)->Maps->SetMap(MAP_TEST);
+	((RTB*)m_app)->Maps->SetMap(MAP_TEST);
+
+	// Login to server
+	((RTB*)m_app)->RTBNetworking->Login();
 }
 
 void Game::Update(float fDeltaTime) {
 }
 
 void Game::Cleanup() {
-	((WasabiRPG*)m_app)->Maps->SetMap(MAP_NONE);
+	((RTB*)m_app)->Maps->SetMap(MAP_NONE);
 }
 
 GameInputHandler::GameInputHandler(class Game* g) : UIElement(((WasabiRPG*)g->m_app)->UI) {
@@ -48,11 +51,11 @@ GameInputHandler::GameInputHandler(class Game* g) : UIElement(((WasabiRPG*)g->m_
 
 bool GameInputHandler::OnEnter() {
 	/*
-	if (((WasabiRPG*)m_app)->UI->GetFocus() != (UIElement*)m_game->m_ui.chatEdit) {
+	if (((RTB*)m_app)->UI->GetFocus() != (UIElement*)m_game->m_ui.chatEdit) {
 		m_game->ui.chatEdit->OnFocus();
-		((WasabiRPG*)m_app)->UI->SetFocus(m_game->m_ui.chatEdit);
+		((RTB*)m_app)->UI->SetFocus(m_game->m_ui.chatEdit);
 	} else {
-		((WasabiRPG*)m_app)->UI->SetFocus(this);
+		((RTB*)m_app)->UI->SetFocus(this);
 		char str[512];
 		m_game->ui.chatEdit->GetText(str, 512);
 		if (strlen(str)) {

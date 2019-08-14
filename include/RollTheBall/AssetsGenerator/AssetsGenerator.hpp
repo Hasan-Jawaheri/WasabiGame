@@ -13,7 +13,9 @@ public:
 	WasabiGenerator() : Wasabi() {}
 
 	virtual WError Setup() {
-		engineParams["enableVulkanValidation"] = 0;
+		SetEngineParam<const char*>("appName", "AssetGenerator");
+		SetEngineParam<int>("enableVulkanValidation", 0);
+
 		WError err = StartEngine(1, 1);
 		if (!err) {
 			WindowAndInputComponent->ShowErrorMessage("Failed to start the asset generator: " + err.AsString());
