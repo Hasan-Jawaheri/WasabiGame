@@ -33,7 +33,7 @@ RTB::RTB(bool generateAssets, bool enableVulkanDebugging, bool enablePhysicsDebu
 	RTBNetworking = new RTBNet::RTBClientNetworking();
 	RTBNetworking->Initialize();
 
-	RTBNetworking->RegisterNetworkUpdateCallback(RTBNet::UPDATE_TYPE_UNIT, [this](RPGNet::NetworkUpdate& update) {
+	RTBNetworking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_UNIT, [this](RPGNet::NetworkUpdate& update) {
 		uint32_t unitId = update.targetId;
 		Unit* unit = Units->GetUnit(unitId);
 	});

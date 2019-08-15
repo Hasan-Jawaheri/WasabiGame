@@ -3,6 +3,7 @@
 #include "RollTheBall/Networking/Data.hpp"
 #include "RollTheBall/Networking/Server.hpp"
 #include "RollTheBall/Networking/Client.hpp"
+#include "RollTheBall/Networking/Protocol.hpp"
 
 #include <functional>
 #include <unordered_map>
@@ -41,7 +42,4 @@ namespace RTBNet {
 		void ClearNetworkUpdateCallback(RPGNet::NetworkUpdateType type);
 	};
 
-	enum UpdateTypeEnum {
-		UPDATE_TYPE_UNIT = 1,
-	};
 };

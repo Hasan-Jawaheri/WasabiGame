@@ -153,7 +153,7 @@ namespace RPGNet {
 			m_UDPServer = { 0 };
 		}
 
-		~Server() {
+		virtual ~Server() {
 		}
 
 		HBUtils::Scheduler Scheduler;

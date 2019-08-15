@@ -24,7 +24,7 @@ namespace RPGNet {
 		char data[MAX_PACKET_SIZE - PACKET_META_SIZE];
 
 		size_t fillPacket(char* packet) {
-			int hdataSize = dataSize;
+			size_t hdataSize = (size_t)dataSize;
 
 			type = htons(type);
 			purpose = htons(purpose);

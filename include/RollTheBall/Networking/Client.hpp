@@ -21,6 +21,7 @@ namespace RPGNet {
 
 		HBUtils::CircularBuffer m_outBuffer;
 		HBUtils::CircularBuffer m_inBuffer;
+		std::function<bool(HBUtils::CircularBuffer*)> m_consumeBufferCallback;
 
 	public:
 		Client(class Server* server) : Selectable(0) {
@@ -32,7 +33,7 @@ namespace RPGNet {
 			m_inBuffer.Initialize(m_server->Config.Get<size_t>("clientBufferSize"));
 		}
 
-		Client(class Server* server, SOCKET sock, struct sockaddr_in addr) : Selectable(sock) {
+		Client(class Server* server, SOCKET sock, struct sockaddr_in addr) : Selectable(sock), m_consumeBufferCallback(nullptr) {
 			m_server = server;
 			char ip[256];
 			inet_ntop(AF_INET, &addr.sin_addr, ip, sizeof(ip));
@@ -43,7 +44,7 @@ namespace RPGNet {
 			m_inBuffer.Initialize(m_server->Config.Get<size_t>("clientBufferSize"));
 		}
 
-		~Client() {
+		virtual ~Client() {
 			Close();
 		}
 
@@ -146,8 +147,14 @@ namespace RPGNet {
 		}
 
 		virtual bool ConsumeBuffer(HBUtils::CircularBuffer* buffer) {
+			if (m_consumeBufferCallback)
+				return m_consumeBufferCallback(buffer);
 			buffer->start = buffer->end; // instant consume, should be implemented elsewhere
 			return true;
+		}
+
+		void SetConsumeBufferCallback(std::function<bool(HBUtils::CircularBuffer*)> callback) {
+			m_consumeBufferCallback = callback;
 		}
 
 		void Write(const char* data, size_t len) {
@@ -174,10 +181,9 @@ namespace RPGNet {
 
 	class ReconnectingClient : public Client {
 		HBUtils::Semaphore m_connectingSemaphore;
-		std::function<bool(HBUtils::CircularBuffer*)> m_consumeBufferCallback;
 
 	public:
-		ReconnectingClient(class Server* server) : Client(server), m_consumeBufferCallback(nullptr) {}
+		ReconnectingClient(class Server* server) : Client(server) {}
 
 		virtual int Connect(std::string hostname, int port) {
 			m_connectingSemaphore.wait();
@@ -212,17 +218,6 @@ namespace RPGNet {
 			if (!bKeep)
 				Reconnect();
 			return bKeep;
-		}
-
-		virtual bool ConsumeBuffer(HBUtils::CircularBuffer* buffer) {
-			if (m_consumeBufferCallback)
-				return m_consumeBufferCallback(buffer);
-			buffer->start = buffer->end; // instant consume, should be implemented elsewhere
-			return true;
-		}
-
-		void SetConsumeBufferCallback(std::function<bool(HBUtils::CircularBuffer*)> callback) {
-			m_consumeBufferCallback = callback;
 		}
 	};
 

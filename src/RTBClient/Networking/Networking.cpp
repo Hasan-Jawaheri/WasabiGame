@@ -1,15 +1,16 @@
 #include "RTBClient/Networking/Networking.hpp"
 
 RTBNet::RTBClientNetworking::RTBClientNetworking() {
+	m_networkingThread = nullptr;
 	m_server = new RPGNet::ServerT<RPGNet::Client>();
 	m_tcpConnection = new RPGNet::ReconnectingClient(m_server);
 	m_udpConnection = new RPGNet::ReconnectingClient(m_server);
-	Status = CONNECTION_NOT_CONNECTED;
+	Status = RTBConnectionStatus::CONNECTION_NOT_CONNECTED;
 }
 
 void RTBNet::RTBClientNetworking::Initialize() {
 	WSADATA wsa;
-	WSAStartup(MAKEWORD(2, 2), &wsa);
+	(void)WSAStartup(MAKEWORD(2, 2), &wsa);
 
 	m_server->Config.Set<int>("tcpPort", 0);
 	m_server->Config.Set<int>("udpPort", 0);
@@ -35,6 +36,7 @@ void RTBNet::RTBClientNetworking::Initialize() {
 }
 
 void RTBNet::RTBClientNetworking::Destroy() {
+	Logout();
 	m_server->Stop();
 	m_networkingThread->join();
 	delete m_networkingThread;
@@ -43,14 +45,14 @@ void RTBNet::RTBClientNetworking::Destroy() {
 void RTBNet::RTBClientNetworking::Login() {
 	Status = CONNECTION_CONNECTING;
 	if (m_tcpConnection->Connect("127.0.0.1", 9965) == 0)
-		Status = CONNECTION_CONNECTED;
+		Status = RTBConnectionStatus::CONNECTION_CONNECTED;
 	else
-		Status = CONNECTION_NOT_CONNECTED;
+		Status = RTBConnectionStatus::CONNECTION_NOT_CONNECTED;
 }
 
 void RTBNet::RTBClientNetworking::Logout() {
 	m_tcpConnection->Close();
-	Status = CONNECTION_NOT_CONNECTED;
+	Status = RTBConnectionStatus::CONNECTION_NOT_CONNECTED;
 }
 
 void RTBNet::RTBClientNetworking::SendUpdate(RPGNet::NetworkUpdate& update, bool important) {
