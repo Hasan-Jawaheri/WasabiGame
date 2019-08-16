@@ -198,9 +198,9 @@ namespace RPGNet {
 
 		void Reconnect() {
 			m_server->Scheduler.LaunchThread("reconnect-client-" + std::to_string((uintptr_t)this), [this]() {
-				while (this->fd() == 0) {
+				while (this->fd() == 0 && m_server->IsRunning()) {
 					this->Connect(m_IP, m_port);
-					if (this->fd() == 0)
+					if (this->fd() == 0 && m_server->IsRunning())
 						std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 				}
 			});
@@ -208,14 +208,14 @@ namespace RPGNet {
 
 		virtual bool OnReadReady() {
 			bool bKeep = Client::OnReadReady();
-			if (!bKeep)
+			if (!bKeep && m_server->IsRunning())
 				Reconnect();
 			return bKeep;
 		}
 
 		virtual bool OnWriteReady() {
 			bool bKeep = Client::OnWriteReady();
-			if (!bKeep)
+			if (!bKeep && m_server->IsRunning())
 				Reconnect();
 			return bKeep;
 		}

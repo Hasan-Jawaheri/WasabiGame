@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RTBServer/Main.hpp"
+#include "RTBServer/Game/Game.hpp"
 
 #include "RollTheBall/Networking/Data.hpp"
 #include "RollTheBall/Networking/Server.hpp"
@@ -8,6 +9,8 @@
 #include "RollTheBall/Networking/Protocol.hpp"
 
 #include <mutex>
+
+class RTBGame;
 
 namespace RTBNet {
 
@@ -20,6 +23,7 @@ namespace RTBNet {
 	};
 
 	class RTBServerNetworking {
+		RTBGame* m_game;
 		RPGNet::ServerT<RTBServerConnectedClient>* m_server;
 		std::unordered_map<RPGNet::NetworkUpdateType, std::function<void(RPGNet::NetworkUpdate&)>> m_updateCallbacks;
 
@@ -32,7 +36,7 @@ namespace RTBNet {
 	public:
 		RTBServerNetworking();
 
-		void Initialize();
+		void Initialize(RTBGame* game);
 		void Destroy();
 		RPGNet::ServerT<RTBServerConnectedClient>* GetServer() const;
 

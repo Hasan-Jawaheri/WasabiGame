@@ -190,6 +190,15 @@ namespace RPGNet {
 					});
 					Scheduler.Run();
 
+					for (auto client : m_clients) {
+						if (client.second.deleteOnDisconnect) {
+							if (m_clientDisconnected)
+								m_clientDisconnected(client.first);
+							delete client.first;
+						}
+					}
+					m_clients.clear();
+
 					if (m_UDPServer.port > 0)
 						m_UDPServer.Cleanup();
 				}
@@ -203,6 +212,10 @@ namespace RPGNet {
 		void Stop() {
 			m_isRunning = false;
 			NotifyWriteAvailable();
+		}
+
+		bool IsRunning() const {
+			return m_isRunning;
 		}
 
 		// Called to notify the server that a write is now available (and select should be re-called)

@@ -1,6 +1,7 @@
 #include "RTBServer/Networking/Networking.hpp"
 
 RTBNet::RTBServerNetworking::RTBServerNetworking() {
+	m_game = nullptr;
 	m_server = new RPGNet::ServerT<RTBServerConnectedClient>();
 	m_curClientId = 1;
 }
@@ -9,7 +10,9 @@ uint32_t RTBNet::RTBServerNetworking::GenerateClientId() {
 	return m_curClientId++;
 }
 
-void RTBNet::RTBServerNetworking::Initialize() {
+void RTBNet::RTBServerNetworking::Initialize(RTBGame* game) {
+	m_game = game;
+
 	WSADATA wsa;
 	(void)WSAStartup(MAKEWORD(2, 2), &wsa);
 
@@ -33,15 +36,7 @@ void RTBNet::RTBServerNetworking::Initialize() {
 			this->m_clients.insert(std::make_pair(client->m_id, client));
 		}
 
-		RPGNet::NetworkUpdate update;
-		update.type = RTBNet::UpdateTypeEnum::UPDATE_TYPE_UNIT;
-		update.targetId = 0;
-		update.purpose = 0;
-		update.dataSize = 0;
-
-		char packet[RPGNet::MAX_PACKET_SIZE];
-		size_t size = update.fillPacket(packet);
-		client->Write(packet, size);
+		m_game->OnClientConnected(client);
 	});
 
 	m_server->SetOnClientDisconnected([this](RPGNet::Selectable* _client) {
@@ -50,10 +45,13 @@ void RTBNet::RTBServerNetworking::Initialize() {
 			std::lock_guard lockGuard(this->m_clientsMutex);
 			this->m_clients.erase(client->m_id);
 		}
+
+		m_game->OnClientDisconnected(client);
 	});
 }
 
 void RTBNet::RTBServerNetworking::Destroy() {
+	m_game = nullptr;
 	m_server->Stop();
 	delete m_server;
 }

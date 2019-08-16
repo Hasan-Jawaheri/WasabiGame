@@ -10,7 +10,7 @@
 #include "RollTheBall/AssetsGenerator/AssetsGenerator.hpp"
 
 class SimulationWasabi : public Wasabi {
-	RPGNet::ServerSimulation* m_simulationThread;
+	ServerSimulation* m_simulationThread;
 	RPGNet::Server* m_server;
 
 	float fYaw, fPitch, fDist;
@@ -24,7 +24,7 @@ public:
 	ResourceManager* Resources;
 	MapLoader* Maps;
 
-	SimulationWasabi(RPGNet::ServerSimulation* simulation, RPGNet::Server* server) : Wasabi() {
+	SimulationWasabi(ServerSimulation* simulation, RPGNet::Server* server) : Wasabi() {
 		m_simulationThread = simulation;
 		m_server = server;
 
@@ -123,12 +123,12 @@ public:
 	}
 };
 
-RPGNet::ServerSimulation::ServerSimulation(Server* server, bool generateAssets) {
+ServerSimulation::ServerSimulation(RPGNet::Server* server, bool generateAssets) {
 	m_server = server;
 	m_generateAssets = generateAssets;
 }
 
-void RPGNet::ServerSimulation::Run() {
+void ServerSimulation::Run() {
 	if (m_generateAssets) {
 		AssetGenerator ag("Media/RollTheBall");
 		ag.Generate();

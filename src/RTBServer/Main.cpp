@@ -1,6 +1,7 @@
 #include <WinSock2.h>
 #include <Wasabi/Wasabi.h>
 #include "RTBServer/Main.hpp"
+#include "RTBServer/Game/Game.hpp"
 
 #include "RollTheBall/Networking/Server.hpp"
 #include "RollTheBall/Networking/Client.hpp"
@@ -10,12 +11,14 @@
 #include "RTBServer/Simulation/Simulation.hpp"
 
 void RunRTBServer(bool generateAssets) {
+	RTBGame* game = new RTBGame();
 	RTBNet::RTBServerNetworking* networking = new RTBNet::RTBServerNetworking();
 	RPGNet::Server* server = networking->GetServer();
+	ServerSimulation* simulation = new ServerSimulation(server, generateAssets);
 
-	networking->Initialize();
+	game->Initialize(networking, simulation);
+	networking->Initialize(game);
 
-	RPGNet::ServerSimulation* simulation = new RPGNet::ServerSimulation(server, generateAssets);
 	server->Scheduler.LaunchThread("simulation-thread", [server, simulation]() {
 		simulation->Run();
 		delete simulation;
@@ -23,6 +26,9 @@ void RunRTBServer(bool generateAssets) {
 	});
 
 	server->Run();
+
 	networking->Destroy();
+	game->Destroy();
 	delete networking;
+	delete game;
 }
