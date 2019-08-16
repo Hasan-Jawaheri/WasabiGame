@@ -5,7 +5,7 @@ UnitsManager::UnitsManager(Wasabi* app, ResourceManager* resourceManager) {
 	m_resourceManager = resourceManager;
 }
 
-void UnitsManager::RegisterUnit(uint id, std::function<class Unit* ()> unitGenerator) {
+void UnitsManager::RegisterUnit(uint32_t id, std::function<class Unit* ()> unitGenerator) {
 	m_unitGenerators.insert(std::make_pair(id, unitGenerator));
 }
 
@@ -13,7 +13,7 @@ void UnitsManager::ResetUnits() {
 	m_unitGenerators.clear();
 }
 
-Unit* UnitsManager::LoadUnit(uint type, uint id) {
+Unit* UnitsManager::LoadUnit(uint32_t type, uint32_t id) {
 	auto it = m_unitGenerators.find(type);
 	Unit* unit = it->second();
 	unit->m_id = id;
@@ -21,7 +21,7 @@ Unit* UnitsManager::LoadUnit(uint type, uint id) {
 	return unit;
 }
 
-Unit* UnitsManager::GetUnit(uint id) {
+Unit* UnitsManager::GetUnit(uint32_t id) {
 	auto it = m_units.find(id);
 	if (it != m_units.end()) {
 		return it->second.second;
@@ -31,6 +31,14 @@ Unit* UnitsManager::GetUnit(uint id) {
 
 void UnitsManager::DestroyUnit(Unit* unit) {
 	auto it = m_units.find(unit->m_id);
+	if (it != m_units.end()) {
+		delete it->second.second;
+		m_units.erase(it);
+	}
+}
+
+void UnitsManager::DestroyUnit(uint32_t id) {
+	auto it = m_units.find(id);
 	if (it != m_units.end()) {
 		delete it->second.second;
 		m_units.erase(it);

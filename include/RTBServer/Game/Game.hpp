@@ -13,13 +13,13 @@ namespace RTBNet {
 };
 
 class RTBGame {
-	class RTBNet::RTBServerNetworking* m_networking;
-	class ServerSimulation* m_simulation;
-
-	std::unordered_map<class RTBNet::RTBServerConnectedClient*, RTBPlayer*> m_connectedPlayers;
+	std::unordered_map<class RTBNet::RTBServerConnectedClient*, std::shared_ptr<RTBPlayer>> m_connectedPlayers;
 
 public:
 	RTBGame();
+
+	class RTBNet::RTBServerNetworking* Networking;
+	class ServerSimulation* Simulation;
 
 	void Initialize(class RTBNet::RTBServerNetworking* networking, class ServerSimulation* simulation);
 	void Destroy();

@@ -1,14 +1,14 @@
 #pragma once
 
 #include "RollTheBall/Networking/Data.hpp"
-#include "RollTheBall/Networking/Data.hpp"
 
 namespace RTBNet {
 
 	enum UpdateTypeEnum {
 		UPDATE_TYPE_ERROR = 1,
 		UPDATE_TYPE_LOGIN = 2,
-		UPDATE_TYPE_UNIT = 10,
+		UPDATE_TYPE_LOAD_UNIT = 10,
+		UPDATE_TYPE_UNLOAD_UNIT = 11,
 	};
 
 	namespace UpdateBuilders {
@@ -18,6 +18,12 @@ namespace RTBNet {
 
 		void Login(RPGNet::NetworkUpdate& output, const char* account, const char* password);
 		bool ReadLoginPacket(RPGNet::NetworkUpdate& input, RPGNet::ClientIdentity& identity);
+
+		void LoadUnit(RPGNet::NetworkUpdate& output, uint32_t unitType, uint32_t unitId);
+		bool ReadLoadUnitPacket(RPGNet::NetworkUpdate& input, uint32_t* unitType, uint32_t* unitId);
+
+		void UnloadUnit(RPGNet::NetworkUpdate& output, uint32_t unitId);
+		bool ReadUnloadUnitPacket(RPGNet::NetworkUpdate& input, uint32_t* unitId);
 
 	};
 

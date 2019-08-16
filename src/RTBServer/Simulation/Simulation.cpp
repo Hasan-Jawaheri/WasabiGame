@@ -11,12 +11,12 @@
 class SimulationWasabi : public WasabiRPG {
 	friend class SimulationGameState;
 	ServerSimulation* m_simulationThread;
-	RPGNet::Server* m_server;
+	RTBGame* m_game;
 
 public:
-	SimulationWasabi(ServerSimulation* simulation, RPGNet::Server* server, bool generateAssets = false) : WasabiRPG() {
+	SimulationWasabi(ServerSimulation* simulation, RTBGame* game, bool generateAssets = false) : WasabiRPG() {
 		m_simulationThread = simulation;
-		m_server = server;
+		m_game = game;
 
 		SetEngineParam("appName", "RTBServer");
 
@@ -33,7 +33,7 @@ public:
 
 	void SwitchToInitialState() {
 		SetupRTBMaps(Maps);
-		SetupRTBUnits(Units);
+		SetupRTBUnits(Units, true);
 
 		PhysicsComponent->SetGravity(0, -40, 0);
 
@@ -45,24 +45,40 @@ public:
 
 class SimulationGameState : public BaseState {
 	ServerSimulation* m_simulationThread;
-	RPGNet::Server* m_server;
+	RTBGame* m_game;
 	SimulationWasabi* m_wapp;
 
-	float fYaw, fPitch, fDist;
-	WVector3 vPos;
-	bool bMouseHidden;
-	int lastX, lastY;
+	struct {
+		float fYaw, fPitch, fDist;
+		WVector3 vPos;
+		bool bMouseHidden;
+		int lastX, lastY;
+	} m_cam;
+
+	uint32_t m_currentUnitId;
+	std::mutex m_unitIdsMutex;
+
+	std::unordered_map<std::shared_ptr<RTBPlayer>, Unit*> m_players;
+	std::mutex m_playersMutex;
+
+	uint32_t GenerateUnitId() {
+		std::lock_guard lockGuard(m_unitIdsMutex);
+		return m_currentUnitId++;
+	}
 
 public:
 	SimulationGameState(Wasabi* app) : BaseState(app) {
 		m_wapp = (SimulationWasabi*)app;
 		m_simulationThread = m_wapp->m_simulationThread;
-		m_server = m_wapp->m_server;
+		m_game = m_wapp->m_game;
 
-		fYaw = 0;
-		fPitch = 30;
-		fDist = -15;
-		bMouseHidden = false;
+		m_currentUnitId = 1;
+
+		m_cam.fYaw = 0;
+		m_cam.fPitch = 30;
+		m_cam.fDist = -15;
+		m_cam.lastX = m_cam.lastY = 0;
+		m_cam.bMouseHidden = false;
 	}
 
 	virtual ~SimulationGameState() {
@@ -86,18 +102,44 @@ public:
 		((SimulationWasabi*)m_app)->Maps->SetMap(MAP_NONE);
 	}
 
-	void AddPlayer(RTBPlayer* player) {
+	void AddPlayer(std::shared_ptr<RTBPlayer> player) {
+		// this is called in a different thread
+		Unit* newPlayerUnit = m_wapp->Units->LoadUnit(UNIT_PLAYER, GenerateUnitId());
+		{
+			std::lock_guard lockGuard(m_playersMutex);
+			m_players.insert(std::make_pair(player, newPlayerUnit));
+		}
+	}
+
+	void RemovePlayer(std::shared_ptr<RTBPlayer> player) {
+		// this is called in a different thread
+		Unit* playerUnit = nullptr;
+		{
+			std::lock_guard lockGuard(m_playersMutex);
+			auto it = m_players.find(player);
+			if (it != m_players.end()) {
+				playerUnit = it->second;
+				m_players.erase(it);
+			}
+		}
+
+		if (playerUnit) {
+			RPGNet::NetworkUpdate unitUnloadUpdate;
+			RTBNet::UpdateBuilders::UnloadUnit(unitUnloadUpdate, playerUnit->GetId());
+			m_game->Networking->SendUpdate(nullptr, unitUnloadUpdate);
+			m_wapp->Units->DestroyUnit(playerUnit);
+		}
 	}
 
 	void ApplyMousePivot() {
 		WCamera* cam = m_app->CameraManager->GetDefaultCamera();
 		if (m_app->WindowAndInputComponent->MouseClick(MOUSE_LEFT)) {
-			if (!bMouseHidden) {
+			if (!m_cam.bMouseHidden) {
 				m_app->WindowAndInputComponent->ShowCursor(false);
-				bMouseHidden = true;
+				m_cam.bMouseHidden = true;
 
-				lastX = m_app->WindowAndInputComponent->MouseX(MOUSEPOS_DESKTOP, 0);
-				lastY = m_app->WindowAndInputComponent->MouseY(MOUSEPOS_DESKTOP, 0);
+				m_cam.lastX = m_app->WindowAndInputComponent->MouseX(MOUSEPOS_DESKTOP, 0);
+				m_cam.lastY = m_app->WindowAndInputComponent->MouseY(MOUSEPOS_DESKTOP, 0);
 
 				m_app->WindowAndInputComponent->SetMousePosition(640 / 2, 480 / 2, MOUSEPOS_VIEWPORT);
 			}
@@ -113,30 +155,30 @@ public:
 			if (fabs(dy) < 2)
 				dy = 0;
 
-			fYaw += (float)dx / 2.0f;
-			fPitch += (float)dy / 2.0f;
+			m_cam.fYaw += (float)dx / 2.0f;
+			m_cam.fPitch += (float)dy / 2.0f;
 
 			if (dx || dy)
 				m_app->WindowAndInputComponent->SetMousePosition(640 / 2, 480 / 2);
 		} else {
-			if (bMouseHidden) {
+			if (m_cam.bMouseHidden) {
 				m_app->WindowAndInputComponent->ShowCursor(true);
-				bMouseHidden = false;
+				m_cam.bMouseHidden = false;
 
-				m_app->WindowAndInputComponent->SetMousePosition(lastX, lastY, MOUSEPOS_DESKTOP);
+				m_app->WindowAndInputComponent->SetMousePosition(m_cam.lastX, m_cam.lastY, MOUSEPOS_DESKTOP);
 			}
 		}
 
 		float fMouseZ = (float)m_app->WindowAndInputComponent->MouseZ();
-		fDist += (fMouseZ) * (abs(fDist) / 10.0f);
+		m_cam.fDist += (fMouseZ) * (abs(m_cam.fDist) / 10.0f);
 		m_app->WindowAndInputComponent->SetMouseZ(0);
-		fDist = fmin(-1, fDist);
+		m_cam.fDist = fmin(-1, m_cam.fDist);
 
-		cam->SetPosition(vPos);
+		cam->SetPosition(m_cam.vPos);
 		cam->SetAngle(WQuaternion());
-		cam->Yaw(fYaw);
-		cam->Pitch(fPitch);
-		cam->Move(fDist);
+		cam->Yaw(m_cam.fYaw);
+		cam->Pitch(m_cam.fPitch);
+		cam->Move(m_cam.fDist);
 	}
 };
 
@@ -145,15 +187,15 @@ void SimulationWasabi::SwitchToSimulationGameState() {
 	m_simulationThread->m_gameState = (void*)this->curState;
 }
 
-ServerSimulation::ServerSimulation(RPGNet::Server* server, bool generateAssets) {
-	m_server = server;
+ServerSimulation::ServerSimulation(RTBGame* game, bool generateAssets) {
+	m_game = game;
 	m_generateAssets = generateAssets;
 	m_simulationWasabi = nullptr;
 	m_gameState = nullptr;
 }
 
 void ServerSimulation::Run() {
-	SimulationWasabi* wasabi = new SimulationWasabi(this, m_server, m_generateAssets);
+	SimulationWasabi* wasabi = new SimulationWasabi(this, m_game, m_generateAssets);
 	m_simulationWasabi = (void*)wasabi;
 	RunWasabi(wasabi);
 	delete wasabi;
@@ -163,9 +205,16 @@ void ServerSimulation::WaitForSimulationLaunch() {
 	while (!m_gameState); // spin loop, this should only protect in the first few seconds of launch
 }
 
-void ServerSimulation::AddPlayer(RTBPlayer* player) {
+void ServerSimulation::AddPlayer(std::shared_ptr<RTBPlayer> player) {
 	// this is called in a different thread than the thread running the Wasabi instance
 	WaitForSimulationLaunch();
 	SimulationGameState* gameState = (SimulationGameState*)m_gameState;
 	gameState->AddPlayer(player);
+}
+
+void ServerSimulation::RemovePlayer(std::shared_ptr<RTBPlayer> player) {
+	// this is called in a different thread than the thread running the Wasabi instance
+	WaitForSimulationLaunch();
+	SimulationGameState* gameState = (SimulationGameState*)m_gameState;
+	gameState->RemovePlayer(player);
 }

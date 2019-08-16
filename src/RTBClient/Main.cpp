@@ -32,11 +32,6 @@ RTB::RTB(bool generateAssets, bool enableVulkanDebugging, bool enablePhysicsDebu
 
 	RTBNetworking = new RTBNet::RTBClientNetworking();
 	RTBNetworking->Initialize();
-
-	RTBNetworking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_UNIT, [this](RPGNet::NetworkUpdate& update) {
-		uint32_t unitId = update.targetId;
-		Unit* unit = Units->GetUnit(unitId);
-	});
 }
 
 RTB::~RTB() {
@@ -46,7 +41,7 @@ RTB::~RTB() {
 
 void RTB::SwitchToInitialState() {
 	SetupRTBMaps(Maps);
-	SetupRTBUnits(Units);
+	SetupRTBUnits(Units, false);
 
 	PhysicsComponent->SetGravity(0, -40, 0);
 

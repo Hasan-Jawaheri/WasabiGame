@@ -1,26 +1,26 @@
 #include "RTBServer/Game/Game.hpp"
 
 RTBGame::RTBGame() {
-	m_networking = nullptr;
-	m_simulation = nullptr;
+	Networking = nullptr;
+	Simulation = nullptr;
 }
 
 void RTBGame::Initialize(RTBNet::RTBServerNetworking* networking, ServerSimulation* simulation) {
-	m_networking = networking;
-	m_simulation = simulation;
+	Networking = networking;
+	Simulation = simulation;
 }
 
 void RTBGame::Destroy() {
-	m_networking = nullptr;
-	m_simulation = nullptr;
+	Networking = nullptr;
+	Simulation = nullptr;
 }
 
 void RTBGame::OnClientConnected(RTBNet::RTBServerConnectedClient* client) {
-	RTBPlayer* player = new RTBPlayer();
+	std::shared_ptr<RTBPlayer> player = std::make_shared<RTBPlayer>();
 	m_connectedPlayers.insert(std::make_pair(client, player));
 
 	// in a different thread, start loading player data
-	m_networking->GetServer()->Scheduler.SubmitWork<int>([this, client, player]() {
+	Networking->GetServer()->Scheduler.SubmitWork<int>([this, client, player]() {
 		if (!player->Load(client->Identity)) {
 			// failed to load player data
 			RPGNet::NetworkUpdate update;
@@ -31,7 +31,7 @@ void RTBGame::OnClientConnected(RTBNet::RTBServerConnectedClient* client) {
 			client->Close();
 		} else {
 			// add the player to the simulation
-			this->m_simulation->AddPlayer(player);
+			this->Simulation->AddPlayer(player);
 		}
 
 		return 0;
@@ -41,7 +41,7 @@ void RTBGame::OnClientConnected(RTBNet::RTBServerConnectedClient* client) {
 void RTBGame::OnClientDisconnected(RTBNet::RTBServerConnectedClient* client) {
 	auto it = m_connectedPlayers.find(client);
 	if (it != m_connectedPlayers.end()) {
-		delete it->second;
-		m_connectedPlayers.erase(it);
+		this->Simulation->RemovePlayer(it->second);
+		m_connectedPlayers.erase(it); // this will remove reference to the pointer
 	}
 }

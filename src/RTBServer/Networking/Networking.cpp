@@ -82,14 +82,14 @@ RPGNet::ServerT<RTBNet::RTBServerConnectedClient>* RTBNet::RTBServerNetworking::
 
 void RTBNet::RTBServerNetworking::SendUpdate(uint32_t clientId, RPGNet::NetworkUpdate& update, bool important) {
 	RTBServerConnectedClient* client = nullptr;
-	{
+	if (clientId != 0) {
 		std::lock_guard lockGuard(this->m_clientsMutex);
 		auto it = m_clients.find(clientId);
 		if (it != m_clients.end())
 			client = it->second;
 	}
 
-	if (client)
+	if (client || clientId == 0)
 		SendUpdate(client, update, important);
 }
 
@@ -97,10 +97,20 @@ void RTBNet::RTBServerNetworking::SendUpdate(RTBNet::RTBServerConnectedClient* c
 	char packet[RPGNet::MAX_PACKET_SIZE];
 	size_t size = update.fillPacket(packet);
 
-	if (important)
-		client->Write(packet, size);
-	//else
-	//	m_server->SendUDPPacket;
+	if (client) {
+		if (important)
+			client->Write(packet, size);
+		//else
+		//	m_server->SendUDPPacket;
+	} else {
+		std::lock_guard lockGuard(this->m_clientsMutex);
+		for (auto client : m_clients) {
+			if (important)
+				client.second->Write(packet, size);
+			//else
+			//	m_server->SendUDPPacket;
+		}
+	}
 }
 
 void RTBNet::RTBServerNetworking::RegisterNetworkUpdateCallback(RPGNet::NetworkUpdateType type, std::function<bool(RTBServerConnectedClient*, RPGNet::NetworkUpdate&)> callback) {

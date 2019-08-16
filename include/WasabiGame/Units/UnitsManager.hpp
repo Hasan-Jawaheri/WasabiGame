@@ -8,8 +8,8 @@ class UnitsManager {
 	Wasabi* m_app;
 	ResourceManager* m_resourceManager;
 
-	std::unordered_map<uint, std::function<class Unit* ()>> m_unitGenerators;
-	std::unordered_map<uint, std::pair<uint, class Unit*>> m_units;
+	std::unordered_map<uint32_t, std::function<class Unit* ()>> m_unitGenerators;
+	std::unordered_map<uint32_t, std::pair<uint32_t, class Unit*>> m_units;
 
 public:
 	UnitsManager(Wasabi* app, ResourceManager* resourceManager);
@@ -22,12 +22,13 @@ public:
 		return u;
 	}
 
-	void RegisterUnit(uint id, std::function<class Unit* ()> unitGenerator);
+	void RegisterUnit(uint32_t id, std::function<class Unit* ()> unitGenerator);
 	void ResetUnits();
 
-	Unit* LoadUnit(uint type, uint id);
-	Unit* GetUnit(uint id);
+	Unit* LoadUnit(uint32_t type, uint32_t id);
+	Unit* GetUnit(uint32_t id);
 	void DestroyUnit(Unit* unit);
+	void DestroyUnit(uint32_t id);
 	void Update(float fDeltaTime);
 	void Cleanup();
 };

@@ -28,11 +28,20 @@ void Game::Load() {
 	((RTB*)m_app)->UI->AddUIElement(ok, err);
 	((RTB*)m_app)->UI->Load(m_app);
 
-	// Load the player
-	m_player = (Player*)((RTB*)m_app)->Units->LoadUnit(UNIT_PLAYER, 0); // player always has id 0
-
 	// Load the map
 	((RTB*)m_app)->Maps->SetMap(MAP_TEST);
+
+	((RTB*)m_app)->RTBNetworking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_LOAD_UNIT, [this](RPGNet::NetworkUpdate& update) {
+		uint32_t unitId, unitType;
+		RTBNet::UpdateBuilders::ReadLoadUnitPacket(update, &unitType, &unitId);
+		((RTB*)this->m_app)->Units->LoadUnit(unitType, unitId);
+	});
+
+	((RTB*)m_app)->RTBNetworking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_UNLOAD_UNIT, [this](RPGNet::NetworkUpdate& update) {
+		uint32_t unitId;
+		RTBNet::UpdateBuilders::ReadUnloadUnitPacket(update, &unitId);
+		((RTB*)this->m_app)->Units->DestroyUnit(unitId);
+	});
 
 	// Login to server
 	((RTB*)m_app)->RTBNetworking->Login();

@@ -14,7 +14,7 @@ void RunRTBServer(bool generateAssets) {
 	RTBGame* game = new RTBGame();
 	RTBNet::RTBServerNetworking* networking = new RTBNet::RTBServerNetworking();
 	RPGNet::Server* server = networking->GetServer();
-	ServerSimulation* simulation = new ServerSimulation(server, generateAssets);
+	ServerSimulation* simulation = new ServerSimulation(game, generateAssets);
 
 	game->Initialize(networking, simulation);
 	networking->Initialize(game);

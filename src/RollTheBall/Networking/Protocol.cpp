@@ -29,3 +29,28 @@ bool RTBNet::UpdateBuilders::ReadLoginPacket(RPGNet::NetworkUpdate& input, RPGNe
 	memcpy(&identity, input.data, input.dataSize);
 	return true;
 }
+
+void RTBNet::UpdateBuilders::LoadUnit(RPGNet::NetworkUpdate& output, uint32_t unitType, uint32_t unitId) {
+	output.type = RTBNet::UpdateTypeEnum::UPDATE_TYPE_LOAD_UNIT;
+	output.purpose = unitType;
+	output.targetId = unitId;
+	output.dataSize = 0;
+}
+
+bool RTBNet::UpdateBuilders::ReadLoadUnitPacket(RPGNet::NetworkUpdate& input, uint32_t* unitType, uint32_t* unitId) {
+	*unitType = input.purpose;
+	*unitId = input.targetId;
+	return true;
+}
+
+void RTBNet::UpdateBuilders::UnloadUnit(RPGNet::NetworkUpdate& output, uint32_t unitId) {
+	output.type = RTBNet::UpdateTypeEnum::UPDATE_TYPE_UNLOAD_UNIT;
+	output.purpose = 0;
+	output.targetId = unitId;
+	output.dataSize = 0;
+}
+
+bool RTBNet::UpdateBuilders::ReadUnloadUnitPacket(RPGNet::NetworkUpdate& input, uint32_t* unitId) {
+	*unitId = input.targetId;
+	return true;
+}
