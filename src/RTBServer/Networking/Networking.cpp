@@ -16,37 +16,57 @@ void RTBNet::RTBServerNetworking::Initialize(RTBGame* game) {
 	WSADATA wsa;
 	(void)WSAStartup(MAKEWORD(2, 2), &wsa);
 
-	std::function<bool(HBUtils::CircularBuffer*)> onConsumeBuffer = [this](HBUtils::CircularBuffer* buffer) {
+	// client sent new data over TCP
+	auto onConsumeBuffer = [this](RTBServerConnectedClient* client, HBUtils::CircularBuffer* buffer) {
 		RPGNet::NetworkUpdate update;
 		size_t size = update.readPacket(buffer);
 		if (size > 0) {
+			if (update.type != RTBNet::UpdateTypeEnum::UPDATE_TYPE_LOGIN && client->Identity.accountName[0] == 0)
+				return false;
+
 			auto it = m_updateCallbacks.find(update.type);
 			if (it != m_updateCallbacks.end())
-				it->second(update);
+				return it->second(client, update);
 		}
 		return true;
 	};
 
+	// client connected
 	m_server->SetOnClientConnected([this, onConsumeBuffer](RPGNet::Selectable* _client) {
 		RTBServerConnectedClient* client = (RTBServerConnectedClient*)_client;
 		{
 			std::lock_guard lockGuard(this->m_clientsMutex);
 			client->m_id = this->GenerateClientId();
-			client->SetConsumeBufferCallback(onConsumeBuffer);
+			client->SetConsumeBufferCallback([client, onConsumeBuffer](HBUtils::CircularBuffer* buffer) {
+				return onConsumeBuffer(client, buffer);
+			});
 			this->m_clients.insert(std::make_pair(client->m_id, client));
 		}
-
-		m_game->OnClientConnected(client);
 	});
 
+	// client disconnected
 	m_server->SetOnClientDisconnected([this](RPGNet::Selectable* _client) {
 		RTBServerConnectedClient* client = (RTBServerConnectedClient*)_client;
+
+		m_game->OnClientDisconnected(client);
+
 		{
 			std::lock_guard lockGuard(this->m_clientsMutex);
 			this->m_clients.erase(client->m_id);
 		}
+	});
 
-		m_game->OnClientDisconnected(client);
+	// login update callback
+	RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_LOGIN, [this](RTBServerConnectedClient* client, RPGNet::NetworkUpdate& loginUpdate) {
+		RPGNet::ClientIdentity identity;
+		if (RTBNet::UpdateBuilders::ReadLoginPacket(loginUpdate, identity)) {
+			if (this->Authenticate(identity)) {
+				memcpy(&client->Identity, &identity, sizeof(RPGNet::ClientIdentity));
+				m_game->OnClientConnected(client);
+			} else
+				return false;
+		}
+		return true;
 	});
 }
 
@@ -83,7 +103,7 @@ void RTBNet::RTBServerNetworking::SendUpdate(RTBNet::RTBServerConnectedClient* c
 	//	m_server->SendUDPPacket;
 }
 
-void RTBNet::RTBServerNetworking::RegisterNetworkUpdateCallback(RPGNet::NetworkUpdateType type, std::function<void(RPGNet::NetworkUpdate&)> callback) {
+void RTBNet::RTBServerNetworking::RegisterNetworkUpdateCallback(RPGNet::NetworkUpdateType type, std::function<bool(RTBServerConnectedClient*, RPGNet::NetworkUpdate&)> callback) {
 	auto it = m_updateCallbacks.find(type);
 	if (it != m_updateCallbacks.end())
 		m_updateCallbacks.erase(it);
@@ -94,4 +114,8 @@ void RTBNet::RTBServerNetworking::ClearNetworkUpdateCallback(RPGNet::NetworkUpda
 	auto it = m_updateCallbacks.find(type);
 	if (it != m_updateCallbacks.end())
 		m_updateCallbacks.erase(it);
+}
+
+bool RTBNet::RTBServerNetworking::Authenticate(RPGNet::ClientIdentity& identity) {
+	return std::string(identity.accountName).find("ghandi") == 0 && std::string(identity.passwordHash) == "123456";
 }

@@ -16,18 +16,26 @@ void RTBGame::Destroy() {
 }
 
 void RTBGame::OnClientConnected(RTBNet::RTBServerConnectedClient* client) {
-	Player* player = new Player();
+	RTBPlayer* player = new RTBPlayer();
 	m_connectedPlayers.insert(std::make_pair(client, player));
 
-	RPGNet::NetworkUpdate update;
-	update.type = RTBNet::UpdateTypeEnum::UPDATE_TYPE_UNIT;
-	update.targetId = 0;
-	update.purpose = 0;
-	update.dataSize = 0;
+	// in a different thread, start loading player data
+	m_networking->GetServer()->Scheduler.SubmitWork<int>([this, client, player]() {
+		if (!player->Load(client->Identity)) {
+			// failed to load player data
+			RPGNet::NetworkUpdate update;
+			RTBNet::UpdateBuilders::Error(update, "Failed to load player data");
+			char packet[RPGNet::MAX_PACKET_SIZE];
+			size_t size = update.fillPacket(packet);
+			client->Write(packet, size);
+			client->Close();
+		} else {
+			// add the player to the simulation
+			this->m_simulation->AddPlayer(player);
+		}
 
-	char packet[RPGNet::MAX_PACKET_SIZE];
-	size_t size = update.fillPacket(packet);
-	client->Write(packet, size);
+		return 0;
+	});
 }
 
 void RTBGame::OnClientDisconnected(RTBNet::RTBServerConnectedClient* client) {

@@ -16,7 +16,7 @@ class RTBGame {
 	class RTBNet::RTBServerNetworking* m_networking;
 	class ServerSimulation* m_simulation;
 
-	std::unordered_map<class RTBNet::RTBServerConnectedClient*, Player*> m_connectedPlayers;
+	std::unordered_map<class RTBNet::RTBServerConnectedClient*, RTBPlayer*> m_connectedPlayers;
 
 public:
 	RTBGame();

@@ -10,6 +10,11 @@
 
 namespace RPGNet {
 
+	struct ClientIdentity {
+		char accountName[256];
+		char passwordHash[256];
+	};
+
 	const size_t MAX_PACKET_SIZE = 4096;
 	const size_t PACKET_META_SIZE = 10;
 

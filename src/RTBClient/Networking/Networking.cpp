@@ -44,9 +44,12 @@ void RTBNet::RTBClientNetworking::Destroy() {
 
 void RTBNet::RTBClientNetworking::Login() {
 	Status = CONNECTION_CONNECTING;
-	if (m_tcpConnection->Connect("127.0.0.1", 9965) == 0)
+	if (m_tcpConnection->Connect("127.0.0.1", 9965) == 0) {
 		Status = RTBConnectionStatus::CONNECTION_CONNECTED;
-	else
+		RPGNet::NetworkUpdate loginUpdate;
+		RTBNet::UpdateBuilders::Login(loginUpdate, ("ghandi-" + std::to_string(rand() % 10000)).c_str(), "123456");
+		SendUpdate(loginUpdate);
+	}  else
 		Status = RTBConnectionStatus::CONNECTION_NOT_CONNECTED;
 }
 

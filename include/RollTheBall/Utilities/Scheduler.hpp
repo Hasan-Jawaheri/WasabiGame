@@ -132,10 +132,10 @@ namespace HBUtils {
 		}
 
 		template<typename ReturnType>
-		void SubmitWork(std::function<ReturnType()> function, std::function<void(ReturnType)> callback = [](void*) {}) {
+		void SubmitWork(std::function<ReturnType()> function, std::function<void(ReturnType)> callback = [](ReturnType) {}) {
 			WorkUnit work;
-			work.perform = [function]() { return (void*)function(); };
-			work.callback = [callback](void* ret) { callback((ReturnType)ret); };
+			work.perform = [function]() { return reinterpret_cast<void*>((size_t)(function())); };
+			work.callback = [callback](void* ret) { callback((ReturnType)reinterpret_cast<size_t>(ret)); };
 
 			m_workMutex.lock();
 			m_workQueue.push(work);
