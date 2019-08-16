@@ -200,6 +200,7 @@ ServerSimulation::ServerSimulation(RTBGame* game, bool generateAssets) {
 	m_generateAssets = generateAssets;
 	m_simulationWasabi = nullptr;
 	m_gameState.store(nullptr);
+	m_simulationLoaded = false;
 }
 
 void ServerSimulation::Run() {
@@ -210,7 +211,8 @@ void ServerSimulation::Run() {
 }
 
 void ServerSimulation::WaitForSimulationLaunch() {
-	while (!m_gameState.load()); // spin loop, this should only protect in the first few seconds of launch
+	while (!m_simulationLoaded && !m_gameState.load()); // spin loop, this should only protect in the first few seconds of launch
+	m_simulationLoaded = true;
 }
 
 void ServerSimulation::AddPlayer(std::shared_ptr<RTBPlayer> player) {

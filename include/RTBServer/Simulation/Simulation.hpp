@@ -12,6 +12,7 @@ class ServerSimulation : public HBUtils::SchedulerThread {
 
 	void* m_simulationWasabi;
 	std::atomic<void*> m_gameState;
+	bool m_simulationLoaded;
 	class RTBGame* m_game;
 	bool m_generateAssets;
 
