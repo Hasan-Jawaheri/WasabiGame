@@ -21,7 +21,6 @@ void RunRTBServer(bool generateAssets) {
 
 	server->Scheduler.LaunchThread("simulation-thread", [server, simulation]() {
 		simulation->Run();
-		delete simulation;
 		server->Scheduler.Stop();
 	});
 
@@ -29,6 +28,8 @@ void RunRTBServer(bool generateAssets) {
 
 	networking->Destroy();
 	game->Destroy();
+
+	delete simulation;
 	delete networking;
 	delete game;
 }

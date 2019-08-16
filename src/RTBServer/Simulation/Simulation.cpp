@@ -84,21 +84,22 @@ public:
 	virtual ~SimulationGameState() {
 	}
 
-	void Load() {
+	virtual void Load() {
 		m_wapp->UI->Load(m_app);
 
 		// Load the map
 		m_wapp->Maps->SetMap(MAP_TEST);
 	}
 
-	void Update(float fDeltaTime) {
+	virtual void Update(float fDeltaTime) {
 		ApplyMousePivot();
 
 		if (!m_simulationThread->IsRunning())
 			m_app->SwitchState(nullptr);
 	}
 
-	void Cleanup() {
+	virtual void Cleanup() {
+		m_simulationThread->m_gameState.store(nullptr);
 		((SimulationWasabi*)m_app)->Maps->SetMap(MAP_NONE);
 	}
 
@@ -184,14 +185,14 @@ public:
 
 void SimulationWasabi::SwitchToSimulationGameState() {
 	SwitchState(new SimulationGameState(this));
-	m_simulationThread->m_gameState = (void*)this->curState;
+	m_simulationThread->m_gameState.store((void*)this->curState);
 }
 
 ServerSimulation::ServerSimulation(RTBGame* game, bool generateAssets) {
 	m_game = game;
 	m_generateAssets = generateAssets;
 	m_simulationWasabi = nullptr;
-	m_gameState = nullptr;
+	m_gameState.store(nullptr);
 }
 
 void ServerSimulation::Run() {
@@ -202,19 +203,23 @@ void ServerSimulation::Run() {
 }
 
 void ServerSimulation::WaitForSimulationLaunch() {
-	while (!m_gameState); // spin loop, this should only protect in the first few seconds of launch
+	while (!m_gameState.load()); // spin loop, this should only protect in the first few seconds of launch
 }
 
 void ServerSimulation::AddPlayer(std::shared_ptr<RTBPlayer> player) {
 	// this is called in a different thread than the thread running the Wasabi instance
 	WaitForSimulationLaunch();
-	SimulationGameState* gameState = (SimulationGameState*)m_gameState;
-	gameState->AddPlayer(player);
+	if (m_gameState) {
+		SimulationGameState* gameState = (SimulationGameState*)m_gameState.load();
+		gameState->AddPlayer(player);
+	}
 }
 
 void ServerSimulation::RemovePlayer(std::shared_ptr<RTBPlayer> player) {
 	// this is called in a different thread than the thread running the Wasabi instance
 	WaitForSimulationLaunch();
-	SimulationGameState* gameState = (SimulationGameState*)m_gameState;
-	gameState->RemovePlayer(player);
+	if (m_gameState) {
+		SimulationGameState* gameState = (SimulationGameState*)m_gameState.load();
+		gameState->RemovePlayer(player);
+	}
 }

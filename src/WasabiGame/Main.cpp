@@ -81,6 +81,8 @@ bool WasabiRPG::Loop(float fDeltaTime) {
 }
 
 void WasabiRPG::Cleanup() {
+	SwitchState(nullptr);
+
 	UI->Terminate();
 	Maps->Cleanup();
 	Units->Cleanup();

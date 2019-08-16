@@ -4,10 +4,14 @@
 #include "RTBServer/Game/Game.hpp"
 #include "RTBServer/Game/Player.hpp"
 
+#include <atomic>
+
 class ServerSimulation : public HBUtils::SchedulerThread {
 	friend class SimulationWasabi;
+	friend class SimulationGameState;
+
 	void* m_simulationWasabi;
-	void* m_gameState;
+	std::atomic<void*> m_gameState;
 	class RTBGame* m_game;
 	bool m_generateAssets;
 
