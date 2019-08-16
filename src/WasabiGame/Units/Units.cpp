@@ -2,6 +2,7 @@
 #include "WasabiGame/Units/AI.hpp"
 
 Unit::Unit(Wasabi* app, ResourceManager* resourceManager) : m_app(app), m_resourceManager(resourceManager), m_model(nullptr), m_AI(nullptr) {
+	m_canLoad.store(false);
 }
 
 Unit::~Unit() {
@@ -21,25 +22,26 @@ Wasabi* Unit::GetApp() const {
 }
 
 WOrientation* Unit::O() const {
-	if (m_model->rb)
-		return m_model->rb;
-	return m_model->obj;
+	if (m_model) {
+		if (m_model->rb)
+			return m_model->rb;
+		return m_model->obj;
+	}
+	return nullptr;
 }
 
 WRigidBody* Unit::RB() const {
-	return m_model->rb;
-}
-
-void Unit::LoadModel(std::string modelName) {
-	if (m_model) {
-		m_resourceManager->DestroyUnitModel(m_model);
-		m_model = nullptr;
-	}
-
-	m_model = m_resourceManager->LoadUnitModel(modelName);
+	if (m_model)
+		return m_model->rb;
+	return nullptr;
 }
 
 void Unit::Update(float fDeltaTime) {
+	if (!m_model && m_canLoad.load()) {
+		m_model = m_resourceManager->LoadUnitModel(m_loadInfo.modelName);
+		O()->SetPosition(m_loadInfo.spawnPos);
+	}
+
 	if (m_AI)
 		m_AI->Update(fDeltaTime);
 }

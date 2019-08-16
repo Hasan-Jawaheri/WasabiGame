@@ -30,16 +30,20 @@ bool RTBNet::UpdateBuilders::ReadLoginPacket(RPGNet::NetworkUpdate& input, RPGNe
 	return true;
 }
 
-void RTBNet::UpdateBuilders::LoadUnit(RPGNet::NetworkUpdate& output, uint32_t unitType, uint32_t unitId) {
+void RTBNet::UpdateBuilders::LoadUnit(RPGNet::NetworkUpdate& output, uint32_t unitType, uint32_t unitId, WVector3 spawnPos) {
 	output.type = RTBNet::UpdateTypeEnum::UPDATE_TYPE_LOAD_UNIT;
 	output.purpose = unitType;
 	output.targetId = unitId;
-	output.dataSize = 0;
+	output.dataSize = sizeof(WVector3);
+	memcpy(output.data, &spawnPos, output.dataSize);
 }
 
-bool RTBNet::UpdateBuilders::ReadLoadUnitPacket(RPGNet::NetworkUpdate& input, uint32_t* unitType, uint32_t* unitId) {
+bool RTBNet::UpdateBuilders::ReadLoadUnitPacket(RPGNet::NetworkUpdate& input, uint32_t* unitType, uint32_t* unitId, WVector3* spawnPos) {
+	if (input.dataSize != sizeof(WVector3))
+		return false;
 	*unitType = input.purpose;
 	*unitId = input.targetId;
+	memcpy((void*)spawnPos, input.data, input.dataSize);
 	return true;
 }
 

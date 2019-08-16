@@ -13,15 +13,22 @@ void UnitsManager::ResetUnits() {
 	m_unitGenerators.clear();
 }
 
-Unit* UnitsManager::LoadUnit(uint32_t type, uint32_t id) {
+Unit* UnitsManager::LoadUnit(uint32_t type, uint32_t id, WVector3 spawnPos) {
 	auto it = m_unitGenerators.find(type);
 	Unit* unit = it->second();
+	unit->m_loadInfo.spawnPos = spawnPos;
+	unit->m_canLoad.store(true);
 	unit->m_id = id;
-	UnitsManager::m_units.insert(std::make_pair(type, std::make_pair(id, unit)));
+
+	{
+		std::lock_guard lockGuard(m_unitsMutex);
+		m_units.insert(std::make_pair(id, std::make_pair(type, unit)));
+	}
 	return unit;
 }
 
 Unit* UnitsManager::GetUnit(uint32_t id) {
+	std::lock_guard lockGuard(m_unitsMutex);
 	auto it = m_units.find(id);
 	if (it != m_units.end()) {
 		return it->second.second;
@@ -30,30 +37,36 @@ Unit* UnitsManager::GetUnit(uint32_t id) {
 }
 
 void UnitsManager::DestroyUnit(Unit* unit) {
-	auto it = m_units.find(unit->m_id);
-	if (it != m_units.end()) {
-		delete it->second.second;
-		m_units.erase(it);
-	}
+	DestroyUnit(unit->m_id);
 }
 
 void UnitsManager::DestroyUnit(uint32_t id) {
-	auto it = m_units.find(id);
-	if (it != m_units.end()) {
-		delete it->second.second;
-		m_units.erase(it);
+	Unit* unit = nullptr;
+	{
+		std::lock_guard lockGuard(m_unitsMutex);
+		auto it = m_units.find(id);
+		if (it != m_units.end()) {
+			unit = it->second.second;
+			m_units.erase(it);
+		}
 	}
+	if (unit)
+		delete unit;
 }
 
 void UnitsManager::Update(float fDeltaTime) {
+	std::lock_guard lockGuard(m_unitsMutex);
 	for (auto unit : m_units)
 		unit.second.second->Update(fDeltaTime);
 }
 
 void UnitsManager::Cleanup() {
+	std::lock_guard lockGuard(m_unitsMutex);
+
 	for (auto unit : m_units)
 		delete unit.second.second;
 	m_units.clear();
+
 	ResetUnits();
 }
 

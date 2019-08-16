@@ -33,13 +33,18 @@ void Game::Load() {
 
 	((RTB*)m_app)->RTBNetworking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_LOAD_UNIT, [this](RPGNet::NetworkUpdate& update) {
 		uint32_t unitId, unitType;
-		RTBNet::UpdateBuilders::ReadLoadUnitPacket(update, &unitType, &unitId);
-		((RTB*)this->m_app)->Units->LoadUnit(unitType, unitId);
+		WVector3 spawnPos;
+		RTBNet::UpdateBuilders::ReadLoadUnitPacket(update, &unitType, &unitId, &spawnPos);
+		Unit* unit = ((RTB*)this->m_app)->Units->LoadUnit(unitType, unitId, spawnPos);
+		if (unitType == UNIT_PLAYER && !this->m_player)
+			this->m_player = (Player*)unit;
 	});
 
 	((RTB*)m_app)->RTBNetworking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_UNLOAD_UNIT, [this](RPGNet::NetworkUpdate& update) {
 		uint32_t unitId;
 		RTBNet::UpdateBuilders::ReadUnloadUnitPacket(update, &unitId);
+		if (m_player && unitId == m_player->GetId())
+			this->m_player = nullptr;
 		((RTB*)this->m_app)->Units->DestroyUnit(unitId);
 	});
 
@@ -165,9 +170,9 @@ void GameInputHandler::OnMouseButton(int mx, int my, bool bDown) {
 
 void GameInputHandler::OnMouseButton2(int mx, int my, bool bDown) {
 	if (bDown)
-		m_game->m_player->BeginDragCamera();
+		((PlayerAI*)m_game->m_player->GetAI())->BeginDragCamera();
 	else
-		m_game->m_player->EndDragCamera();
+		((PlayerAI*)m_game->m_player->GetAI())->EndDragCamera();
 	/*
 	if (bDown) {
 		if (WImage* img = m_game->m_ui.stanceBar->GetCurrentImage()) {

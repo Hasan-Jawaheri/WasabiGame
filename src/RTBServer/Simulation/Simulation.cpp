@@ -105,7 +105,14 @@ public:
 
 	void AddPlayer(std::shared_ptr<RTBPlayer> player) {
 		// this is called in a different thread
-		Unit* newPlayerUnit = m_wapp->Units->LoadUnit(UNIT_PLAYER, GenerateUnitId());
+		WVector3 spawnPos = WVector3(player->m_x, player->m_y, player->m_z);
+		Unit* newPlayerUnit = m_wapp->Units->LoadUnit(UNIT_PLAYER, GenerateUnitId(), spawnPos);
+
+		// special message for the player, make sure the first unit it loads is the player unit
+		RPGNet::NetworkUpdate unitUnloadUpdate;
+		RTBNet::UpdateBuilders::LoadUnit(unitUnloadUpdate, UNIT_PLAYER, newPlayerUnit->GetId(), spawnPos);
+		m_game->Networking->SendUpdate(player->m_clientId, unitUnloadUpdate);
+
 		{
 			std::lock_guard lockGuard(m_playersMutex);
 			m_players.insert(std::make_pair(player, newPlayerUnit));

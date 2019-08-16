@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RollTheBall/Networking/Data.hpp"
+#include <Wasabi/Core/WMath.h>
 
 namespace RTBNet {
 
@@ -19,8 +20,8 @@ namespace RTBNet {
 		void Login(RPGNet::NetworkUpdate& output, const char* account, const char* password);
 		bool ReadLoginPacket(RPGNet::NetworkUpdate& input, RPGNet::ClientIdentity& identity);
 
-		void LoadUnit(RPGNet::NetworkUpdate& output, uint32_t unitType, uint32_t unitId);
-		bool ReadLoadUnitPacket(RPGNet::NetworkUpdate& input, uint32_t* unitType, uint32_t* unitId);
+		void LoadUnit(RPGNet::NetworkUpdate& output, uint32_t unitType, uint32_t unitId, WVector3 spawn);
+		bool ReadLoadUnitPacket(RPGNet::NetworkUpdate& input, uint32_t* unitType, uint32_t* unitId, WVector3* spawn);
 
 		void UnloadUnit(RPGNet::NetworkUpdate& output, uint32_t unitId);
 		bool ReadUnloadUnitPacket(RPGNet::NetworkUpdate& input, uint32_t* unitId);

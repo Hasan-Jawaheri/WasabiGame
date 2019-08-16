@@ -53,6 +53,17 @@ WError ResourceManager::Init(std::string mediaFolder) {
 	return err;
 }
 
+void ResourceManager::Update(float fDeltaTime) {
+	{
+		std::lock_guard lockGuard(m_modelsToFreeMutex);
+		for (auto it = m_modelsToFree.begin(); it != m_modelsToFree.end(); it++) {
+			W_SAFE_REMOVEREF((*it)->obj);
+			W_SAFE_REMOVEREF((*it)->rb);
+		}
+		m_modelsToFree.clear();
+	}
+}
+
 void ResourceManager::Cleanup() {
 	m_mapResources.Cleanup();
 	m_generalResources.Cleanup();
@@ -124,7 +135,9 @@ LOADED_MODEL* ResourceManager::LoadUnitModel(std::string unitName) {
 
 void ResourceManager::DestroyUnitModel(LOADED_MODEL* model) {
 	auto it = m_generalResources.loadedAssets.find(model);
-	W_SAFE_REMOVEREF(it->first->obj);
-	W_SAFE_REMOVEREF(it->first->rb);
 	m_generalResources.loadedAssets.erase(it);
+	{
+		std::lock_guard lockGuard(m_modelsToFreeMutex);
+		m_modelsToFree.push_back(model);
+	}
 }

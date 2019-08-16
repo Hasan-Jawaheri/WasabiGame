@@ -3,6 +3,17 @@
 const char* Player::modelName = "player";
 
 Player::Player(Wasabi* app, ResourceManager* resourceManager) : BallUnit(app, resourceManager) {
+}
+
+Player::~Player() {
+}
+
+void Player::Update(float fDeltaTime) {
+	BallUnit::Update(fDeltaTime);
+}
+
+PlayerAI::PlayerAI(Unit* unit) : AI(unit) {
+	m_app = unit->GetApp();
 	m_camera = m_app->CameraManager->GetDefaultCamera();
 	m_camera->AddReference();
 	m_cameraPivot = WVector3(0.0f, 0.0f, 0.0f);
@@ -12,13 +23,58 @@ Player::Player(Wasabi* app, ResourceManager* resourceManager) : BallUnit(app, re
 	m_dist = -10.0f;
 	m_draggingCamera = false;
 	m_mouseHidden = false;
+
+	m_isJumpKeyDown = false;
 }
 
-Player::~Player() {
+PlayerAI::~PlayerAI() {
 	W_SAFE_REMOVEREF(m_camera);
 }
 
-void Player::ApplyMousePivot() {
+void PlayerAI::Update(float fDeltaTime) {
+	Player* player = (Player*)m_unit;
+	WVector3 rbPos = player->O()->GetPosition();
+	WVector3 direction = WVec3TransformNormal(WVector3(0, 0, 1), WRotationMatrixY(W_DEGTORAD(m_yaw)));
+	WVector3 right = WVec3TransformNormal(WVector3(1, 0, 0), WRotationMatrixY(W_DEGTORAD(m_yaw)));
+
+	WVector3 inputDirection(0, 0, 0);
+	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('W'))
+		inputDirection += direction;
+	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('S'))
+		inputDirection -= direction;
+	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('A'))
+		inputDirection -= right;
+	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('D'))
+		inputDirection += right;
+
+	bool isDirection = WVec3LengthSq(inputDirection) > 0.1f;
+
+	if (!m_unit->GetApp()->WindowAndInputComponent->KeyDown(' '))
+		m_isJumpKeyDown = true;
+	else if (m_isJumpKeyDown) {
+		m_isJumpKeyDown = false;
+		player->Jump(inputDirection);
+	}
+
+	if (isDirection) {
+		player->Move(inputDirection);
+	}
+
+	// apply mouse rotation pivot
+	ApplyMousePivot();
+
+	// make camera follow player's model
+	WOrientation* orientation = m_unit->O();
+	if (orientation) {
+		WVector3 rbPos = orientation->GetPosition();
+		float camToPlayerDistSquare = WVec3LengthSq(rbPos - m_cameraPivot);
+		if (camToPlayerDistSquare > 0.05f) {
+			m_cameraPivot = m_cameraPivot + (rbPos - m_cameraPivot) * (camToPlayerDistSquare / 2.0f) * fDeltaTime;
+		}
+	}
+}
+
+void PlayerAI::ApplyMousePivot() {
 	if (m_draggingCamera) {
 		if (!m_mouseHidden) {
 			m_app->WindowAndInputComponent->ShowCursor(false);
@@ -67,62 +123,10 @@ void Player::ApplyMousePivot() {
 	m_camera->Move(m_dist);
 }
 
-void Player::BeginDragCamera() {
+void PlayerAI::BeginDragCamera() {
 	m_draggingCamera = true;
 }
 
-void Player::EndDragCamera() {
+void PlayerAI::EndDragCamera() {
 	m_draggingCamera = false;
-}
-
-void Player::Update(float fDeltaTime) {
-	BallUnit::Update(fDeltaTime);
-
-	// apply mouse rotation pivot
-	ApplyMousePivot();
-
-	// make camera follow player's model
-	WVector3 rbPos = O()->GetPosition();
-	float camToPlayerDistSquare = WVec3LengthSq(rbPos - m_cameraPivot);
-	if (camToPlayerDistSquare > 0.05f) {
-		m_cameraPivot = m_cameraPivot + (rbPos - m_cameraPivot) * (camToPlayerDistSquare / 2.0f) * fDeltaTime;
-	}
-}
-
-PlayerAI::PlayerAI(Unit* unit) : AI(unit) {
-	m_isJumpKeyDown = false;
-}
-
-PlayerAI::~PlayerAI() {
-
-}
-
-void PlayerAI::Update(float fDeltaTime) {
-	Player* player = (Player*)m_unit;
-	WVector3 rbPos = player->O()->GetPosition();
-	WVector3 direction = WVec3TransformNormal(WVector3(0, 0, 1), WRotationMatrixY(W_DEGTORAD(player->m_yaw)));
-	WVector3 right = WVec3TransformNormal(WVector3(1, 0, 0), WRotationMatrixY(W_DEGTORAD(player->m_yaw)));
-
-	WVector3 inputDirection(0, 0, 0);
-	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('W'))
-		inputDirection += direction;
-	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('S'))
-		inputDirection -= direction;
-	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('A'))
-		inputDirection -= right;
-	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('D'))
-		inputDirection += right;
-
-	bool isDirection = WVec3LengthSq(inputDirection) > 0.1f;
-
-	if (!m_unit->GetApp()->WindowAndInputComponent->KeyDown(' '))
-		m_isJumpKeyDown = true;
-	else if (m_isJumpKeyDown) {
-		m_isJumpKeyDown = false;
-		player->Jump(inputDirection);
-	}
-
-	if (isDirection) {
-		player->Move(inputDirection);
-	}
 }

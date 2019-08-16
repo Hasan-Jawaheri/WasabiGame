@@ -2,6 +2,8 @@
 
 #include "Common.hpp"
 
+#include <mutex>
+
 struct LOADED_MODEL {
 	WObject* obj;
 	WRigidBody* rb;
@@ -28,10 +30,14 @@ class ResourceManager {
 		void Cleanup();
 	} m_generalResources;
 
+	std::mutex m_modelsToFreeMutex;
+	std::vector<LOADED_MODEL*> m_modelsToFree;
+
 public:
 	ResourceManager(Wasabi* app);
 
 	WError Init(std::string mediaFolder);
+	void Update(float fDeltaTime);
 	void Cleanup();
 
 	void LoadMapFile(std::string mapFilename);

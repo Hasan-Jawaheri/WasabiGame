@@ -4,11 +4,12 @@
 #include "RollTheBall/Networking/Data.hpp"
 
 class RTBPlayer {
+public:
+	RTBPlayer(uint32_t clientId);
+
+	uint32_t m_clientId;
 	bool m_loaded;
 	float m_x, m_y, m_z;
-
-public:
-	RTBPlayer();
 
 	bool Load(RPGNet::ClientIdentity identity);
 };

@@ -74,6 +74,7 @@ bool WasabiRPG::Loop(float fDeltaTime) {
 		UI->Update(fDeltaTime);
 		Maps->Update(fDeltaTime);
 		Units->Update(fDeltaTime);
+		Resources->Update(fDeltaTime);
 	}
 
 	// a null state means exit

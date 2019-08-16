@@ -3,8 +3,16 @@
 #include "Common.hpp"
 #include "WasabiGame/ResourceManager/ResourceManager.hpp"
 
+#include <atomic>
+
 class Unit {
 	friend class UnitsManager;
+
+	struct LoadInfo {
+		std::string modelName;
+		WVector3 spawnPos;
+	} m_loadInfo;
+	std::atomic<bool> m_canLoad;
 
 	struct LOADED_MODEL* m_model;
 	class AI* m_AI;
@@ -26,8 +34,6 @@ public:
 
 	WOrientation* O() const;
 	WRigidBody* RB() const;
-
-	void LoadModel(std::string modelName);
 
 	template<typename T> void SetAI() { W_SAFE_DELETE(m_AI); m_AI = new T(this); }
 	class AI* GetAI() const;

@@ -16,7 +16,7 @@ void RTBGame::Destroy() {
 }
 
 void RTBGame::OnClientConnected(RTBNet::RTBServerConnectedClient* client) {
-	std::shared_ptr<RTBPlayer> player = std::make_shared<RTBPlayer>();
+	std::shared_ptr<RTBPlayer> player = std::make_shared<RTBPlayer>(client->m_id);
 	m_connectedPlayers.insert(std::make_pair(client, player));
 
 	// in a different thread, start loading player data
