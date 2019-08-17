@@ -8,15 +8,17 @@
 #include "RollTheBall/Units/RTBUnits.hpp"
 #include "RollTheBall/AssetsGenerator/AssetsGenerator.hpp"
 
+#include "RollTheBall/AI/RTBAI.hpp"
+
 class SimulationWasabi : public WasabiRPG {
 	friend class SimulationGameState;
 	ServerSimulation* m_simulationThread;
-	RTBGame* m_game;
+	RTBServer* m_server;
 
 public:
-	SimulationWasabi(ServerSimulation* simulation, RTBGame* game, bool generateAssets = false) : WasabiRPG() {
+	SimulationWasabi(ServerSimulation* simulation, RTBServer* server, bool generateAssets = false) : WasabiRPG() {
 		m_simulationThread = simulation;
-		m_game = game;
+		m_server = server;
 
 		SetEngineParam("appName", "RTBServer");
 
@@ -45,7 +47,7 @@ public:
 
 class SimulationGameState : public BaseState {
 	ServerSimulation* m_simulationThread;
-	RTBGame* m_game;
+	RTBServer* m_server;
 	SimulationWasabi* m_wapp;
 
 	struct {
@@ -58,7 +60,7 @@ class SimulationGameState : public BaseState {
 	uint32_t m_currentUnitId;
 	std::mutex m_unitIdsMutex;
 
-	std::unordered_map<std::shared_ptr<RTBPlayer>, Unit*> m_players;
+	std::unordered_map<std::shared_ptr<RTBConnectedPlayer>, Unit*> m_players;
 	std::mutex m_playersMutex;
 
 	uint32_t GenerateUnitId() {
@@ -70,7 +72,7 @@ public:
 	SimulationGameState(Wasabi* app) : BaseState(app) {
 		m_wapp = (SimulationWasabi*)app;
 		m_simulationThread = m_wapp->m_simulationThread;
-		m_game = m_wapp->m_game;
+		m_server = m_wapp->m_server;
 
 		m_currentUnitId = 1;
 
@@ -89,6 +91,36 @@ public:
 
 		// Load the map
 		m_wapp->Maps->SetMap(MAP_TEST);
+
+		m_server->Networking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_WHOIS_UNIT, [this](RTBNet::RTBServerConnectedClient* client, RPGNet::NetworkUpdate& update) {
+			uint32_t unitId;
+			RTBNet::UpdateBuilders::ReadWhoIsUnitPacket(update, &unitId);
+			Unit* unit = this->m_wapp->Units->GetUnit(unitId);
+			if (unit && unit->O()) {
+				RPGNet::NetworkUpdate unitLoadUpdate;
+				RTBNet::UpdateBuilders::LoadUnit(unitLoadUpdate, unit->GetType(), unit->GetId(), unit->O()->GetPosition());
+				this->m_server->Networking->SendUpdate(client->m_id, unitLoadUpdate);
+			}
+			return true;
+		});
+		
+		m_server->Networking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_WHOIS_UNIT, [this](RTBNet::RTBServerConnectedClient* client, RPGNet::NetworkUpdate& update) {
+			uint32_t unitId = -1;
+			Unit* unit = nullptr;
+			RTBNet::UpdateBuilders::ReadSetUnitPropsPacket(update, &unitId, [this, &unitId, &unit](std::string prop, void* data, uint16_t size) {
+				if (unitId == -1)
+					return;
+				if (!unit) {
+					unit = this->m_wapp->Units->GetUnit(unitId);
+					if (!unit) {
+						unitId = -1;
+						return;
+					}
+				}
+				((RTBAI*)unit->GetAI())->OnNetworkUpdate(prop, data, size);
+			});
+			return unit != nullptr;
+		});
 	}
 
 	virtual void Update(float fDeltaTime) {
@@ -103,15 +135,15 @@ public:
 		((SimulationWasabi*)m_app)->Maps->SetMap(MAP_NONE);
 	}
 
-	void AddPlayer(std::shared_ptr<RTBPlayer> player) {
+	void AddPlayer(std::shared_ptr<RTBConnectedPlayer> player) {
 		// this is called in a different thread
 		WVector3 spawnPos = WVector3(player->m_x, player->m_y, player->m_z);
 		Unit* newPlayerUnit = m_wapp->Units->LoadUnit(UNIT_PLAYER, GenerateUnitId(), spawnPos);
 
 		// special message for the player, make sure the first unit it loads is the player unit
-		RPGNet::NetworkUpdate unitUnloadUpdate;
-		RTBNet::UpdateBuilders::LoadUnit(unitUnloadUpdate, UNIT_PLAYER, newPlayerUnit->GetId(), spawnPos);
-		m_game->Networking->SendUpdate(player->m_clientId, unitUnloadUpdate);
+		RPGNet::NetworkUpdate unitLoadUpdate;
+		RTBNet::UpdateBuilders::LoadUnit(unitLoadUpdate, UNIT_PLAYER, newPlayerUnit->GetId(), spawnPos);
+		m_server->Networking->SendUpdate(player->m_clientId, unitLoadUpdate);
 
 		{
 			std::lock_guard lockGuard(m_playersMutex);
@@ -119,7 +151,7 @@ public:
 		}
 	}
 
-	void RemovePlayer(std::shared_ptr<RTBPlayer> player) {
+	void RemovePlayer(std::shared_ptr<RTBConnectedPlayer> player) {
 		// this is called in a different thread
 		Unit* playerUnit = nullptr;
 		{
@@ -134,7 +166,7 @@ public:
 		if (playerUnit) {
 			RPGNet::NetworkUpdate unitUnloadUpdate;
 			RTBNet::UpdateBuilders::UnloadUnit(unitUnloadUpdate, playerUnit->GetId());
-			m_game->Networking->SendUpdate(nullptr, unitUnloadUpdate);
+			m_server->Networking->SendUpdate(nullptr, unitUnloadUpdate);
 			m_wapp->Units->DestroyUnit(playerUnit);
 		}
 	}
@@ -195,8 +227,8 @@ void SimulationWasabi::SwitchToSimulationGameState() {
 	m_simulationThread->m_gameState.store((void*)this->curState);
 }
 
-ServerSimulation::ServerSimulation(RTBGame* game, bool generateAssets) {
-	m_game = game;
+ServerSimulation::ServerSimulation(RTBServer* server, bool generateAssets) {
+	m_server = server;
 	m_generateAssets = generateAssets;
 	m_simulationWasabi = nullptr;
 	m_gameState.store(nullptr);
@@ -204,7 +236,7 @@ ServerSimulation::ServerSimulation(RTBGame* game, bool generateAssets) {
 }
 
 void ServerSimulation::Run() {
-	SimulationWasabi* wasabi = new SimulationWasabi(this, m_game, m_generateAssets);
+	SimulationWasabi* wasabi = new SimulationWasabi(this, m_server, m_generateAssets);
 	m_simulationWasabi = (void*)wasabi;
 	RunWasabi(wasabi);
 	delete wasabi;
@@ -215,7 +247,7 @@ void ServerSimulation::WaitForSimulationLaunch() {
 	m_simulationLoaded = true;
 }
 
-void ServerSimulation::AddPlayer(std::shared_ptr<RTBPlayer> player) {
+void ServerSimulation::AddPlayer(std::shared_ptr<RTBConnectedPlayer> player) {
 	// this is called in a different thread than the thread running the Wasabi instance
 	WaitForSimulationLaunch();
 	if (m_gameState) {
@@ -224,7 +256,7 @@ void ServerSimulation::AddPlayer(std::shared_ptr<RTBPlayer> player) {
 	}
 }
 
-void ServerSimulation::RemovePlayer(std::shared_ptr<RTBPlayer> player) {
+void ServerSimulation::RemovePlayer(std::shared_ptr<RTBConnectedPlayer> player) {
 	// this is called in a different thread than the thread running the Wasabi instance
 	WaitForSimulationLaunch();
 	if (m_gameState) {

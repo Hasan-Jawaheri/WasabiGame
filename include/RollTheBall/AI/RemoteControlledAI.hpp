@@ -1,9 +1,8 @@
 #pragma once
 
-#include "WasabiGame/Units/Units.hpp"
-#include "WasabiGame/Units/AI.hpp"
+#include "RollTheBall/AI/RTBAI.hpp"
 
-class RemoteControlledAI : public AI {
+class RemoteControlledAI : public RTBAI {
 public:
 	RemoteControlledAI(class Unit* unit);
 	virtual ~RemoteControlledAI();

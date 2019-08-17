@@ -18,6 +18,10 @@ uint Unit::GetId() const {
 	return m_id;
 }
 
+uint Unit::GetType() const {
+	return m_type;
+}
+
 Wasabi* Unit::GetApp() const {
 	return m_app;
 }

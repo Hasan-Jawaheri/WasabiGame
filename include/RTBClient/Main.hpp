@@ -5,12 +5,12 @@
 
 #include "RTBClient/Networking/Networking.hpp"
 
-class RTB : public WasabiRPG {
+class RTBClient : public WasabiRPG {
 public:
-	RTB(bool generateAssets = true, bool enableVulkanDebugging = true, bool enablePhysicsDebugging = true);
-	~RTB();
+	RTBClient(bool generateAssets = true, bool enableVulkanDebugging = true, bool enablePhysicsDebugging = true);
+	~RTBClient();
 
 	void SwitchToInitialState();
 
-	RTBNet::RTBClientNetworking* RTBNetworking;
+	RTBNet::RTBClientNetworking* Networking;
 };

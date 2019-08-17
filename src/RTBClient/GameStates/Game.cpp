@@ -4,6 +4,8 @@
 #include "RollTheBall/Maps/RTBMaps.hpp"
 #include "RollTheBall/Units/RTBUnits.hpp"
 #include "RollTheBall/Units/Player.hpp"
+#include "RollTheBall/AI/PlayerAI.hpp"
+#include "RollTheBall/AI/RTBAI.hpp"
 
 #include "WasabiGame/Maps/MapLoader.hpp"
 #include "WasabiGame/Units/UnitsManager.hpp"
@@ -21,42 +23,63 @@ Game::~Game() {
 
 void Game::Load() {
 	// Setup and load the user interface
-	((RTB*)m_app)->UI->AddUIElement(m_input = new GameInputHandler(this), nullptr);
-	UIElement* ok = new MenuButton(((RTB*)m_app)->UI, "sure");
-	UIElement* err = new ErrorBox(((RTB*)m_app)->UI, "what??");
-	((RTB*)m_app)->UI->AddUIElement(err, m_input);
-	((RTB*)m_app)->UI->AddUIElement(ok, err);
-	((RTB*)m_app)->UI->Load(m_app);
+	((RTBClient*)m_app)->UI->AddUIElement(m_input = new GameInputHandler(this), nullptr);
+	UIElement* ok = new MenuButton(((RTBClient*)m_app)->UI, "sure");
+	UIElement* err = new ErrorBox(((RTBClient*)m_app)->UI, "what??");
+	((RTBClient*)m_app)->UI->AddUIElement(err, m_input);
+	((RTBClient*)m_app)->UI->AddUIElement(ok, err);
+	((RTBClient*)m_app)->UI->Load(m_app);
 
 	// Load the map
-	((RTB*)m_app)->Maps->SetMap(MAP_TEST);
+	((RTBClient*)m_app)->Maps->SetMap(MAP_TEST);
 
-	((RTB*)m_app)->RTBNetworking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_LOAD_UNIT, [this](RPGNet::NetworkUpdate& update) {
+	((RTBClient*)m_app)->Networking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_LOAD_UNIT, [this](RPGNet::NetworkUpdate& update) {
 		uint32_t unitId, unitType;
 		WVector3 spawnPos;
 		RTBNet::UpdateBuilders::ReadLoadUnitPacket(update, &unitType, &unitId, &spawnPos);
-		Unit* unit = ((RTB*)this->m_app)->Units->LoadUnit(unitType, unitId, spawnPos);
+		Unit* unit = ((RTBClient*)this->m_app)->Units->LoadUnit(unitType, unitId, spawnPos);
 		if (unitType == UNIT_PLAYER && !this->m_player)
 			this->m_player = (Player*)unit;
 	});
 
-	((RTB*)m_app)->RTBNetworking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_UNLOAD_UNIT, [this](RPGNet::NetworkUpdate& update) {
+	((RTBClient*)m_app)->Networking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_UNLOAD_UNIT, [this](RPGNet::NetworkUpdate& update) {
 		uint32_t unitId;
 		RTBNet::UpdateBuilders::ReadUnloadUnitPacket(update, &unitId);
 		if (m_player && unitId == m_player->GetId())
 			this->m_player = nullptr;
-		((RTB*)this->m_app)->Units->DestroyUnit(unitId);
+		((RTBClient*)this->m_app)->Units->DestroyUnit(unitId);
+	});
+
+	((RTBClient*)m_app)->Networking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_SET_UNIT_PROPS, [this](RPGNet::NetworkUpdate& update) {
+		uint32_t unitId = -1;
+		Unit* unit = nullptr;
+		RTBNet::UpdateBuilders::ReadSetUnitPropsPacket(update, &unitId, [this, &unitId, &unit](std::string prop, void* data, uint16_t size) {
+			if (unitId == -1)
+				return;
+			if (!unit) {
+				unit = ((RTBClient*)this->m_app)->Units->GetUnit(unitId);
+				if (!unit) {
+					RPGNet::NetworkUpdate whoisUpdate;
+					RTBNet::UpdateBuilders::WhoIsUnit(whoisUpdate, unitId);
+					((RTBClient*)this->m_app)->Networking->SendUpdate(whoisUpdate);
+					unitId = -1;
+					return;
+				}
+			}
+
+			((RTBAI*)unit->GetAI())->OnNetworkUpdate(prop, data, size);
+		});
 	});
 
 	// Login to server
-	((RTB*)m_app)->RTBNetworking->Login();
+	((RTBClient*)m_app)->Networking->Login();
 }
 
 void Game::Update(float fDeltaTime) {
 }
 
 void Game::Cleanup() {
-	((RTB*)m_app)->Maps->SetMap(MAP_NONE);
+	((RTBClient*)m_app)->Maps->SetMap(MAP_NONE);
 }
 
 GameInputHandler::GameInputHandler(class Game* g) : UIElement(((WasabiRPG*)g->m_app)->UI) {
@@ -65,11 +88,11 @@ GameInputHandler::GameInputHandler(class Game* g) : UIElement(((WasabiRPG*)g->m_
 
 bool GameInputHandler::OnEnter() {
 	/*
-	if (((RTB*)m_app)->UI->GetFocus() != (UIElement*)m_game->m_ui.chatEdit) {
+	if (((RTBClient*)m_app)->UI->GetFocus() != (UIElement*)m_game->m_ui.chatEdit) {
 		m_game->ui.chatEdit->OnFocus();
-		((RTB*)m_app)->UI->SetFocus(m_game->m_ui.chatEdit);
+		((RTBClient*)m_app)->UI->SetFocus(m_game->m_ui.chatEdit);
 	} else {
-		((RTB*)m_app)->UI->SetFocus(this);
+		((RTBClient*)m_app)->UI->SetFocus(this);
 		char str[512];
 		m_game->ui.chatEdit->GetText(str, 512);
 		if (strlen(str)) {

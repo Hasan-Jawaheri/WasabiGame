@@ -2,5 +2,5 @@
 #include "RTBClient/Main.hpp"
 
 Wasabi* WInitialize() {
-	return new RTB();
+	return new RTBClient();
 }

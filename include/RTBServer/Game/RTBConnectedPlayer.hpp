@@ -3,9 +3,9 @@
 #include <cstdint>
 #include "RollTheBall/Networking/Data.hpp"
 
-class RTBPlayer {
+class RTBConnectedPlayer {
 public:
-	RTBPlayer(uint32_t clientId);
+	RTBConnectedPlayer(uint32_t clientId);
 
 	uint32_t m_clientId;
 	bool m_loaded;

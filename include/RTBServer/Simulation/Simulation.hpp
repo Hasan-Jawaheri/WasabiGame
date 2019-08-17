@@ -1,8 +1,8 @@
 #pragma once
 
 #include "RollTheBall/Utilities/Scheduler.hpp"
-#include "RTBServer/Game/Game.hpp"
-#include "RTBServer/Game/Player.hpp"
+#include "RTBServer/Main.hpp"
+#include "RTBServer/Game/RTBConnectedPlayer.hpp"
 
 #include <atomic>
 
@@ -13,16 +13,16 @@ class ServerSimulation : public HBUtils::SchedulerThread {
 	void* m_simulationWasabi;
 	std::atomic<void*> m_gameState;
 	bool m_simulationLoaded;
-	class RTBGame* m_game;
+	class RTBServer* m_server;
 	bool m_generateAssets;
 
 	void WaitForSimulationLaunch();
 
 public:
-	ServerSimulation(class RTBGame* game, bool generateAssets = true);
+	ServerSimulation(class RTBServer* server, bool generateAssets = true);
 
 	void Run();
 
-	void AddPlayer(std::shared_ptr<RTBPlayer> player);
-	void RemovePlayer(std::shared_ptr<RTBPlayer> player);
+	void AddPlayer(std::shared_ptr<RTBConnectedPlayer> player);
+	void RemovePlayer(std::shared_ptr<RTBConnectedPlayer> player);
 };

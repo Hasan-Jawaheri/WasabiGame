@@ -1,5 +1,6 @@
 #pragma once
 
+#include <WinSock2.h>
 #include <Wasabi/Wasabi.h>
 
 #define APPNAME "WasabiGame"

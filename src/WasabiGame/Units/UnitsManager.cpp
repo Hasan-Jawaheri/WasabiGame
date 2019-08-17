@@ -14,11 +14,19 @@ void UnitsManager::ResetUnits() {
 }
 
 Unit* UnitsManager::LoadUnit(uint32_t type, uint32_t id, WVector3 spawnPos) {
+	{
+		std::lock_guard lockGuard(m_unitsMutex);
+		auto it = m_units.find(id);
+		if (it != m_units.end())
+			return it->second.second;
+	}
+
 	auto it = m_unitGenerators.find(type);
 	Unit* unit = it->second();
 	unit->m_loadInfo.spawnPos = spawnPos;
 	unit->m_canLoad.store(true);
 	unit->m_id = id;
+	unit->m_type = type;
 
 	{
 		std::lock_guard lockGuard(m_unitsMutex);

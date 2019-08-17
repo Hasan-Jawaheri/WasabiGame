@@ -1,12 +1,11 @@
 #pragma once
 
+#include "RollTheBall/AI/RTBAI.hpp"
 #include "RollTheBall/Units/BallUnit.hpp"
-#include "WasabiGame/Units/Units.hpp"
-#include "WasabiGame/Units/AI.hpp"
 
-class TestUnitAI : public AI {
+class TestUnitAI : public RTBAI {
 public:
-	TestUnitAI(class Unit* unit) : AI(unit) {
+	TestUnitAI(class Unit* unit) : RTBAI(unit) {
 
 	}
 

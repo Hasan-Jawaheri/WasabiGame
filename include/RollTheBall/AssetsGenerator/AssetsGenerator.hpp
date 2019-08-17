@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Wasabi/Wasabi.h>
+#include "Common.hpp"
 #include <Wasabi/Physics/Bullet/WBulletPhysics.h>
 
 #include <filesystem>

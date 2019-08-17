@@ -10,7 +10,7 @@
 
 #include "RollTheBall/AssetsGenerator/AssetsGenerator.hpp"
 
-RTB::RTB(bool generateAssets, bool enableVulkanDebugging, bool enablePhysicsDebugging) : WasabiRPG() {
+RTBClient::RTBClient(bool generateAssets, bool enableVulkanDebugging, bool enablePhysicsDebugging) : WasabiRPG() {
 	SetEngineParam("appName", "RTBClient");
 
 #ifdef _DEBUG
@@ -30,16 +30,16 @@ RTB::RTB(bool generateAssets, bool enableVulkanDebugging, bool enablePhysicsDebu
 			return;
 	}
 
-	RTBNetworking = new RTBNet::RTBClientNetworking();
-	RTBNetworking->Initialize();
+	Networking = new RTBNet::RTBClientNetworking();
+	Networking->Initialize();
 }
 
-RTB::~RTB() {
-	RTBNetworking->Destroy();
-	delete RTBNetworking;
+RTBClient::~RTBClient() {
+	Networking->Destroy();
+	delete Networking;
 }
 
-void RTB::SwitchToInitialState() {
+void RTBClient::SwitchToInitialState() {
 	SetupRTBMaps(Maps);
 	SetupRTBUnits(Units, false);
 

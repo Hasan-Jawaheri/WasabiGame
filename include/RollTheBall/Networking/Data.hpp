@@ -59,7 +59,7 @@ namespace RPGNet {
 				targetId = ntohl(*(uint32_t*)(tmp + 4));
 				dataSize = ntohs(*(uint16_t*)(tmp + 8));
 
-				if (PACKET_META_SIZE + dataSize >= packet->GetSize()) {
+				if (packet->GetSize() >= PACKET_META_SIZE + dataSize) {
 					packet->OnConsumed(PACKET_META_SIZE);
 					size_t dataRead = 0;
 					while (dataRead < dataSize) {

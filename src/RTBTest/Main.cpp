@@ -17,14 +17,17 @@ Wasabi* WInitialize() {
 
 	std::thread serverThread([]() {
 		std::srand(std::time(nullptr) + 3179);
-		RunRTBServer(false);
+		RTBServer server;
+		server.Initialize(false);
+		server.Run();
+		server.Destroy();
 	});
 
 	std::vector<std::thread> clientThreads;
 	for (int i = 0; i < NUM_CLIENTS; i++) {
 		clientThreads.push_back(std::thread([i]() {
 			std::srand(std::time(nullptr) + i * 1789);
-			Wasabi* client = new RTB(false, false, true);
+			Wasabi* client = new RTBClient(false, false, true);
 			RunWasabi(client);
 			delete client;
 		}));

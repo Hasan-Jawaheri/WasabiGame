@@ -1,9 +1,12 @@
 #include "RollTheBall/Units/RTBUnits.hpp"
 #include "WasabiGame/Units/Units.hpp"
 
-#include "RollTheBall/Units/RemoteControlledAI.hpp"
+#include "RollTheBall/AI/PlayerAI.hpp"
+#include "RollTheBall/AI/RemoteControlledAI.hpp"
+#include "RollTheBall/AI/TestUnitAI.hpp"
+
 #include "RollTheBall/Units/Player.hpp"
-#include "RollTheBall/Units/TestUnitAI.hpp"
+#include "RollTheBall/Units/BallUnit.hpp"
 
 
 template<typename UNIT, typename CLIENT_AI, typename SERVER_AI>

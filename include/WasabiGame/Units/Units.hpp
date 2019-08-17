@@ -17,6 +17,7 @@ class Unit {
 	struct LOADED_MODEL* m_model;
 	class AI* m_AI;
 	uint m_id;
+	uint m_type;
 
 protected:
 	Wasabi* m_app;
@@ -32,6 +33,7 @@ protected:
 public:
 
 	uint GetId() const;
+	uint GetType() const;
 	Wasabi* GetApp() const;
 
 	WOrientation* O() const;

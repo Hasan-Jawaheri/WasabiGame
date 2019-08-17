@@ -1,5 +1,4 @@
-#include <WinSock2.h>
-#include <Wasabi/Wasabi.h>
+#include "Common.hpp"
 #include "RTBServer/Main.hpp"
 
 void RedirectIOToConsole() {
@@ -15,6 +14,11 @@ void RedirectIOToConsole() {
 
 Wasabi* WInitialize() {
 	RedirectIOToConsole();
-	RunRTBServer();
+
+	RTBServer server;
+	server.Initialize();
+	server.Run();
+	server.Destroy();
+
 	return nullptr;
 }
