@@ -5,8 +5,10 @@
 #include <mutex>
 
 struct LOADED_MODEL {
+	std::string name;
 	WObject* obj;
 	WRigidBody* rb;
+	WSkeleton* skeleton;
 
 	LOADED_MODEL() : obj(nullptr), rb(nullptr) {}
 };
@@ -25,7 +27,7 @@ class ResourceManager {
 
 	struct GENERAL_RESOURCES {
 		WFile* assetsFile;
-		std::unordered_map<LOADED_MODEL*, std::string> loadedAssets;
+		std::unordered_map<std::string, LOADED_MODEL*> loadedAssets;
 
 		void Cleanup();
 	} m_generalResources;

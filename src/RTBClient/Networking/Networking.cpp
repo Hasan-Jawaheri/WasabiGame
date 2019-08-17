@@ -1,5 +1,7 @@
 #include "RTBClient/Networking/Networking.hpp"
 
+#include <random>
+
 RTBNet::RTBClientNetworking::RTBClientNetworking() {
 	m_networkingThread = nullptr;
 	m_server = new RPGNet::ServerT<RPGNet::Client>();
@@ -31,6 +33,7 @@ void RTBNet::RTBClientNetworking::Initialize() {
 	m_udpConnection->SetConsumeBufferCallback(onConsumeBuffer);
 
 	m_networkingThread = new std::thread([this]() {
+		std::srand(std::time(nullptr) + 7511);
 		this->m_server->Run();
 	});
 }
@@ -47,7 +50,7 @@ void RTBNet::RTBClientNetworking::Login() {
 	if (m_tcpConnection->Connect("127.0.0.1", 9965) == 0) {
 		Status = RTBConnectionStatus::CONNECTION_CONNECTED;
 		RPGNet::NetworkUpdate loginUpdate;
-		RTBNet::UpdateBuilders::Login(loginUpdate, ("ghandi-" + std::to_string(rand() % 10000)).c_str(), "123456");
+		RTBNet::UpdateBuilders::Login(loginUpdate, ("ghandi-" + std::to_string(std::rand() % 10000)).c_str(), "123456");
 		SendUpdate(loginUpdate);
 	}  else
 		Status = RTBConnectionStatus::CONNECTION_NOT_CONNECTED;

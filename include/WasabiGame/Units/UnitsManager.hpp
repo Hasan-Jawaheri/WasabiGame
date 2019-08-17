@@ -19,7 +19,7 @@ public:
 
 	template<typename U, typename A>
 	U* CreateUnitAndAI(std::string modelName) {
-		U* u = new U(m_app, m_resourceManager);
+		U* u = new U(m_app, m_resourceManager, this);
 		u->SetAI<A>();
 		u->m_loadInfo.modelName = modelName;
 		return u;

@@ -14,7 +14,7 @@ public:
 	}
 
 	static bool Generate(Wasabi* app, WFile* mapFile) {
-		srand(3);
+		std::srand(3);
 
 		std::vector<WObject*> boxes;
 		std::vector<WLight*> lights;

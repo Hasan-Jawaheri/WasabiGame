@@ -1,6 +1,9 @@
 #include "WasabiGame/ResourceManager/ResourceManager.hpp"
 #include <Wasabi/Physics/Bullet/WBulletRigidBody.h>
 
+#include <filesystem>
+typedef std::filesystem::path stdpath;
+
 ResourceManager::ResourceManager(Wasabi* app) {
 	m_app = app;
 	m_mediaFolder = "";
@@ -26,8 +29,9 @@ void ResourceManager::MAP_RESOURCES::Cleanup() {
 
 void ResourceManager::GENERAL_RESOURCES::Cleanup() {
 	for (auto asset : loadedAssets) {
-		W_SAFE_REMOVEREF(asset.first->obj);
-		W_SAFE_REMOVEREF(asset.first->rb);
+		W_SAFE_REMOVEREF(asset.second->obj);
+		W_SAFE_REMOVEREF(asset.second->rb);
+		W_SAFE_REMOVEREF(asset.second->skeleton);
 	}
 	loadedAssets.clear();
 
@@ -39,12 +43,10 @@ void ResourceManager::GENERAL_RESOURCES::Cleanup() {
 
 WError ResourceManager::Init(std::string mediaFolder) {
 	m_mediaFolder = mediaFolder;
-	if (m_mediaFolder[m_mediaFolder.length() - 1] != '/')
-		m_mediaFolder += '/';
 
 	m_generalResources.Cleanup();
 	m_generalResources.assetsFile = new WFile(m_app);
-	WError err = m_generalResources.assetsFile->Open(m_mediaFolder + "resources.WSBI");
+	WError err = m_generalResources.assetsFile->Open((stdpath(m_mediaFolder) / "resources.WSBI").string());
 	if (!err) {
 		m_app->WindowAndInputComponent->ShowErrorMessage("Failed to load resources: " + err.AsString());
 		Cleanup();
@@ -73,7 +75,7 @@ void ResourceManager::LoadMapFile(std::string mapFilename) {
 	m_mapResources.Cleanup();
 
 	if (mapFilename != "") {
-		std::string fullMapFilename = m_mediaFolder + "Maps/" + mapFilename + ".WSBI";
+		std::string fullMapFilename = (stdpath(m_mediaFolder) / "Maps" / (mapFilename + ".WSBI")).string();
 		m_mapResources.mapFile = new WFile(m_app);
 		WError err = m_mapResources.mapFile->Open(fullMapFilename);
 		if (!err) {
@@ -109,32 +111,35 @@ void ResourceManager::LoadMapFile(std::string mapFilename) {
 
 LOADED_MODEL* ResourceManager::LoadUnitModel(std::string unitName) {
 	LOADED_MODEL* asset = new LOADED_MODEL();
-	WError err = m_generalResources.assetsFile->LoadAsset<WObject>(unitName, &asset->obj, WObject::LoadArgs());
+	std::string suffix = "-" + std::to_string((size_t)asset);
+	asset->name = unitName + suffix;
+
+	WError err = m_generalResources.assetsFile->LoadAsset<WObject>(unitName, &asset->obj, WObject::LoadArgs(), suffix);
 	if (!err) {
 		delete asset;
 		return nullptr;
 	}
 
-	m_generalResources.loadedAssets.insert(std::make_pair(asset, unitName));
+	m_generalResources.loadedAssets.insert(std::make_pair(asset->name, asset));
 
-	err = m_generalResources.assetsFile->LoadAsset<WBulletRigidBody>(unitName + "-rigidbody", (WBulletRigidBody**)&asset->rb, WBulletRigidBody::LoadArgs());
-	if (asset->rb)
-		asset->rb->BindObject(asset->obj, asset->obj);
-
-	WSkeleton* skeleton = nullptr;
-	err = m_generalResources.assetsFile->LoadAsset<WSkeleton>(unitName + "-skeleton", &skeleton, WSkeleton::LoadArgs());
+	err = m_generalResources.assetsFile->LoadAsset<WBulletRigidBody>(unitName + "-rigidbody", (WBulletRigidBody**)&asset->rb, WBulletRigidBody::LoadArgs(), suffix);
 	if (err == W_SUCCEEDED) {
-		asset->obj->SetAnimation(skeleton);
-		skeleton->Play();
-		skeleton->SetPlaySpeed(10);
-		skeleton->RemoveReference();
+		asset->rb->BindObject(asset->obj, asset->obj);
+	}
+
+	err = m_generalResources.assetsFile->LoadAsset<WSkeleton>(unitName + "-skeleton", &asset->skeleton, WSkeleton::LoadArgs(), suffix);
+	if (err == W_SUCCEEDED) {
+		asset->obj->SetAnimation(asset->skeleton);
+		asset->skeleton->Play();
+		asset->skeleton->SetPlaySpeed(10);
+		asset->skeleton->RemoveReference();
 	}
 
 	return asset;
 }
 
 void ResourceManager::DestroyUnitModel(LOADED_MODEL* model) {
-	auto it = m_generalResources.loadedAssets.find(model);
+	auto it = m_generalResources.loadedAssets.find(model->name);
 	m_generalResources.loadedAssets.erase(it);
 	{
 		std::lock_guard lockGuard(m_modelsToFreeMutex);

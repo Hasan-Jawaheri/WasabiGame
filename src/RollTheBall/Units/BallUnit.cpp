@@ -1,8 +1,9 @@
 #include "RollTheBall/Units/BallUnit.hpp"
+#include "WasabiGame/Units/UnitsManager.hpp"
 
 const char* BallUnit::modelName = "small-ball";
 
-BallUnit::BallUnit(Wasabi* app, ResourceManager* resourceManager) : Unit(app, resourceManager) {
+BallUnit::BallUnit(Wasabi* app, ResourceManager* resourceManager, UnitsManager* unitsManager) : Unit(app, resourceManager, unitsManager) {
 	m_state.isGrounded = false;
 	m_state.didDash = true;
 	m_state.jumpDirection = WVector3(0.0f, 0.0f, 0.0f);

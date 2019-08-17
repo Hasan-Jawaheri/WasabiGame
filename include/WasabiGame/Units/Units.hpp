@@ -21,11 +21,13 @@ class Unit {
 protected:
 	Wasabi* m_app;
 	ResourceManager* m_resourceManager;
+	class UnitsManager* m_unitsManager;
 
-	Unit(Wasabi* app, ResourceManager* resourceManager);
+	Unit(Wasabi* app, ResourceManager* resourceManager, class UnitsManager* unitsManager);
 	virtual ~Unit();
 
 	virtual void Update(float fDeltaTime);
+	virtual void OnLoaded();
 
 public:
 

@@ -1,7 +1,8 @@
 #include "WasabiGame/Units/Units.hpp"
 #include "WasabiGame/Units/AI.hpp"
+#include "WasabiGame/Units/UnitsManager.hpp"
 
-Unit::Unit(Wasabi* app, ResourceManager* resourceManager) : m_app(app), m_resourceManager(resourceManager), m_model(nullptr), m_AI(nullptr) {
+Unit::Unit(Wasabi* app, ResourceManager* resourceManager, UnitsManager* unitsManager) : m_app(app), m_resourceManager(resourceManager), m_unitsManager(unitsManager), m_model(nullptr), m_AI(nullptr) {
 	m_canLoad.store(false);
 }
 
@@ -36,13 +37,22 @@ WRigidBody* Unit::RB() const {
 	return nullptr;
 }
 
+void Unit::OnLoaded() {
+}
+
 void Unit::Update(float fDeltaTime) {
 	if (!m_model && m_canLoad.load()) {
 		m_model = m_resourceManager->LoadUnitModel(m_loadInfo.modelName);
-		O()->SetPosition(m_loadInfo.spawnPos);
+		if (m_model) {
+			O()->SetPosition(m_loadInfo.spawnPos);
+			OnLoaded();
+		} else {
+			// failed to load the model
+			return;
+		}
 	}
 
-	if (m_AI)
+	if (m_AI && m_model)
 		m_AI->Update(fDeltaTime);
 }
 

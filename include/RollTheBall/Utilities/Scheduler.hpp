@@ -9,6 +9,7 @@
 #include <condition_variable>
 #include <queue>
 #include <chrono>
+#include <ctime>
 
 namespace HBUtils {
 
@@ -93,29 +94,36 @@ namespace HBUtils {
 
 		void LaunchWorkers(uint32_t numWorkers) {
 			for (uint32_t i = 0; i < numWorkers; i++)
-				LaunchThread("worker-" + std::to_string(i), new SchedulerWorker());
+				LaunchThread("worker-" + std::to_string(i), new SchedulerWorker(), std::time(nullptr) + (time_t)i * 5917);
 		}
 
-		void LaunchThread(std::string name, SchedulerThread* t) {
+		void LaunchThread(std::string name, SchedulerThread* t, time_t seed = -1) {
+			if (seed == -1)
+				seed = std::time(nullptr);
 			t->m_scheduler = this;
 			m_threadsLock.lock();
-			std::thread* newThread = new std::thread([t]() {
+			std::thread* newThread = new std::thread([t, seed]() {
+				std::srand(seed);
 				t->Run();
 			});
 			m_threads.insert(std::make_pair(name, std::make_pair(newThread, t)));
 			m_threadsLock.unlock();
 		}
 
-		void LaunchThread(std::string name, std::function<void()> entryPoint) {
+		void LaunchThread(std::string name, std::function<void()> entryPoint, time_t seed = -1) {
+			if (seed == -1)
+				seed = std::time(nullptr);
 			class AnonymousThread : public SchedulerThread {
 				std::function<void()> m_entryPoint;
+				time_t m_seed;
 			public:
-				AnonymousThread(std::function<void()> entryPoint) : m_entryPoint(entryPoint) {}
+				AnonymousThread(std::function<void()> entryPoint, time_t seed) : m_entryPoint(entryPoint), m_seed(seed) {}
 				void Run() {
+					std::srand(m_seed);
 					m_entryPoint();
 				}
 			};
-			LaunchThread(name, new AnonymousThread(entryPoint));
+			LaunchThread(name, new AnonymousThread(entryPoint, seed));
 		}
 
 		void StopThread(std::string name) {

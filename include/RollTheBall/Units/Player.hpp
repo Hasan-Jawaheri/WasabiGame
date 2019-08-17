@@ -15,7 +15,7 @@ public:
 
 	static const char* modelName;
 
-	Player(Wasabi* app, ResourceManager* resourceManager);
+	Player(Wasabi* app, ResourceManager* resourceManager, class UnitsManager* unitsManager);
 	virtual ~Player();
 };
 

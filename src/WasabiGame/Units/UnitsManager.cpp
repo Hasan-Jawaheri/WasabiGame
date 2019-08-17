@@ -56,8 +56,18 @@ void UnitsManager::DestroyUnit(uint32_t id) {
 
 void UnitsManager::Update(float fDeltaTime) {
 	std::lock_guard lockGuard(m_unitsMutex);
-	for (auto unit : m_units)
+	Unit* unitToDelete = nullptr;
+	for (auto unit : m_units) {
 		unit.second.second->Update(fDeltaTime);
+		if (!unit.second.second->m_model && !unitToDelete) {
+			// unit failed to load
+			unitToDelete = unit.second.second;
+		}
+	}
+	if (unitToDelete) {
+		m_units.erase(unitToDelete->GetId());
+		delete unitToDelete;
+	}
 }
 
 void UnitsManager::Cleanup() {
