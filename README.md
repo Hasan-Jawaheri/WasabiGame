@@ -10,3 +10,7 @@ mkdir build
 cd build
 cmake -DWASABI_ROOT="<path to Wasabi build/ folder>" ..
 ```
+
+# Progress
+## Stage 1: Running client
+<img src="https://github.com/Hasan-Jawaheri/WasabiGame/raw/master/gitstuff/client-1.png" /> 
