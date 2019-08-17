@@ -32,9 +32,9 @@ public:
 		WGeometry* boxGeometry = new WGeometry(app);
 		boxGeometry->CreateCube(2.0f);
 		for (int i = 0; i < 40; i++) {
-			float x = 20.0f * (float)(rand() % 10000) / 10000.0f - 10.0f;
-			float y = 2.0f * (float)(rand() % 10000) / 10000.0f - 0.0f;
-			float z = 20.0f * (float)(rand() % 10000) / 10000.0f - 10.0f;
+			float x = 40.0f * (float)(rand() % 10000) / 10000.0f - 20.0f;
+			float y = 3.0f * (float)(rand() % 10000) / 10000.0f - 0.0f;
+			float z = 40.0f * (float)(rand() % 10000) / 10000.0f - 20.0f;
 			WObject* box = app->ObjectManager->CreateObject();
 			box->SetGeometry(boxGeometry);
 			box->SetPosition(x, y, z);

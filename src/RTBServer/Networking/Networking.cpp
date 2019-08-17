@@ -25,8 +25,10 @@ void RTBNet::RTBServerNetworking::Initialize(RTBServer* app) {
 				return false;
 
 			auto it = m_updateCallbacks.find(update.type);
-			if (it != m_updateCallbacks.end())
-				return it->second(client, update);
+			if (it != m_updateCallbacks.end()) {
+				bool b = it->second(client, update);
+				return b;
+			}
 		}
 		return true;
 	};

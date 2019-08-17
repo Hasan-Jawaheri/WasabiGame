@@ -1,5 +1,5 @@
 #include "RTBServer/Simulation/Simulation.hpp"
-#include "WasabiGame/Main.hpp"
+#include "RollTheBall/Main.hpp"
 #include "WasabiGame/GameStates/BaseState.hpp"
 
 #include "WasabiGame/ResourceManager/ResourceManager.hpp"
@@ -10,13 +10,13 @@
 
 #include "RollTheBall/AI/RTBAI.hpp"
 
-class SimulationWasabi : public WasabiRPG {
+class SimulationWasabi : public WasabiRTB {
 	friend class SimulationGameState;
 	ServerSimulation* m_simulationThread;
 	RTBServer* m_server;
 
 public:
-	SimulationWasabi(ServerSimulation* simulation, RTBServer* server, bool generateAssets = false) : WasabiRPG() {
+	SimulationWasabi(ServerSimulation* simulation, RTBServer* server, bool generateAssets = false) : WasabiRTB() {
 		m_simulationThread = simulation;
 		m_server = server;
 
@@ -43,6 +43,10 @@ public:
 	}
 
 	void SwitchToSimulationGameState();
+
+	virtual void SendNetworkUpdate(RPGNet::NetworkUpdate& update, bool important = true) {
+		m_server->Networking->SendUpdate(nullptr, update, important);
+	}
 };
 
 class SimulationGameState : public BaseState {
@@ -104,7 +108,7 @@ public:
 			return true;
 		});
 		
-		m_server->Networking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_WHOIS_UNIT, [this](RTBNet::RTBServerConnectedClient* client, RPGNet::NetworkUpdate& update) {
+		m_server->Networking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_SET_UNIT_PROPS, [this](RTBNet::RTBServerConnectedClient* client, RPGNet::NetworkUpdate& update) {
 			uint32_t unitId = -1;
 			Unit* unit = nullptr;
 			RTBNet::UpdateBuilders::ReadSetUnitPropsPacket(update, &unitId, [this, &unitId, &unit](std::string prop, void* data, uint16_t size) {

@@ -1,7 +1,6 @@
-#include <WinSock2.h>
 #include "RTBClient/Main.hpp"
 
-#include "WasabiGame/Main.hpp"
+#include "RollTheBall/Main.hpp"
 #include "WasabiGame/GameStates/Intro.hpp"
 #include "WasabiGame/GameStates/Menu.hpp"
 #include "RTBClient/GameStates/Game.hpp"
@@ -10,7 +9,7 @@
 
 #include "RollTheBall/AssetsGenerator/AssetsGenerator.hpp"
 
-RTBClient::RTBClient(bool generateAssets, bool enableVulkanDebugging, bool enablePhysicsDebugging) : WasabiRPG() {
+RTBClient::RTBClient(bool generateAssets, bool enableVulkanDebugging, bool enablePhysicsDebugging) : WasabiRTB() {
 	SetEngineParam("appName", "RTBClient");
 
 #ifdef _DEBUG
@@ -50,4 +49,9 @@ void RTBClient::SwitchToInitialState() {
 #else
 	SwitchState(new Game(this));
 #endif
+}
+
+void RTBClient::SendNetworkUpdate(RPGNet::NetworkUpdate& update, bool important) {
+	if (Networking->Status == RTBNet::RTBConnectionStatus::CONNECTION_CONNECTED)
+		Networking->SendUpdate(update, important);
 }

@@ -9,6 +9,7 @@
 #include <WS2tcpip.h>
 
 #include <string>
+#include <atomic>
 
 namespace RPGNet {
 
@@ -147,8 +148,9 @@ namespace RPGNet {
 		}
 
 		virtual bool ConsumeBuffer(HBUtils::CircularBuffer* buffer) {
-			if (m_consumeBufferCallback)
+			if (m_consumeBufferCallback) {
 				return m_consumeBufferCallback(buffer);
+			}
 			buffer->start = buffer->end; // instant consume, should be implemented elsewhere
 			return true;
 		}
@@ -181,24 +183,42 @@ namespace RPGNet {
 
 	class ReconnectingClient : public Client {
 		HBUtils::Semaphore m_connectingSemaphore;
+		std::atomic<bool> m_reconnect;
+		std::function<void()> m_onConnecting;
+		std::function<void()> m_onConnectionFailed;
+		std::function<void()> m_onConnected;
+		std::function<void()> m_onDisconnected;
 
 	public:
-		ReconnectingClient(class Server* server) : Client(server) {}
+		ReconnectingClient(class Server* server) : Client(server) {
+			m_reconnect = false;
+			m_onConnecting = nullptr;
+			m_onConnectionFailed = nullptr;
+			m_onConnected = nullptr;
+			m_onDisconnected = nullptr;
+		}
 
 		virtual int Connect(std::string hostname, int port) {
 			m_connectingSemaphore.wait();
+			if (m_onConnecting)
+				m_onConnecting();
 			int ret = 0;
 			if (hostname != m_IP || port != m_port)
 				Close();
+			m_reconnect = true;
 			if (fd() == 0)
 				ret = Client::Connect(hostname, port);
+			if (ret == 0 && m_onConnected)
+				m_onConnected();
+			else if (ret != 0 && m_onConnectionFailed)
+				m_onConnectionFailed();
 			m_connectingSemaphore.notify();
 			return ret;
 		}
 
 		void Reconnect() {
 			m_server->Scheduler.LaunchThread("reconnect-client-" + std::to_string((uintptr_t)this), [this]() {
-				while (this->fd() == 0 && m_server->IsRunning()) {
+				while (this->fd() == 0 && m_server->IsRunning() && this->m_reconnect.load()) {
 					this->Connect(m_IP, m_port);
 					if (this->fd() == 0 && m_server->IsRunning())
 						std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -206,18 +226,48 @@ namespace RPGNet {
 			});
 		}
 
+		void StopReconnecting() {
+			m_reconnect = false;
+		}
+
+		virtual void Close() {
+			Client::Close();
+		}
+
 		virtual bool OnReadReady() {
 			bool bKeep = Client::OnReadReady();
-			if (!bKeep && m_server->IsRunning())
+			if (!bKeep && m_server->IsRunning()) {
+				if (m_onDisconnected)
+					m_onDisconnected();
 				Reconnect();
+			}
 			return bKeep;
 		}
 
 		virtual bool OnWriteReady() {
 			bool bKeep = Client::OnWriteReady();
-			if (!bKeep && m_server->IsRunning())
+			if (!bKeep && m_server->IsRunning()) {
+				if (m_onDisconnected)
+					m_onDisconnected();
 				Reconnect();
+			}
 			return bKeep;
+		}
+
+		void SetOnConnectedCallback(std::function<void()> callback) {
+			m_onConnected = callback;
+		}
+
+		void SetOnDisconnectedCallback(std::function<void()> callback) {
+			m_onDisconnected = callback;
+		}
+
+		void SetOnConnectingCallback(std::function<void()> callback) {
+			m_onConnecting = callback;
+		}
+
+		void SetOnConnectionFailedCallback(std::function<void()> callback) {
+			m_onConnectionFailed = callback;
 		}
 	};
 

@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <unordered_map>
+#include <atomic>
 
 namespace RTBNet {
 
@@ -29,7 +30,7 @@ namespace RTBNet {
 	public:
 		RTBClientNetworking();
 
-		RTBConnectionStatus Status;
+		std::atomic<RTBConnectionStatus> Status;
 
 		void Initialize();
 		void Destroy();

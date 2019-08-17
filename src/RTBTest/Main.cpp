@@ -1,4 +1,3 @@
-#include <WinSock2.h>
 #include "RTBClient/Main.hpp"
 #include "RTBServer/Main.hpp"
 #include "RollTheBall/AssetsGenerator/AssetsGenerator.hpp"
@@ -6,7 +5,7 @@
 #include <thread>
 
 #define GENERATE_ASSETS true
-#define NUM_CLIENTS 2
+#define NUM_CLIENTS 1
 
 Wasabi* WInitialize() {
 	if (GENERATE_ASSETS) {

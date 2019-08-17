@@ -82,7 +82,7 @@ void Game::Cleanup() {
 	((RTBClient*)m_app)->Maps->SetMap(MAP_NONE);
 }
 
-GameInputHandler::GameInputHandler(class Game* g) : UIElement(((WasabiRPG*)g->m_app)->UI) {
+GameInputHandler::GameInputHandler(class Game* g) : UIElement(((WasabiRTB*)g->m_app)->UI) {
 	m_game = g;
 }
 

@@ -31,6 +31,25 @@ void RTBNet::RTBClientNetworking::Initialize() {
 
 	m_tcpConnection->SetConsumeBufferCallback(onConsumeBuffer);
 	m_udpConnection->SetConsumeBufferCallback(onConsumeBuffer);
+	
+	m_tcpConnection->SetOnConnectedCallback([this]() {
+		RPGNet::NetworkUpdate loginUpdate;
+		RTBNet::UpdateBuilders::Login(loginUpdate, ("ghandi-" + std::to_string(std::rand() % 10000)).c_str(), "123456");
+		SendUpdate(loginUpdate);
+		this->Status = RTBConnectionStatus::CONNECTION_CONNECTED;
+	});
+
+	m_tcpConnection->SetOnDisconnectedCallback([this]() {
+		this->Status = RTBConnectionStatus::CONNECTION_NOT_CONNECTED;
+	});
+
+	m_tcpConnection->SetOnConnectingCallback([this]() {
+		this->Status = RTBConnectionStatus::CONNECTION_CONNECTING;
+	});
+
+	m_tcpConnection->SetOnConnectionFailedCallback([this]() {
+		this->Status = RTBConnectionStatus::CONNECTION_NOT_CONNECTED;
+	});
 
 	m_networkingThread = new std::thread([this]() {
 		std::srand(std::time(nullptr) + 7511);
@@ -46,19 +65,11 @@ void RTBNet::RTBClientNetworking::Destroy() {
 }
 
 void RTBNet::RTBClientNetworking::Login() {
-	Status = CONNECTION_CONNECTING;
-	if (m_tcpConnection->Connect("127.0.0.1", 9965) == 0) {
-		Status = RTBConnectionStatus::CONNECTION_CONNECTED;
-		RPGNet::NetworkUpdate loginUpdate;
-		RTBNet::UpdateBuilders::Login(loginUpdate, ("ghandi-" + std::to_string(std::rand() % 10000)).c_str(), "123456");
-		SendUpdate(loginUpdate);
-	}  else
-		Status = RTBConnectionStatus::CONNECTION_NOT_CONNECTED;
+	m_tcpConnection->Connect("127.0.0.1", 9965);
 }
 
 void RTBNet::RTBClientNetworking::Logout() {
-	m_tcpConnection->Close();
-	Status = RTBConnectionStatus::CONNECTION_NOT_CONNECTED;
+	m_tcpConnection->StopReconnecting();
 }
 
 void RTBNet::RTBClientNetworking::SendUpdate(RPGNet::NetworkUpdate& update, bool important) {
