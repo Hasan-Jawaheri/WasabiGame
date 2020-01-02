@@ -8,7 +8,7 @@ This project uses the CMake build system.
 ```bash
 mkdir build
 cd build
-cmake -DWASABI_ROOT="<path to Wasabi build/ folder>" ..
+cmake -DWASABI_ROOT="<path to Wasabi build/dist folder>" ..
 ```
 
 # Progress
