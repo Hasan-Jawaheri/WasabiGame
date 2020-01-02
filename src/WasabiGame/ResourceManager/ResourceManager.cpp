@@ -1,5 +1,5 @@
 #include "WasabiGame/ResourceManager/ResourceManager.hpp"
-#include <Wasabi/Physics/Bullet/WBulletRigidBody.h>
+#include <Wasabi/Physics/Bullet/WBulletRigidBody.hpp>
 
 #include <filesystem>
 typedef std::filesystem::path stdpath;

@@ -19,12 +19,12 @@ UIElement::~UIElement() {
 void UIElement::SetFade(float fFade) {
 	m_alpha = fFade;
 	if (m_material)
-		m_material->SetVariableFloat("alpha", m_alpha);
+		m_material->SetVariable("alpha", m_alpha);
 }
 
 void UIElement::OnResize(UINT width, UINT height) {
 	if (m_material)
-		m_material->SetVariableVector2("spriteSize", WVector2((float)width, (float)height));
+		m_material->SetVariable("spriteSize", WVector2((float)width, (float)height));
 }
 
 void UIElement::SetPosition(float x, float y) {
@@ -36,7 +36,7 @@ void UIElement::SetSize(float sizeX, float sizeY) {
 	if (m_sprite)
 		m_sprite->SetSize(WVector2(sizeX, sizeY));
 	if (m_material)
-		m_material->SetVariableVector2("spriteSize", WVector2(sizeX, sizeY));
+		m_material->SetVariable("spriteSize", WVector2(sizeX, sizeY));
 }
 
 UIElement* UIElement::GetParent() const {

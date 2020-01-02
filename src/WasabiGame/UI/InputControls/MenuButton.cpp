@@ -1,5 +1,7 @@
 #include "WasabiGame/UI/InputControls/MenuButton.hpp"
 
+#include <algorithm>
+
 class MenuButtonPS : public WShader {
 public:
 	MenuButtonPS(class Wasabi* const app) : WShader(app) {}
@@ -41,7 +43,7 @@ void MenuButton::Load(Wasabi* const app) {
 void MenuButton::SetFade(float fFade) {
 	m_alpha = fFade;
 	if (m_material)
-		m_material->SetVariableFloat("alpha", max((fFade - m_alpha_offset), 0));
+		m_material->SetVariable("alpha", std::max((fFade - m_alpha_offset), 0.0f));
 }
 
 void MenuButton::OnResize(UINT width, UINT height) {
@@ -76,7 +78,7 @@ bool MenuButton::Update(float fDeltaTime) {
 		m_text,
 		m_sprite->GetPosition().x + m_sprite->GetSize().x / 2.0f - text_width/2.0f,
 		m_sprite->GetPosition().y + m_sprite->GetSize().y / 2.0f - text_height / 2.0f,
-		16.0f, FONT_CALIBRI_16, WColor(c.r, c.g, c.b, max(m_alpha - m_alpha_offset, 0))
+		16.0f, FONT_CALIBRI_16, WColor(c.r, c.g, c.b, std::max(m_alpha - m_alpha_offset, 0.0f))
 	);
 
 	return true;

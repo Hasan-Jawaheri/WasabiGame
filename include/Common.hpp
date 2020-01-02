@@ -1,7 +1,8 @@
 #pragma once
 
+#define NOMINMAX
 #include <WinSock2.h>
-#include <Wasabi/Wasabi.h>
+#include <Wasabi/Wasabi.hpp>
 
 #define APPNAME "WasabiGame"
 

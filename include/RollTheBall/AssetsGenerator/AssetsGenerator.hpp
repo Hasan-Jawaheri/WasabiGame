@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Common.hpp"
-#include <Wasabi/Physics/Bullet/WBulletPhysics.h>
+#include <Wasabi/Physics/Bullet/WBulletPhysics.hpp>
 
 #include <filesystem>
 typedef std::filesystem::path stdpath;
@@ -77,7 +77,7 @@ public:
 		WObject* ballObj = m_app->ObjectManager->CreateObject();
 		ballObj->SetName("player");
 		ballObj->SetGeometry(ball);
-		ballObj->GetMaterial()->SetVariableColor("color", WColor(0.8f, 0.6f, 0.55f, 1.0f));
+		ballObj->GetMaterials().SetVariable("color", WColor(0.8f, 0.6f, 0.55f, 1.0f));
 		WRigidBody* rb = m_app->PhysicsComponent->CreateRigidBody();
 		W_RIGID_BODY_CREATE_INFO rbCreateInfo = W_RIGID_BODY_CREATE_INFO::ForSphere(1.0f, 20.0f);
 		rb->Create(rbCreateInfo, true);
@@ -104,7 +104,7 @@ public:
 		WObject* ballObj = m_app->ObjectManager->CreateObject();
 		ballObj->SetName("small-ball");
 		ballObj->SetGeometry(ball);
-		ballObj->GetMaterial()->SetVariableColor("color", WColor(0.8f, 0.6f, 0.55f, 1.0f));
+		ballObj->GetMaterials().SetVariable("color", WColor(0.8f, 0.6f, 0.55f, 1.0f));
 		WRigidBody* rb = m_app->PhysicsComponent->CreateRigidBody();
 		W_RIGID_BODY_CREATE_INFO rbCreateInfo = W_RIGID_BODY_CREATE_INFO::ForSphere(0.7f, 20.0f);
 		rb->Create(rbCreateInfo, true);

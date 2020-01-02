@@ -3,7 +3,7 @@
 
 void RTBNet::UpdateBuilders::Error(RPGNet::NetworkUpdate& output, const char* error) {
 	output.type = RTBNet::UpdateTypeEnum::UPDATE_TYPE_ERROR;
-	output.dataSize = min(strlen(error), sizeof(RPGNet::NetworkUpdate::data));
+	output.dataSize = std::min(strlen(error), sizeof(RPGNet::NetworkUpdate::data));
 	memcpy(output.data, error, output.dataSize);
 }
 

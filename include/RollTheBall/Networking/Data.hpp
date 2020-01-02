@@ -1,8 +1,10 @@
 #pragma once
 
 #include <cstdint>
+#include <algorithm>
 
 #ifdef WIN32
+#define NOMINMAX
 #include <WinSock2.h>
 #endif
 
@@ -49,8 +51,7 @@ namespace RPGNet {
 		size_t readPacket(HBUtils::CircularBuffer* packet) {
 			if (packet->GetSize() >= PACKET_META_SIZE) {
 				char tmp[PACKET_META_SIZE];
-				size_t availableToRead = min(packet->GetAvailableContigiousConsume(), PACKET_META_SIZE);
-				memcpy(tmp, packet->GetMem(), availableToRead);
+				size_t availableToRead = std::min(packet->GetAvailableContigiousConsume(), PACKET_META_SIZE);
 				if (availableToRead < PACKET_META_SIZE)
 					memcpy(tmp + availableToRead, packet->mem, PACKET_META_SIZE - availableToRead);
 
@@ -63,8 +64,7 @@ namespace RPGNet {
 					packet->OnConsumed(PACKET_META_SIZE);
 					size_t dataRead = 0;
 					while (dataRead < dataSize) {
-						size_t sizeToRead = min(packet->GetAvailableContigiousConsume(), dataSize - dataRead);
-						memcpy(data + dataRead, packet->GetMem(), sizeToRead);
+						size_t sizeToRead = std::min(packet->GetAvailableContigiousConsume(), dataSize - dataRead);
 						packet->OnConsumed(sizeToRead);
 						dataRead += sizeToRead;
 					}

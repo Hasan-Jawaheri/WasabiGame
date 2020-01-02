@@ -86,6 +86,8 @@ WMaterial* CreateSpriteMaterial(Wasabi* app, WSprite*& sprite) {
 	PSType* ps = new PSType(app);
 	ps->Load();
 	sprite->ClearEffects();
-	sprite->AddEffect(app->SpriteManager->CreateSpriteEffect(app->Renderer->GetRenderTarget(), ps));
-	return sprite->GetMaterial();
+
+	WEffect* fx = app->SpriteManager->CreateSpriteEffect(app->Renderer->GetRenderTarget(), ps);
+	sprite->AddEffect(fx);
+	return sprite->GetMaterial(fx);
 }

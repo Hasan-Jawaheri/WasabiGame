@@ -1,12 +1,13 @@
 #pragma once
 
 #include "RollTheBall/Networking/Data.hpp"
-#include <Wasabi/Core/WMath.h>
+#include <Wasabi/Core/WMath.hpp>
 
 #include <unordered_map>
 #include <string>
 #include <functional>
 #include <cstdint>
+#include <algorithm>
 
 namespace RTBNet {
 

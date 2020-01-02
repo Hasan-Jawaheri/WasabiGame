@@ -1,6 +1,6 @@
 #include "WasabiGame/Main.hpp"
-#include <Wasabi/Physics/Bullet/WBulletPhysics.h>
-#include <Wasabi/Renderers/ForwardRenderer/WForwardRenderer.h>
+#include <Wasabi/Physics/Bullet/WBulletPhysics.hpp>
+#include <Wasabi/Renderers/ForwardRenderer/WForwardRenderer.hpp>
 
 #include "WasabiGame/Maps/MapLoader.hpp"
 #include "WasabiGame/Units/UnitsManager.hpp"
@@ -41,7 +41,7 @@ WError WasabiRPG::Setup() {
 
 	if (err) {
 		PhysicsComponent->Start();
-		WindowAndInputComponent->DisableEscapeKeyQuit();
+		WindowAndInputComponent->SetQuitKeys(false, false);
 		CameraManager->GetDefaultCamera()->SetRange(1, 1000);
 
 		err = Resources->Init(m_settings.mediaFolder);

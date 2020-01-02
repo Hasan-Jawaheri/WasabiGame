@@ -2,6 +2,8 @@
 
 #include "WasabiGame/Maps/Map.hpp"
 
+#include <algorithm>
+
 class TestMap : public Map {
 public:
 	virtual MAP_DESCRIPTION GetDescription() const {
@@ -25,8 +27,8 @@ public:
 		plainGeometry->CreatePlain(50.0f, 0, 0);
 		plain->SetGeometry(plainGeometry);
 		plainGeometry->RemoveReference();
-		plain->GetMaterial()->SetVariableColor("color", WColor(0.4f, 0.4f, 0.4f));
-		plain->GetMaterial()->SetVariableInt("isTextured", 0);
+		plain->GetMaterials().SetVariable("color", WColor(0.4f, 0.4f, 0.4f));
+		plain->GetMaterials().SetVariable("isTextured", 0);
 
 		// Create the boxes
 		WGeometry* boxGeometry = new WGeometry(app);
@@ -39,15 +41,15 @@ public:
 			box->SetGeometry(boxGeometry);
 			box->SetPosition(x, y, z);
 			boxes.push_back(box);
-			box->GetMaterial()->SetVariableColor("color", WColor(0.7f, 0.7f, 0.7f));
-			box->GetMaterial()->SetVariableInt("isTextured", 0);
+			box->GetMaterials().SetVariable("color", WColor(0.7f, 0.7f, 0.7f));
+			box->GetMaterials().SetVariable("isTextured", 0);
 		}
 		boxGeometry->RemoveReference();
 
 		// hide default light
 		app->LightManager->GetDefaultLight()->Hide();
 
-		int maxLights = min(app->GetEngineParam<int>("maxLights", INT_MAX), 8);
+		int maxLights = std::min(app->GetEngineParam<int>("maxLights", INT_MAX), 8);
 		WColor colors[] = {
 			WColor(1, 0, 0),
 			WColor(0, 1, 0),

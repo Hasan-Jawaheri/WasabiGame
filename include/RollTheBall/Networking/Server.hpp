@@ -1,5 +1,6 @@
 #pragma once
 
+#define NOMINMAX
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
@@ -252,16 +253,16 @@ namespace RPGNet {
 
 				if (m_TCPServer.IsAlive()) {
 					FD_SET(m_TCPServer.sock, &readFDs);
-					maxFDs = max(maxFDs, (int)m_TCPServer.sock);
+					maxFDs = std::max(maxFDs, (int)m_TCPServer.sock);
 				}
 				if (m_UDPServer.IsAlive()) {
 					FD_SET(m_UDPServer.sock, &readFDs);
-					maxFDs = max(maxFDs, (int)m_UDPServer.sock);
+					maxFDs = std::max(maxFDs, (int)m_UDPServer.sock);
 				}
 
 				for (auto client : m_clients) {
 					if (client.first->fd() > 0) {
-						maxFDs = max(maxFDs, client.first->fd());
+						maxFDs = std::max(maxFDs, client.first->fd());
 						FD_SET(client.first->fd(), &readFDs);
 						if (client.first->HasPendingWrites())
 							FD_SET(client.first->fd(), &writeFDs);

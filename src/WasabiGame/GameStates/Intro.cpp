@@ -56,8 +56,8 @@ void Intro::Update(float fDeltaTime) {
 		}
 	}
 
-	m_cur_logo->GetMaterial()->SetTexture("diffuseTexture", m_logos[m_cur_logo_index]);
-	m_cur_logo->GetMaterial()->SetVariableFloat("alpha", m_cur_logo_alpha);
+	m_cur_logo->GetMaterials().SetTexture("diffuseTexture", m_logos[m_cur_logo_index]);
+	m_cur_logo->GetMaterials().SetVariable("alpha", m_cur_logo_alpha);
 
 	//position the sprite in the center of the screen
 	int window_width = m_app->WindowAndInputComponent->GetWindowWidth();
