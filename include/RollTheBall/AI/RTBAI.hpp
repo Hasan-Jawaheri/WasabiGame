@@ -7,7 +7,7 @@
 
 class RTBAI : public AI {
 protected:
-	void SentNetworkUpdate(RPGNet::NetworkUpdate& update);
+	void SendNetworkUpdate(RPGNet::NetworkUpdate& update);
 
 public:
 	RTBAI(class Unit* unit);

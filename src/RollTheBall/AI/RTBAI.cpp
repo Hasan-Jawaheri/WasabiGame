@@ -2,7 +2,6 @@
 #include "RollTheBall/Main.hpp"
 
 RTBAI::RTBAI(Unit* unit) : AI(unit) {
-
 }
 
 RTBAI::~RTBAI() {
@@ -10,10 +9,9 @@ RTBAI::~RTBAI() {
 }
 
 void RTBAI::Update(float fDeltaTime) {
-
 }
 
-void RTBAI::SentNetworkUpdate(RPGNet::NetworkUpdate& update) {
+void RTBAI::SendNetworkUpdate(RPGNet::NetworkUpdate& update) {
 	((WasabiRTB*)m_unit->GetApp())->SendNetworkUpdate(update);
 }
 

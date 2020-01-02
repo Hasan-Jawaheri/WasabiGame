@@ -68,7 +68,7 @@ void PlayerAI::Update(float fDeltaTime) {
 			std::function<void(std::string, void*, uint16_t)> addProp = nullptr;
 			RTBNet::UpdateBuilders::SetUnitProps(m_unitUpdate, m_unit->GetId(), &addProp);
 			addProp("pos", &rbPos, sizeof(WVector3));
-			SentNetworkUpdate(m_unitUpdate);
+			SendNetworkUpdate(m_unitUpdate);
 		}
 	}
 }
