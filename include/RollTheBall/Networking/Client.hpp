@@ -90,7 +90,7 @@ namespace RPGNet {
 		}
 
 		virtual bool OnReadReady() {
-			int numRead = m_fd > 0 ? 1 : 0, totalRead = 0;
+			int numRead = m_fd > 0 ? 1 : 0;
 			while (numRead > 0) {
 				int readSize = m_inBuffer.GetAvailableContigiousInsert();
 				if (readSize == 0) {
@@ -98,10 +98,9 @@ namespace RPGNet {
 					continue;
 				}
 
-				numRead = recv(m_fd, m_inBuffer.GetMem(), readSize, 0);
+				numRead = recv(m_fd, m_inBuffer.GetWritingMem(), readSize, 0);
 				if (numRead > 0) {
 					m_inBuffer.OnInserted(numRead);
-					totalRead += numRead;
 					break;
 				} else if (numRead < 0) {
 					// handle socket error
@@ -112,7 +111,7 @@ namespace RPGNet {
 				}
 			}
 
-			if (totalRead > 0)
+			if (numRead > 0)
 				return ConsumeBuffer(&m_inBuffer);
 
 			if (numRead == 0 && m_fd > 0)
@@ -122,12 +121,10 @@ namespace RPGNet {
 		}
 
 		virtual bool OnWriteReady() {
-			m_writingSemaphore.wait();
-
 			int numWritten = m_fd > 0 ? 1 : 0, totalWritten = 0;
 			while (m_outBuffer.GetSize() > 0 && numWritten > 0) {
 				int writeSize = m_outBuffer.GetAvailableContigiousConsume();
-				numWritten = send(m_fd, m_outBuffer.GetMem(), writeSize, 0);
+				numWritten = send(m_fd, m_outBuffer.GetReadingMem(), writeSize, 0);
 				if (numWritten > 0) {
 					m_outBuffer.OnConsumed(numWritten);
 					totalWritten += numWritten;
@@ -139,8 +136,6 @@ namespace RPGNet {
 					}
 				}
 			}
-
-			m_writingSemaphore.notify();
 
 			if (numWritten == 0 && m_fd > 0)
 				Close();
@@ -165,13 +160,13 @@ namespace RPGNet {
 
 			size_t totalWritten = 0;
 			while (totalWritten < len) {
-				int writeSize = min(m_outBuffer.GetAvailableContigiousInsert(), len - totalWritten);
+				int writeSize = std::min(m_outBuffer.GetAvailableContigiousInsert(), len - totalWritten);
 				if (writeSize == 0) {
 					m_outBuffer.Expand();
 					continue;
 				}
 
-				memcpy(m_outBuffer.GetMem(), data + totalWritten, writeSize);
+				memcpy(m_outBuffer.GetWritingMem(), data + totalWritten, writeSize);
 				m_outBuffer.OnInserted(writeSize);
 				totalWritten += writeSize;
 			}

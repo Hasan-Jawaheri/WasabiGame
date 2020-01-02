@@ -52,6 +52,7 @@ namespace RPGNet {
 			if (packet->GetSize() >= PACKET_META_SIZE) {
 				char tmp[PACKET_META_SIZE];
 				size_t availableToRead = std::min(packet->GetAvailableContigiousConsume(), PACKET_META_SIZE);
+				memcpy(tmp, packet->GetReadingMem(), availableToRead);
 				if (availableToRead < PACKET_META_SIZE)
 					memcpy(tmp + availableToRead, packet->mem, PACKET_META_SIZE - availableToRead);
 
@@ -65,6 +66,7 @@ namespace RPGNet {
 					size_t dataRead = 0;
 					while (dataRead < dataSize) {
 						size_t sizeToRead = std::min(packet->GetAvailableContigiousConsume(), dataSize - dataRead);
+						memcpy(data + dataRead, packet->GetReadingMem(), sizeToRead);
 						packet->OnConsumed(sizeToRead);
 						dataRead += sizeToRead;
 					}

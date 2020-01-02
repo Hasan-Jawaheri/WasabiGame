@@ -37,8 +37,12 @@ namespace HBUtils {
 			start = end = 0;
 		}
 
-		inline char* GetMem() {
+		inline char* GetReadingMem() {
 			return mem + start;
+		}
+
+		inline char* GetWritingMem() {
+			return mem + end;
 		}
 
 		inline size_t GetAvailableContigiousInsert() {

@@ -19,15 +19,18 @@ void RTBNet::RTBServerNetworking::Initialize(RTBServer* app) {
 	// client sent new data over TCP
 	auto onConsumeBuffer = [this](RTBServerConnectedClient* client, HBUtils::CircularBuffer* buffer) {
 		RPGNet::NetworkUpdate update;
-		size_t size = update.readPacket(buffer);
-		if (size > 0) {
-			if (update.type != RTBNet::UpdateTypeEnum::UPDATE_TYPE_LOGIN && client->Identity.accountName[0] == 0)
-				return false;
+		size_t size = 1;
+		while (size > 0) {
+			size = update.readPacket(buffer);
+			if (size > 0) {
+				if (update.type != RTBNet::UpdateTypeEnum::UPDATE_TYPE_LOGIN && client->Identity.accountName[0] == 0)
+					return false;
 
-			auto it = m_updateCallbacks.find(update.type);
-			if (it != m_updateCallbacks.end()) {
-				bool b = it->second(client, update);
-				return b;
+				auto it = m_updateCallbacks.find(update.type);
+				if (it != m_updateCallbacks.end()) {
+					if (!it->second(client, update))
+						return false;
+				}
 			}
 		}
 		return true;
