@@ -20,8 +20,10 @@ void RTBNet::RTBClientNetworking::Initialize() {
 
 	std::function<bool(HBUtils::CircularBuffer*)> onConsumeBuffer = [this](HBUtils::CircularBuffer* buffer) {
 		RPGNet::NetworkUpdate update;
-		size_t size = update.readPacket(buffer);
-		if (size > 0) {
+		while (true) {
+			size_t size = update.readPacket(buffer);
+			if (size == 0)
+				break;
 			auto it = m_updateCallbacks.find(update.type);
 			if (it != m_updateCallbacks.end())
 				it->second(update);

@@ -5,7 +5,7 @@
 #include <thread>
 
 #define GENERATE_ASSETS true
-#define NUM_CLIENTS 1
+#define NUM_CLIENTS 2
 
 Wasabi* WInitialize() {
 	if (GENERATE_ASSETS) {
@@ -26,7 +26,7 @@ Wasabi* WInitialize() {
 	for (int i = 0; i < NUM_CLIENTS; i++) {
 		clientThreads.push_back(std::thread([i]() {
 			std::srand(std::time(nullptr) + i * 1789);
-			Wasabi* client = new RTBClient(false, false, true);
+			Wasabi* client = new RTBClient(false, false, false);
 			RunWasabi(client);
 			delete client;
 		}));

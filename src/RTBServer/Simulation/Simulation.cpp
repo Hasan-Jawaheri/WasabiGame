@@ -64,8 +64,9 @@ class SimulationGameState : public BaseState {
 	uint32_t m_currentUnitId;
 	std::mutex m_unitIdsMutex;
 
-	std::unordered_map<std::shared_ptr<RTBConnectedPlayer>, Unit*> m_players;
+	std::unordered_map<uint32_t, std::pair<std::shared_ptr<RTBConnectedPlayer>, Unit*>> m_players;
 	std::mutex m_playersMutex;
+	float m_lastBroadcastTime;
 
 	uint32_t GenerateUnitId() {
 		std::lock_guard lockGuard(m_unitIdsMutex);
@@ -79,6 +80,7 @@ public:
 		m_server = m_wapp->m_server;
 
 		m_currentUnitId = 1;
+		m_lastBroadcastTime = 0.0f;
 
 		m_cam.fYaw = 0;
 		m_cam.fPitch = 30;
@@ -99,10 +101,18 @@ public:
 		m_server->Networking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_WHOIS_UNIT, [this](RTBNet::RTBServerConnectedClient* client, RPGNet::NetworkUpdate& update) {
 			uint32_t unitId;
 			RTBNet::UpdateBuilders::ReadWhoIsUnitPacket(update, &unitId);
-			Unit* unit = this->m_wapp->Units->GetUnit(unitId);
+			uint32_t actualUnitId = unitId;
+			if (unitId == 0) {
+				std::lock_guard lockGuard(m_playersMutex);
+				actualUnitId = m_players.find(client->m_id)->second.second->GetId();
+			}
+			Unit* unit = this->m_wapp->Units->GetUnit(actualUnitId);
 			if (unit && unit->O()) {
 				RPGNet::NetworkUpdate unitLoadUpdate;
-				RTBNet::UpdateBuilders::LoadUnit(unitLoadUpdate, unit->GetType(), unit->GetId(), unit->O()->GetPosition());
+				uint32_t unitType = unit->GetType();
+				if (unitType == UNIT_PLAYER && unitId != 0)
+					unitType = UNIT_OTHER_PLAYER;
+				RTBNet::UpdateBuilders::LoadUnit(unitLoadUpdate, unitType, unitId, unit->O()->GetPosition());
 				this->m_server->Networking->SendUpdate(client->m_id, unitLoadUpdate);
 			}
 			return true;
@@ -110,10 +120,16 @@ public:
 		
 		m_server->Networking->RegisterNetworkUpdateCallback(RTBNet::UpdateTypeEnum::UPDATE_TYPE_SET_UNIT_PROPS, [this](RTBNet::RTBServerConnectedClient* client, RPGNet::NetworkUpdate& update) {
 			uint32_t unitId = -1;
+			uint32_t clientId = client->m_id;
 			Unit* unit = nullptr;
-			RTBNet::UpdateBuilders::ReadSetUnitPropsPacket(update, &unitId, [this, &unitId, &unit](std::string prop, void* data, uint16_t size) {
+			RTBNet::UpdateBuilders::ReadSetUnitPropsPacket(update, &unitId, [this, clientId, &unitId, &unit](std::string prop, void* data, uint16_t size) {
 				if (unitId == -1)
 					return;
+				if (unitId == 0) {
+					// players think their id is 0
+					std::lock_guard lockGuard(m_playersMutex);
+					unitId = m_players.find(clientId)->second.second->GetId();
+				}
 				if (!unit) {
 					unit = this->m_wapp->Units->GetUnit(unitId);
 					if (!unit) {
@@ -132,6 +148,26 @@ public:
 
 		if (!m_simulationThread->IsRunning())
 			m_app->SwitchState(nullptr);
+
+		{
+			std::lock_guard lockGuard(m_playersMutex);
+			if (m_app->Timer.GetElapsedTime() - m_lastBroadcastTime > 0.1f) {
+				m_lastBroadcastTime = m_app->Timer.GetElapsedTime();
+				for (auto senderPlayer : m_players) {
+					RPGNet::NetworkUpdate update;
+					std::function<void(std::string, void*, uint16_t)> addProp = nullptr;
+					RTBNet::UpdateBuilders::SetUnitProps(update, senderPlayer.second.second->GetId(), &addProp);
+					WVector3 pos = senderPlayer.second.second->O()->GetPosition();
+					addProp("pos", (void*)&pos, sizeof(WVector3));
+
+					for (auto receiverPlayer : m_players) {
+						if (senderPlayer.second != receiverPlayer.second) {
+							m_server->Networking->SendUpdate(receiverPlayer.second.first->m_clientId, update);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	virtual void Cleanup() {
@@ -144,14 +180,14 @@ public:
 		WVector3 spawnPos = WVector3(player->m_x, player->m_y, player->m_z);
 		Unit* newPlayerUnit = m_wapp->Units->LoadUnit(UNIT_PLAYER, GenerateUnitId(), spawnPos);
 
-		// special message for the player, make sure the first unit it loads is the player unit
+		// special message for the player, make sure the first unit it loads is the player unit (and each player thinks his id is 0)
 		RPGNet::NetworkUpdate unitLoadUpdate;
-		RTBNet::UpdateBuilders::LoadUnit(unitLoadUpdate, UNIT_PLAYER, newPlayerUnit->GetId(), spawnPos);
+		RTBNet::UpdateBuilders::LoadUnit(unitLoadUpdate, UNIT_PLAYER, 0, spawnPos);
 		m_server->Networking->SendUpdate(player->m_clientId, unitLoadUpdate);
 
 		{
 			std::lock_guard lockGuard(m_playersMutex);
-			m_players.insert(std::make_pair(player, newPlayerUnit));
+			m_players.insert(std::make_pair(player->m_clientId, std::make_pair(player, newPlayerUnit)));
 		}
 	}
 
@@ -160,9 +196,9 @@ public:
 		Unit* playerUnit = nullptr;
 		{
 			std::lock_guard lockGuard(m_playersMutex);
-			auto it = m_players.find(player);
+			auto it = m_players.find(player->m_clientId);
 			if (it != m_players.end()) {
-				playerUnit = it->second;
+				playerUnit = it->second.second;
 				m_players.erase(it);
 			}
 		}

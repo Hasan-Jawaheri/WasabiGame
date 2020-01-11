@@ -22,5 +22,6 @@ static std::function<UNIT*()> GenerateUnit(UnitsManager* manager, bool isServer,
 void SetupRTBUnits(UnitsManager* manager, bool isServer) {
 	manager->ResetUnits();
 	manager->RegisterUnit(UNIT_PLAYER, GenerateUnit<Player, PlayerAI, RemoteControlledAI>(manager, isServer, Player::modelName));
+	manager->RegisterUnit(UNIT_OTHER_PLAYER, GenerateUnit<Player, RemoteControlledAI, RemoteControlledAI>(manager, isServer, Player::modelName));
 	manager->RegisterUnit(UNIT_TEST_BALL, GenerateUnit<BallUnit, RemoteControlledAI, TestUnitAI>(manager, isServer, BallUnit::modelName));
 }
