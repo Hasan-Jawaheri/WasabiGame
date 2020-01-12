@@ -11,7 +11,7 @@ public:
 
 	void SwitchToInitialState();
 
-	virtual void SendNetworkUpdate(RPGNet::NetworkUpdate& update, bool important = true);
+	virtual void SendNetworkUpdate(RPGNet::NetworkUpdate& update, bool important = true) override;
 
 	RTBNet::RTBClientNetworking* Networking;
 };

@@ -44,7 +44,7 @@ public:
 
 	void SwitchToSimulationGameState();
 
-	virtual void SendNetworkUpdate(RPGNet::NetworkUpdate& update, bool important = true) {
+	virtual void SendNetworkUpdate(RPGNet::NetworkUpdate& update, bool important = true) override {
 		m_server->Networking->SendUpdate(nullptr, update, important);
 	}
 };
@@ -151,7 +151,7 @@ public:
 
 		{
 			std::lock_guard lockGuard(m_playersMutex);
-			if (m_app->Timer.GetElapsedTime() - m_lastBroadcastTime > 0.1f) {
+			if (m_app->Timer.GetElapsedTime() - m_lastBroadcastTime > 0.05f) {
 				m_lastBroadcastTime = m_app->Timer.GetElapsedTime();
 				for (auto senderPlayer : m_players) {
 					RPGNet::NetworkUpdate update;

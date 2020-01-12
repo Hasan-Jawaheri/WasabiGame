@@ -1,7 +1,6 @@
 #include "RollTheBall/AI/PlayerAI.hpp"
 
 PlayerAI::PlayerAI(Unit* unit) : RTBAI(unit) {
-	m_app = unit->GetApp();
 	m_camera = m_app->CameraManager->GetDefaultCamera();
 	m_camera->AddReference();
 	m_cameraPivot = WVector3(0.0f, 0.0f, 0.0f);
@@ -13,8 +12,6 @@ PlayerAI::PlayerAI(Unit* unit) : RTBAI(unit) {
 	m_mouseHidden = false;
 
 	m_isJumpKeyDown = false;
-
-	m_updateTimer = m_app->Timer.GetElapsedTime();
 }
 
 PlayerAI::~PlayerAI() {
@@ -61,16 +58,9 @@ void PlayerAI::Update(float fDeltaTime) {
 		if (camToPlayerDistSquare > 0.05f) {
 			m_cameraPivot = m_cameraPivot + (rbPos - m_cameraPivot) * (camToPlayerDistSquare / 2.0f) * fDeltaTime;
 		}
-
-		// send update to server
-		if (m_updateTimer + 0.25f < m_app->Timer.GetElapsedTime()) {
-			m_updateTimer = m_app->Timer.GetElapsedTime();
-			std::function<void(std::string, void*, uint16_t)> addProp = nullptr;
-			RTBNet::UpdateBuilders::SetUnitProps(m_unitUpdate, m_unit->GetId(), &addProp);
-			addProp("pos", &rbPos, sizeof(WVector3));
-			SendNetworkUpdate(m_unitUpdate);
-		}
 	}
+
+	RTBAI::Update(fDeltaTime);
 }
 
 void PlayerAI::ApplyMousePivot() {
