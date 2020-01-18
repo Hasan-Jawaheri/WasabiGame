@@ -1,5 +1,8 @@
 # WasabiGame
-Game showcase for the Wasabi Engine. This is a WIP port for [this older version, written in HasX11](https://github.com/Hasan-Jawaheri/RPG). 
+Game showcase for the Wasabi Engine. [This was previously a port for an older version, written in HasX11](https://github.com/Hasan-Jawaheri/RPG), but has evolved into a networked game.
+
+## Overview
+The repository contains multiple projects that together form a game called RollTheBall(2) (RollTheBall was a project I made a long time ago to compete in some Intel game competition, it wasn't a great success). The game consists of a client and a server that utilize the [Wasabi Engine](https://github.com/Hasan-Jawaheri/Wasabi) to render. The game is planned to have an open-world RPG where the player controls a role-playing ball that will do cool stuff (TBA).
 
 # Building
 This project uses the CMake build system.
