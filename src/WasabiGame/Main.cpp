@@ -23,6 +23,8 @@ WasabiGame::WasabiBaseGame::WasabiBaseGame() : Wasabi(), std::enable_shared_from
 	m_settings.fullscreen = true;
 #endif
 
+	Config = std::make_shared<GameConfig>();
+	Scheduler = std::make_shared<GameScheduler>();
 	Resources = std::make_shared<ResourceManager>(shared_from_this());
 	UI = std::make_shared<UserInterface>(shared_from_this());
 	Maps = std::make_shared<MapLoader>(shared_from_this(), Resources);

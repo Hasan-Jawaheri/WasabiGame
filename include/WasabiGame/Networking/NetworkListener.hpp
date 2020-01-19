@@ -148,7 +148,7 @@ namespace WasabiGame {
 		} m_UDPServer;
 
 	public:
-		NetworkListener(CreateNetworkClientFunction createClient) : Config(), Scheduler() {
+		NetworkListener(CreateNetworkClientFunction createClient, std::shared_ptr<GameConfig> config, std::shared_ptr<GameScheduler> scheduler) : Config(config), Scheduler(scheduler) {
 			m_isRunning = true;
 			m_createClient = createClient;
 			m_clientConnected = nullptr;
@@ -160,8 +160,8 @@ namespace WasabiGame {
 		virtual ~NetworkListener() {
 		}
 
-		WasabiGame::Scheduler Scheduler;
-		WasabiGame::Config Config;
+		std::shared_ptr<GameConfig> Config;
+		std::shared_ptr<GameScheduler> Scheduler;
 
 		void RegisterSelectable(Selectable* client, bool deleteOnDisconnect = true) {
 			ClientMetadata meta;
@@ -179,20 +179,20 @@ namespace WasabiGame {
 				return;
 			}
 
-			m_TCPServer.port = Config.Get<int>("tcpPort");
-			m_UDPServer.port = Config.Get<int>("udpPort");
+			m_TCPServer.port = Config->Get<int>("tcpPort");
+			m_UDPServer.port = Config->Get<int>("udpPort");
 
-			strcpy_s(m_TCPServer.host, sizeof(m_TCPServer.host), Config.Get<char*>("hostname"));
-			strcpy_s(m_UDPServer.host, sizeof(m_UDPServer.host), Config.Get<char*>("hostname"));
+			strcpy_s(m_TCPServer.host, sizeof(m_TCPServer.host), Config->Get<char*>("hostname"));
+			strcpy_s(m_UDPServer.host, sizeof(m_UDPServer.host), Config->Get<char*>("hostname"));
 
 			if (m_TCPServer.port <= 0 || m_TCPServer.Initialize() == 0) {
 				if (m_UDPServer.port <= 0 || m_UDPServer.Initialize() == 0) {
-					Scheduler.LaunchWorkers(Config.Get<int>("numWorkers"));
-					Scheduler.LaunchThread("selectables-loop", [this]() {
+					Scheduler->LaunchWorkers(Config->Get<int>("numWorkers"));
+					Scheduler->LaunchThread("selectables-loop", [this]() {
 						this->SelectablesLoop();
-						this->Scheduler.Stop();
+						this->Scheduler->Stop();
 					});
-					Scheduler.Run();
+					Scheduler->Run();
 
 					for (auto client : m_clients) {
 						if (client.second.deleteOnDisconnect) {
@@ -239,7 +239,7 @@ namespace WasabiGame {
 
 		void SelectablesLoop() {
 			std::vector<std::pair<Selectable*, ClientMetadata>> clientsToDelete;
-			while (m_isRunning && Scheduler.IsRunning()) {
+			while (m_isRunning && Scheduler->IsRunning()) {
 				fd_set readFDs, writeFDs;
 				int maxFDs = 0;
 

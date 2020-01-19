@@ -6,6 +6,7 @@
 #include "WasabiGame/Maps/MapLoader.hpp"
 #include "WasabiGame/Units/UnitsManager.hpp"
 #include "WasabiGame/Utilities/Scheduler.hpp"
+#include "WasabiGame/Utilities/Config.hpp"
 
 
 namespace WasabiGame {
@@ -35,6 +36,8 @@ namespace WasabiGame {
 		virtual WError SetupRenderer();
 		virtual WPhysicsComponent* CreatePhysicsComponent();
 
+		std::shared_ptr<GameScheduler> Scheduler;
+		std::shared_ptr<GameConfig> Config;
 		std::shared_ptr<ResourceManager> Resources;
 		std::shared_ptr<UserInterface> UI;
 		std::shared_ptr<MapLoader> Maps;
