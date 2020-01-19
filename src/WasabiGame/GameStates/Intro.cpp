@@ -1,14 +1,16 @@
 #include "WasabiGame/GameStates/Intro.hpp"
+#include "WasabiGame/Main.hpp"
 
-Intro::Intro(Wasabi* app, std::vector<std::string> images, std::function<WGameState* ()> nextStateGenerator) : WGameState(app) {
+
+WasabiGame::IntroGameState::IntroGameState(Wasabi* app, std::vector<std::string> images, std::function<BaseGameState* ()> nextStateGenerator) : BaseGameState(app) {
 	m_logoFiles = images;
 	m_nextStateGenerator = nextStateGenerator;
 }
 
-Intro::~Intro() {
+WasabiGame::IntroGameState::~IntroGameState() {
 }
 
-void Intro::Load() {
+void WasabiGame::IntroGameState::Load() {
 	m_app->Renderer->GetRenderTarget()->SetClearColor(WColor(0, 0, 0));
 
 	// load images using the above filenames
@@ -27,7 +29,7 @@ void Intro::Load() {
 	m_cur_logo_alpha = -0.4f; // fade in - start with -0.4 alpha to idle for a while
 }
 
-void Intro::Update(float fDeltaTime) {
+void WasabiGame::IntroGameState::Update(float fDeltaTime) {
 	// We allow the alpha to range from 0 to 1.5 although the maximum alpha (fully opaque
 	// image) is 1.0 because we want the image to stay at full alpha for a while
 	// and to be specific it will remain at full alpha for (1.5-1)/100 seconds.
@@ -38,13 +40,13 @@ void Intro::Update(float fDeltaTime) {
 	const float fMaxAlpha = 1.0f;
 	const float fExcessAlpha = 1.5f;
 	if (m_fade_in) { // fading in
-		m_cur_logo_alpha += INTROSPEED * fDeltaTime;
+		m_cur_logo_alpha += INTRO_SPEED * fDeltaTime;
 		if (m_cur_logo_alpha > fExcessAlpha) { //excceeded maximum alpha, now fade out
 			m_cur_logo_alpha = fMaxAlpha; //start fading out from 255
 			m_fade_in = false; //start fading out
 		}
 	} else { //fading out
-		m_cur_logo_alpha -= INTROSPEED * fDeltaTime;
+		m_cur_logo_alpha -= INTRO_SPEED * fDeltaTime;
 		if (m_cur_logo_alpha < fMinAlpha) { //less than the minimum, now fade in a new image
 			m_cur_logo_alpha = fMinAlpha;
 			m_fade_in = true;
@@ -70,7 +72,7 @@ void Intro::Update(float fDeltaTime) {
 	m_cur_logo->SetSize(WVector2(image_width, image_height));
 }
 
-void Intro::Cleanup() {
+void WasabiGame::IntroGameState::Cleanup() {
 	//freeing resources with HX_SAFE_REMOVEREF
 	for (unsigned int i = 0; i < m_logos.size(); i++)
 		W_SAFE_REMOVEREF(m_logos[i]);

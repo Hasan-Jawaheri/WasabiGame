@@ -2,28 +2,34 @@
 
 #include "WasabiGame/UI/UI.hpp"
 
-class MenuButton : public UIElement {
-	std::string m_text;
-	float m_alpha_offset;
-	bool m_is_clicked;
 
-public:
-	MenuButton(UserInterface* ui, std::string text);
-	~MenuButton();
+namespace WasabiGame {
 
-	virtual void Load(Wasabi* const app);
-	virtual void SetFade(float fFade);
-	virtual void OnResize(UINT width, UINT height);
-	virtual bool Update(float fDeltaTime);
+	class UserInterface;
 
-	virtual bool OnInput() { return false; }
-	virtual bool OnTab() { return false; }
-	virtual bool OnEnter() { return true; }
-	virtual bool OnEscape() { return false; }
-	virtual void OnMouseButton(int mx, int my, bool bDown);
-	virtual bool OnFocus() { return false; } //cannot gain focus
+	class MenuButton : public UIElement {
+		std::string m_text;
+		float m_alphaOffset;
+		bool m_isClicked;
 
-	virtual void OnClick() {};
-	bool IsClicked() { if (m_is_clicked) { m_is_clicked = !m_is_clicked; return !m_is_clicked; } return m_is_clicked; }
+	public:
+		MenuButton(std::shared_ptr<UserInterface> ui, std::string text);
+		virtual ~MenuButton();
+
+		virtual void Load() override;
+		virtual void SetFade(float fFade) override;
+		virtual void OnResize(uint32_t width, uint32_t height) override;
+		virtual bool Update(float fDeltaTime) override;
+
+		virtual bool OnInput() override { return false; }
+		virtual bool OnTab() override { return false; }
+		virtual bool OnEnter() override { return true; }
+		virtual bool OnEscape() override { return false; }
+		virtual void OnMouseButton(int mx, int my, bool bDown) override;
+		virtual bool OnFocus() override { return false; } //cannot gain focus
+
+		virtual void OnClick() {}
+		bool IsClicked() { if (m_isClicked) { m_isClicked = !m_isClicked; return !m_isClicked; } return m_isClicked; }
+	};
+
 };
-

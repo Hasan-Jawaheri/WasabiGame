@@ -7,7 +7,8 @@
 #include "WasabiGame/ResourceManager/ResourceManager.hpp"
 #include "WasabiGame/UI/UI.hpp"
 
-WasabiRPG::WasabiRPG() : Wasabi() {
+
+WasabiGame::WasabiBaseGame::WasabiBaseGame() : Wasabi(), std::enable_shared_from_this<WasabiBaseGame>() {
 	m_settings.debugVulkan = true;
 	m_settings.debugPhysics = false;
 	m_settings.maxFPS = 0;
@@ -22,13 +23,13 @@ WasabiRPG::WasabiRPG() : Wasabi() {
 	m_settings.fullscreen = true;
 #endif
 
-	Resources = new ResourceManager(this);
-	UI = new UserInterface(this);
-	Maps = new MapLoader(this, Resources);
-	Units = new UnitsManager(this, Resources);
+	Resources = std::make_shared<ResourceManager>(shared_from_this());
+	UI = std::make_shared<UserInterface>(shared_from_this());
+	Maps = std::make_shared<MapLoader>(shared_from_this(), Resources);
+	Units = std::make_shared<UnitsManager>(shared_from_this(), Resources);
 }
 
-WError WasabiRPG::Setup() {
+WError WasabiGame::WasabiBaseGame::Setup() {
 	SetEngineParam<bool>("enableVulkanValidation", m_settings.debugVulkan);
 
 	//
@@ -46,7 +47,7 @@ WError WasabiRPG::Setup() {
 
 		err = Resources->Init(m_settings.mediaFolder);
 		if (err) {
-			err = UI->Init(this);
+			err = UI->Init();
 
 			if (err) {
 				SwitchToInitialState();
@@ -62,7 +63,7 @@ WError WasabiRPG::Setup() {
 	return err;
 }
 
-bool WasabiRPG::Loop(float fDeltaTime) {
+bool WasabiGame::WasabiBaseGame::Loop(float fDeltaTime) {
 	fCurGameTime = Timer.GetElapsedTime();
 
 	char text[256];
@@ -81,30 +82,20 @@ bool WasabiRPG::Loop(float fDeltaTime) {
 	return curState != nullptr; //returning true will allow the application to continue
 }
 
-void WasabiRPG::Cleanup() {
+void WasabiGame::WasabiBaseGame::Cleanup() {
 	SwitchState(nullptr);
-
-	UI->Terminate();
-	Maps->Cleanup();
-	Units->Cleanup();
-	Resources->Cleanup();
-
-	W_SAFE_DELETE(UI);
-	W_SAFE_DELETE(Maps);
-	W_SAFE_DELETE(Units);
-	W_SAFE_DELETE(Resources);
 }
 
-WError WasabiRPG::Resize(unsigned int width, unsigned int height) {
+WError WasabiGame::WasabiBaseGame::Resize(unsigned int width, unsigned int height) {
 	UI->OnResize(width, height);
 	return Wasabi::Resize(width, height);
 }
 
-WError WasabiRPG::SetupRenderer() {
+WError WasabiGame::WasabiBaseGame::SetupRenderer() {
 	return Wasabi::SetupRenderer();
 }
 
-WPhysicsComponent* WasabiRPG::CreatePhysicsComponent() {
+WPhysicsComponent* WasabiGame::WasabiBaseGame::CreatePhysicsComponent() {
 	WBulletPhysics* physics = new WBulletPhysics(this);
 	WError werr = physics->Initialize(m_settings.debugPhysics);
 	if (!werr)

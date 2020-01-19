@@ -4,20 +4,29 @@
 #include "WasabiGame/Maps/Map.hpp"
 #include "WasabiGame/ResourceManager/ResourceManager.hpp"
 
-class MapLoader {
-	Wasabi* m_app;
-	ResourceManager* m_resourceManager;
 
-	class Map* m_currentMap;
-	std::unordered_map<uint, std::function<class Map* ()>> m_mapGenerators;
+namespace WasabiGame {
 
-public:
-	MapLoader(Wasabi* app, ResourceManager* resourceManager);
+	class WasabiBaseGame;
 
-	void RegisterMap(uint id, std::function<class Map*()> mapGenerator);
-	void ResetMaps();
+	class MapLoader {
+		std::weak_ptr<WasabiBaseGame> m_app;
+		std::shared_ptr<ResourceManager> m_resourceManager;
 
-	void SetMap(uint mapId);
-	void Update(float fDeltaTime);
-	void Cleanup();
+		std::shared_ptr<class Map> m_currentMap;
+		std::unordered_map<uint, std::function<std::shared_ptr<class Map> ()>> m_mapGenerators;
+		
+		void Cleanup();
+
+	public:
+		MapLoader(std::shared_ptr<WasabiBaseGame> app, std::shared_ptr<ResourceManager> resourceManager);
+		~MapLoader();
+
+		void RegisterMap(uint id, std::function<std::shared_ptr<class Map> ()> mapGenerator);
+		void ResetMaps();
+
+		void SetMap(uint mapId);
+		void Update(float fDeltaTime);
+	};
+
 };
