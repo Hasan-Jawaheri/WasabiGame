@@ -25,7 +25,8 @@ namespace WasabiGame {
 
 		template<typename U, typename A>
 		std::shared_ptr<U> CreateUnitAndAI(std::string modelName) {
-			std::shared_ptr<U> u = std::make_shared<U>(m_app, m_resourceManager, this);
+			std::shared_ptr<WasabiBaseGame> app = m_app.lock().get()->shared_from_this();
+			std::shared_ptr<U> u = std::make_shared<U>(app, m_resourceManager, app->Units);
 			u->SetAI<A>();
 			u->m_loadInfo.modelName = modelName;
 			return u;

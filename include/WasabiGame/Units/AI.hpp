@@ -11,7 +11,7 @@ namespace WasabiGame {
 		friend class Unit;
 
 	protected:
-		std::shared_ptr<Unit> m_unit;
+		std::weak_ptr<Unit> m_unit;
 
 		AI(std::shared_ptr<Unit> unit);
 		virtual ~AI();

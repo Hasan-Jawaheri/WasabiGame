@@ -14,7 +14,7 @@ namespace WasabiGame {
 	class AI;
 	struct LOADED_MODEL;
 
-	class Unit {
+	class Unit : public std::enable_shared_from_this<Unit> {
 		friend class UnitsManager;
 
 		struct LoadInfo {
@@ -48,7 +48,7 @@ namespace WasabiGame {
 		WOrientation* O() const;
 		WRigidBody* RB() const;
 
-		template<typename T> void SetAI() { m_AI = std::make_shared<T>(this); }
+		template<typename T> void SetAI() { m_AI = std::make_shared<T>(this->shared_from_this()); }
 		std::shared_ptr<AI> GetAI() const;
 	};
 
