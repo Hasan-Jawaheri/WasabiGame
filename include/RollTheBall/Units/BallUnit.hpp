@@ -1,35 +1,40 @@
 #pragma once
 
+#include "WasabiGame/Main.hpp"
 #include "WasabiGame/Units/Units.hpp"
 
-class BallUnit : public Unit {
-	struct {
-		bool isGrounded;
-		bool didDash;
-		WVector3 jumpDirection;
-	} m_state;
 
-protected:
+namespace RollTheBall {
 
-	virtual void Update(float fDeltaTime);
+	class BallUnit : public WasabiGame::Unit {
+		struct {
+			bool isGrounded;
+			bool didDash;
+			WVector3 jumpDirection;
+		} m_state;
 
-public:
+	protected:
 
-	static const char* modelName;
+		virtual void Update(float fDeltaTime);
 
-	BallUnit(Wasabi* app, ResourceManager* resourceManager, class UnitsManager* unitsManager);
-	virtual ~BallUnit();
+	public:
 
-	struct {
-		bool canJump;
-		bool canDash;
-		float movementSpeed;
-		float jumpHeight;
-		float dashSpeed;
-	} m_properties;
+		static const char* modelName;
 
-	bool IsOnGround() const;
-	void Jump(WVector3 direction);
-	void Move(WVector3 direction);
+		BallUnit(std::shared_ptr<WasabiGame::WasabiBaseGame> app, std::shared_ptr<class WasabiGame::ResourceManager> resourceManager, std::shared_ptr<class WasabiGame::UnitsManager> unitsManager);
+		virtual ~BallUnit();
+
+		struct {
+			bool canJump;
+			bool canDash;
+			float movementSpeed;
+			float jumpHeight;
+			float dashSpeed;
+		} m_properties;
+
+		bool IsOnGround() const;
+		void Jump(WVector3 direction);
+		void Move(WVector3 direction);
+	};
+
 };
-

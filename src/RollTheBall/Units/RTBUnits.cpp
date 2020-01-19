@@ -10,16 +10,16 @@
 
 
 template<typename UNIT, typename CLIENT_AI, typename SERVER_AI>
-static std::function<UNIT*()> GenerateUnit(UnitsManager* manager, bool isServer, std::string modelName) {
+static std::function<std::shared_ptr<WasabiGame::Unit>()> GenerateUnit(std::shared_ptr<WasabiGame::UnitsManager> manager, bool isServer, std::string modelName) {
 	return [manager, isServer, modelName]() {
 		if (isServer)
-			return manager->CreateUnitAndAI<UNIT, SERVER_AI>(modelName);
+			return std::static_pointer_cast<WasabiGame::Unit>(manager->CreateUnitAndAI<UNIT, SERVER_AI>(modelName));
 		else
-			return manager->CreateUnitAndAI<UNIT, CLIENT_AI>(modelName);
+			return std::static_pointer_cast<WasabiGame::Unit>(manager->CreateUnitAndAI<UNIT, CLIENT_AI>(modelName));
 	};
 }
 
-void SetupRTBUnits(UnitsManager* manager, bool isServer) {
+void RollTheBall::SetupRTBUnits(std::shared_ptr<WasabiGame::UnitsManager> manager, bool isServer) {
 	manager->ResetUnits();
 	manager->RegisterUnit(UNIT_PLAYER, GenerateUnit<Player, PlayerAI, RemoteControlledAI>(manager, isServer, Player::modelName));
 	manager->RegisterUnit(UNIT_OTHER_PLAYER, GenerateUnit<Player, RemoteControlledAI, RemoteControlledAI>(manager, isServer, Player::modelName));

@@ -1,7 +1,9 @@
 #include "RollTheBall/AI/PlayerAI.hpp"
 
-PlayerAI::PlayerAI(Unit* unit) : RTBAI(unit) {
-	m_camera = m_app->CameraManager->GetDefaultCamera();
+
+RollTheBall::PlayerAI::PlayerAI(std::shared_ptr<WasabiGame::Unit> unit) : RTBAI(unit) {
+	std::shared_ptr<Wasabi> app = m_app.lock();
+	m_camera = app->CameraManager->GetDefaultCamera();
 	m_camera->AddReference();
 	m_cameraPivot = WVector3(0.0f, 0.0f, 0.0f);
 
@@ -14,29 +16,32 @@ PlayerAI::PlayerAI(Unit* unit) : RTBAI(unit) {
 	m_isJumpKeyDown = false;
 }
 
-PlayerAI::~PlayerAI() {
+RollTheBall::PlayerAI::~PlayerAI() {
 	W_SAFE_REMOVEREF(m_camera);
 }
 
-void PlayerAI::Update(float fDeltaTime) {
-	Player* player = (Player*)m_unit;
+void RollTheBall::PlayerAI::Update(float fDeltaTime) {
+	std::shared_ptr<Wasabi> app = m_app.lock();
+	std::shared_ptr<WasabiGame::Unit> unit = m_unit.lock();
+
+	std::shared_ptr<Player> player = std::static_pointer_cast<Player>(unit);
 	WVector3 rbPos = player->O()->GetPosition();
 	WVector3 direction = WVec3TransformNormal(WVector3(0, 0, 1), WRotationMatrixY(W_DEGTORAD(m_yaw)));
 	WVector3 right = WVec3TransformNormal(WVector3(1, 0, 0), WRotationMatrixY(W_DEGTORAD(m_yaw)));
 
 	WVector3 inputDirection(0, 0, 0);
-	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('W'))
+	if (app->WindowAndInputComponent->KeyDown('W'))
 		inputDirection += direction;
-	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('S'))
+	if (app->WindowAndInputComponent->KeyDown('S'))
 		inputDirection -= direction;
-	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('A'))
+	if (app->WindowAndInputComponent->KeyDown('A'))
 		inputDirection -= right;
-	if (m_unit->GetApp()->WindowAndInputComponent->KeyDown('D'))
+	if (app->WindowAndInputComponent->KeyDown('D'))
 		inputDirection += right;
 
 	bool isDirection = WVec3LengthSq(inputDirection) > 0.1f;
 
-	if (!m_unit->GetApp()->WindowAndInputComponent->KeyDown(' '))
+	if (!app->WindowAndInputComponent->KeyDown(' '))
 		m_isJumpKeyDown = true;
 	else if (m_isJumpKeyDown) {
 		m_isJumpKeyDown = false;
@@ -51,7 +56,7 @@ void PlayerAI::Update(float fDeltaTime) {
 	ApplyMousePivot();
 
 	// make camera follow player's model
-	WOrientation* orientation = m_unit->O();
+	WOrientation* orientation = unit->O();
 	if (orientation) {
 		WVector3 rbPos = orientation->GetPosition();
 		float camToPlayerDistSquare = WVec3LengthSq(rbPos - m_cameraPivot);
@@ -63,20 +68,22 @@ void PlayerAI::Update(float fDeltaTime) {
 	RTBAI::Update(fDeltaTime);
 }
 
-void PlayerAI::ApplyMousePivot() {
+void RollTheBall::PlayerAI::ApplyMousePivot() {
+	std::shared_ptr<Wasabi> app = m_app.lock();
+
 	if (m_draggingCamera) {
 		if (!m_mouseHidden) {
-			m_app->WindowAndInputComponent->ShowCursor(false);
+			app->WindowAndInputComponent->ShowCursor(false);
 			m_mouseHidden = true;
 
-			m_lastMouseX = m_app->WindowAndInputComponent->MouseX(MOUSEPOS_DESKTOP, 0);
-			m_lastMouseY = m_app->WindowAndInputComponent->MouseY(MOUSEPOS_DESKTOP, 0);
+			m_lastMouseX = app->WindowAndInputComponent->MouseX(MOUSEPOS_DESKTOP, 0);
+			m_lastMouseY = app->WindowAndInputComponent->MouseY(MOUSEPOS_DESKTOP, 0);
 
-			m_app->WindowAndInputComponent->SetMousePosition(640 / 2, 480 / 2, MOUSEPOS_VIEWPORT);
+			app->WindowAndInputComponent->SetMousePosition(640 / 2, 480 / 2, MOUSEPOS_VIEWPORT);
 		}
 
-		int mx = m_app->WindowAndInputComponent->MouseX(MOUSEPOS_VIEWPORT, 0);
-		int my = m_app->WindowAndInputComponent->MouseY(MOUSEPOS_VIEWPORT, 0);
+		int mx = app->WindowAndInputComponent->MouseX(MOUSEPOS_VIEWPORT, 0);
+		int my = app->WindowAndInputComponent->MouseY(MOUSEPOS_VIEWPORT, 0);
 
 		int dx = mx - 640 / 2;
 		int dy = my - 480 / 2;
@@ -90,19 +97,19 @@ void PlayerAI::ApplyMousePivot() {
 		m_pitch += (float)dy / 2.0f;
 
 		if (dx || dy)
-			m_app->WindowAndInputComponent->SetMousePosition(640 / 2, 480 / 2);
+			app->WindowAndInputComponent->SetMousePosition(640 / 2, 480 / 2);
 	} else {
 		if (m_mouseHidden) {
-			m_app->WindowAndInputComponent->ShowCursor(true);
+			app->WindowAndInputComponent->ShowCursor(true);
 			m_mouseHidden = false;
 
-			m_app->WindowAndInputComponent->SetMousePosition(m_lastMouseX, m_lastMouseY, MOUSEPOS_DESKTOP);
+			app->WindowAndInputComponent->SetMousePosition(m_lastMouseX, m_lastMouseY, MOUSEPOS_DESKTOP);
 		}
 	}
 
-	float fMouseZ = (float)m_app->WindowAndInputComponent->MouseZ();
+	float fMouseZ = (float)app->WindowAndInputComponent->MouseZ();
 	m_dist += fMouseZ * (abs(m_dist) / 10.0f);
-	m_app->WindowAndInputComponent->SetMouseZ(0);
+	app->WindowAndInputComponent->SetMouseZ(0);
 	m_dist = fmin(-1.0f, m_dist);
 
 	m_camera->SetPosition(m_cameraPivot);
@@ -112,10 +119,10 @@ void PlayerAI::ApplyMousePivot() {
 	m_camera->Move(m_dist);
 }
 
-void PlayerAI::BeginDragCamera() {
+void RollTheBall::PlayerAI::BeginDragCamera() {
 	m_draggingCamera = true;
 }
 
-void PlayerAI::EndDragCamera() {
+void RollTheBall::PlayerAI::EndDragCamera() {
 	m_draggingCamera = false;
 }

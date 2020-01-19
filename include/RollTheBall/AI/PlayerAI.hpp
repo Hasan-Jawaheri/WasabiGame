@@ -3,24 +3,29 @@
 #include "RollTheBall/AI/RTBAI.hpp"
 #include "RollTheBall/Units/Player.hpp"
 
-class PlayerAI : public RTBAI {
-	bool m_isJumpKeyDown;
 
-	WCamera* m_camera;
-	WVector3 m_cameraPivot;
-	float m_yaw, m_pitch, m_dist;
-	bool m_draggingCamera;
-	bool m_mouseHidden;
-	int m_lastMouseX, m_lastMouseY;
+namespace RollTheBall {
+	
+	class PlayerAI : public RTBAI {
+		bool m_isJumpKeyDown;
 
-	void ApplyMousePivot();
+		WCamera* m_camera;
+		WVector3 m_cameraPivot;
+		float m_yaw, m_pitch, m_dist;
+		bool m_draggingCamera;
+		bool m_mouseHidden;
+		int m_lastMouseX, m_lastMouseY;
 
-public:
-	PlayerAI(class Unit* unit);
-	virtual ~PlayerAI();
+		void ApplyMousePivot();
 
-	virtual void Update(float fDeltaTime);
+	public:
+		PlayerAI(std::shared_ptr<class WasabiGame::Unit> unit);
+		virtual ~PlayerAI();
 
-	void BeginDragCamera();
-	void EndDragCamera();
+		virtual void Update(float fDeltaTime);
+
+		void BeginDragCamera();
+		void EndDragCamera();
+	};
+
 };

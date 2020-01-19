@@ -1,44 +1,44 @@
 #include "RollTheBall/Networking/Protocol.hpp"
 
 
-void RTBNet::UpdateBuilders::Error(RPGNet::NetworkUpdate& output, const char* error) {
-	output.type = RTBNet::UpdateTypeEnum::UPDATE_TYPE_ERROR;
-	output.dataSize = std::min(strlen(error), sizeof(RPGNet::NetworkUpdate::data));
+void RollTheBall::UpdateBuilders::Error(WasabiGame::NetworkUpdate& output, const char* error) {
+	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_ERROR;
+	output.dataSize = std::min(strlen(error), sizeof(WasabiGame::NetworkUpdate::data));
 	memcpy(output.data, error, output.dataSize);
 }
 
-bool RTBNet::UpdateBuilders::ReadErrorPacket(RPGNet::NetworkUpdate& input, char* error) {
+bool RollTheBall::UpdateBuilders::ReadErrorPacket(WasabiGame::NetworkUpdate& input, char* error) {
 	memcpy(error, input.data, input.dataSize);
 	error[input.dataSize] = '\0';
 	return true;
 }
 
-void RTBNet::UpdateBuilders::Login(RPGNet::NetworkUpdate& output, const char* account, const char* password) {
-	RPGNet::ClientIdentity identity;
+void RollTheBall::UpdateBuilders::Login(WasabiGame::NetworkUpdate& output, const char* account, const char* password) {
+	WasabiGame::ClientIdentity identity;
 	strcpy(identity.accountName, account);
 	strcpy(identity.passwordHash, password);
 
-	output.type = RTBNet::UpdateTypeEnum::UPDATE_TYPE_LOGIN;
-	output.dataSize = sizeof(RPGNet::ClientIdentity);
+	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN;
+	output.dataSize = sizeof(WasabiGame::ClientIdentity);
 	memcpy(output.data, &identity, output.dataSize);
 }
 
-bool RTBNet::UpdateBuilders::ReadLoginPacket(RPGNet::NetworkUpdate& input, RPGNet::ClientIdentity& identity) {
-	if (input.dataSize != sizeof(RPGNet::ClientIdentity))
+bool RollTheBall::UpdateBuilders::ReadLoginPacket(WasabiGame::NetworkUpdate& input, WasabiGame::ClientIdentity& identity) {
+	if (input.dataSize != sizeof(WasabiGame::ClientIdentity))
 		return false;
 	memcpy(&identity, input.data, input.dataSize);
 	return true;
 }
 
-void RTBNet::UpdateBuilders::LoadUnit(RPGNet::NetworkUpdate& output, uint32_t unitType, uint32_t unitId, WVector3 spawnPos) {
-	output.type = RTBNet::UpdateTypeEnum::UPDATE_TYPE_LOAD_UNIT;
+void RollTheBall::UpdateBuilders::LoadUnit(WasabiGame::NetworkUpdate& output, uint32_t unitType, uint32_t unitId, WVector3 spawnPos) {
+	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOAD_UNIT;
 	output.purpose = unitType;
 	output.targetId = unitId;
 	output.dataSize = sizeof(WVector3);
 	memcpy(output.data, &spawnPos, output.dataSize);
 }
 
-bool RTBNet::UpdateBuilders::ReadLoadUnitPacket(RPGNet::NetworkUpdate& input, uint32_t* unitType, uint32_t* unitId, WVector3* spawnPos) {
+bool RollTheBall::UpdateBuilders::ReadLoadUnitPacket(WasabiGame::NetworkUpdate& input, uint32_t* unitType, uint32_t* unitId, WVector3* spawnPos) {
 	if (input.dataSize != sizeof(WVector3))
 		return false;
 	*unitType = input.purpose;
@@ -47,32 +47,32 @@ bool RTBNet::UpdateBuilders::ReadLoadUnitPacket(RPGNet::NetworkUpdate& input, ui
 	return true;
 }
 
-void RTBNet::UpdateBuilders::UnloadUnit(RPGNet::NetworkUpdate& output, uint32_t unitId) {
-	output.type = RTBNet::UpdateTypeEnum::UPDATE_TYPE_UNLOAD_UNIT;
+void RollTheBall::UpdateBuilders::UnloadUnit(WasabiGame::NetworkUpdate& output, uint32_t unitId) {
+	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_UNLOAD_UNIT;
 	output.purpose = 0;
 	output.targetId = unitId;
 	output.dataSize = 0;
 }
 
-bool RTBNet::UpdateBuilders::ReadUnloadUnitPacket(RPGNet::NetworkUpdate& input, uint32_t* unitId) {
+bool RollTheBall::UpdateBuilders::ReadUnloadUnitPacket(WasabiGame::NetworkUpdate& input, uint32_t* unitId) {
 	*unitId = input.targetId;
 	return true;
 }
 
-void RTBNet::UpdateBuilders::WhoIsUnit(RPGNet::NetworkUpdate& output, uint32_t unitId) {
-	output.type = RTBNet::UpdateTypeEnum::UPDATE_TYPE_WHOIS_UNIT;
+void RollTheBall::UpdateBuilders::WhoIsUnit(WasabiGame::NetworkUpdate& output, uint32_t unitId) {
+	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_WHOIS_UNIT;
 	output.purpose = 0;
 	output.targetId = unitId;
 	output.dataSize = 0;
 }
 
-bool RTBNet::UpdateBuilders::ReadWhoIsUnitPacket(RPGNet::NetworkUpdate& input, uint32_t* unitId) {
+bool RollTheBall::UpdateBuilders::ReadWhoIsUnitPacket(WasabiGame::NetworkUpdate& input, uint32_t* unitId) {
 	*unitId = input.targetId;
 	return true;
 }
 
-void RTBNet::UpdateBuilders::SetUnitProps(RPGNet::NetworkUpdate& output, uint32_t unitId, std::function<void(std::string, void*, uint16_t)>* fillFunc) {
-	output.type = RTBNet::UpdateTypeEnum::UPDATE_TYPE_SET_UNIT_PROPS;
+void RollTheBall::UpdateBuilders::SetUnitProps(WasabiGame::NetworkUpdate& output, uint32_t unitId, std::function<void(std::string, void*, uint16_t)>* fillFunc) {
+	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_UNIT_PROPS;
 	output.purpose = 0;
 	output.targetId = unitId;
 	output.dataSize = 0;
@@ -87,7 +87,7 @@ void RTBNet::UpdateBuilders::SetUnitProps(RPGNet::NetworkUpdate& output, uint32_
 	};
 }
 
-bool RTBNet::UpdateBuilders::ReadSetUnitPropsPacket(RPGNet::NetworkUpdate& input, uint32_t* unitId, std::function<void(std::string, void*, uint16_t)> readFunc) {
+bool RollTheBall::UpdateBuilders::ReadSetUnitPropsPacket(WasabiGame::NetworkUpdate& input, uint32_t* unitId, std::function<void(std::string, void*, uint16_t)> readFunc) {
 	*unitId = input.targetId;
 	size_t pos = 0;
 	char tmpName[256];
