@@ -64,10 +64,8 @@ WError WasabiGame::WasabiBaseGame::Setup() {
 }
 
 bool WasabiGame::WasabiBaseGame::Loop(float fDeltaTime) {
-	fCurGameTime = Timer.GetElapsedTime();
-
 	char text[256];
-	sprintf_s(text, 256, "FPS: %.2f//%.2f\nGame Time: %.2f", FPS, maxFPS, fCurGameTime);
+	sprintf_s(text, 256, "FPS: %.2f//%.2f\nGame Time: %.2f", FPS, maxFPS, Timer.GetElapsedTime());
 	TextComponent->RenderText(text, 5, 5, 20, FONT_DEFAULT, WColor(1.0, 0.0, 0.0));
 
 	if (curState) { // we only need this because we destroy state in the windows callback

@@ -5,6 +5,7 @@
 #include "WasabiGame/UI/UI.hpp"
 #include "WasabiGame/Maps/MapLoader.hpp"
 #include "WasabiGame/Units/UnitsManager.hpp"
+#include "WasabiGame/Utilities/Scheduler.hpp"
 
 
 namespace WasabiGame {
@@ -33,8 +34,6 @@ namespace WasabiGame {
 		virtual WError Resize(unsigned int width, unsigned int height);
 		virtual WError SetupRenderer();
 		virtual WPhysicsComponent* CreatePhysicsComponent();
-
-		float fCurGameTime;
 
 		std::shared_ptr<ResourceManager> Resources;
 		std::shared_ptr<UserInterface> UI;
