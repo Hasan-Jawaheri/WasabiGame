@@ -31,9 +31,9 @@ WasabiGame::MenuButton::~MenuButton() {
 }
 
 void WasabiGame::MenuButton::Load() {
-	std::shared_ptr<WasabiBaseGame> app = m_UI.get()->GetApp().lock();
+	std::shared_ptr<WasabiBaseGame> app = m_UI->GetApp().lock();
 
-	m_sprite = app.get()->SpriteManager->CreateSprite();
+	m_sprite = app->SpriteManager->CreateSprite();
 	m_material = CreateSpriteMaterial<MenuButtonPS>(app, m_sprite);
 
 	SetFade(0.0f);

@@ -51,10 +51,10 @@ void WasabiGame::ResourceManager::GENERAL_RESOURCES::Cleanup() {
 WError WasabiGame::ResourceManager::Init(std::string mediaFolder) {
 	m_mediaFolder = mediaFolder;
 
-	WasabiBaseGame* app = m_app.lock().get();
+	std::shared_ptr<WasabiBaseGame> app = m_app.lock();
 
 	m_generalResources.Cleanup();
-	m_generalResources.assetsFile = new WFile(app);
+	m_generalResources.assetsFile = new WFile(app.get());
 	WError err = m_generalResources.assetsFile->Open((stdpath(m_mediaFolder) / "resources.WSBI").string());
 	if (!err) {
 		app->WindowAndInputComponent->ShowErrorMessage("Failed to load resources: " + err.AsString());
@@ -81,11 +81,11 @@ void WasabiGame::ResourceManager::Cleanup() {
 void WasabiGame::ResourceManager::LoadMapFile(std::string mapFilename) {
 	m_mapResources.Cleanup();
 
-	WasabiBaseGame* app = m_app.lock().get();
+	std::shared_ptr<WasabiBaseGame> app = m_app.lock();
 
 	if (mapFilename != "") {
 		std::string fullMapFilename = (stdpath(m_mediaFolder) / "Maps" / (mapFilename + ".WSBI")).string();
-		m_mapResources.mapFile = new WFile(app);
+		m_mapResources.mapFile = new WFile(app.get());
 		WError err = m_mapResources.mapFile->Open(fullMapFilename);
 		if (!err) {
 			app->WindowAndInputComponent->ShowErrorMessage("Failed to load map: " + err.AsString());

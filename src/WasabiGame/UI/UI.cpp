@@ -88,7 +88,7 @@ std::weak_ptr<WasabiGame::WasabiBaseGame> WasabiGame::UserInterface::GetApp() {
 }
 
 WError WasabiGame::UserInterface::Init() {
-	WasabiBaseGame* app = m_app.lock().get();
+	std::shared_ptr<WasabiBaseGame> app = m_app.lock();
 	WError err = app->TextComponent->CreateTextFont(FONT_CALIBRI_16, "Calibri");
 	if (!err) {
 		MessageBoxA(nullptr, err.AsString().c_str(), APPNAME, MB_ICONERROR | MB_OK);
@@ -99,7 +99,7 @@ WError WasabiGame::UserInterface::Init() {
 }
 
 std::shared_ptr<WasabiGame::UIElement> WasabiGame::UserInterface::PrintError(std::string error_message) {
-	std::shared_ptr<UserInterface> UI = m_app.lock().get()->UI;
+	std::shared_ptr<UserInterface> UI = m_app.lock()->UI;
 	std::shared_ptr<ErrorBox> errBox = std::make_shared<ErrorBox>(UI, error_message);
 	std::shared_ptr<MenuButton> errorButton = std::make_shared<ErrorButton>(UI, "Ok");
 	AddUIElement(std::static_pointer_cast<UIElement>(errBox), nullptr);

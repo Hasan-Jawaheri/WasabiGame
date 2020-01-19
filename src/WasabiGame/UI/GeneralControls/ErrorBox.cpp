@@ -27,13 +27,13 @@ WasabiGame::ErrorBox::ErrorBox(std::shared_ptr<UserInterface> ui, std::string er
 }
 
 void WasabiGame::ErrorBox::Load() {
-	std::shared_ptr<WasabiBaseGame> app = m_UI.get()->GetApp().lock();
+	std::shared_ptr<WasabiBaseGame> app = m_UI->GetApp().lock();
 
-	m_sprite = app.get()->SpriteManager->CreateSprite();
+	m_sprite = app->SpriteManager->CreateSprite();
 	m_material = CreateSpriteMaterial<ErrorBoxPS>(app, m_sprite);
 	m_sprite->SetPriority(0);
 
-	OnResize(app.get()->WindowAndInputComponent->GetWindowWidth(), app.get()->WindowAndInputComponent->GetWindowHeight());
+	OnResize(app->WindowAndInputComponent->GetWindowWidth(), app->WindowAndInputComponent->GetWindowHeight());
 
 	SetFade(1.0f);
 }
