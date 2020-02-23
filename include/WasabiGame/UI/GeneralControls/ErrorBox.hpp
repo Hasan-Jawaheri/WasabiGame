@@ -3,35 +3,39 @@
 #include "WasabiGame/UI/UI.hpp"
 #include "WasabiGame/UI/InputControls/MenuButton.hpp"
 
-class ErrorBox : public UIElement {
-	std::string m_error_msg;
-	bool m_is_click;
 
-public:
-	ErrorBox(UserInterface* ui, std::string error);
-	~ErrorBox() {}
+namespace WasabiGame {
 
-	virtual void Load(Wasabi* const app);
-	virtual void OnResize(UINT width, UINT height);
-	virtual bool Update(float fDeltaTime);
+	class ErrorBox : public UIElement {
+		std::string m_errorMsg;
+		bool m_isClick;
 
-	virtual bool OnInput() { return false; }
-	virtual bool OnTab() { return false; }
-	virtual bool OnEnter() { m_is_click = true; return false; }
-	virtual bool OnEscape() { m_is_click = true; return false; }
-	virtual bool IsPassword() { return false; }
-	virtual bool OnFocus() { return true; }
-	virtual bool OnLoseFocus() { return false; } //never lose focus
-	virtual bool OnDisableAllUpdates() { return true; } //disable updating all other elements
+	public:
+		ErrorBox(std::shared_ptr<UserInterface> ui, std::string error);
+		virtual ~ErrorBox() {}
 
-	//in order not to allow the UI manager to pick it for mouse events
-	virtual int GetPosZ() const { return 10; }
-	virtual float GetSizeX() const { return 0.0f; }
-	virtual float GetSizeY() const { return 0.0f; }
-};
+		virtual void Load() override;
+		virtual void OnResize(uint32_t width, uint32_t height) override;
+		virtual bool Update(float fDeltaTime) override;
 
-class ErrorButton : public MenuButton {
-public:
-	ErrorButton(UserInterface* ui, std::string text) : MenuButton(ui, text) {};
-	virtual int GetPosZ() const { return 10; }
+		virtual bool OnInput() override { return false; }
+		virtual bool OnTab() override { return false; }
+		virtual bool OnEnter() override { m_isClick = true; return false; }
+		virtual bool OnEscape() override { m_isClick = true; return false; }
+		virtual bool IsPassword() override { return false; }
+		virtual bool OnFocus() override { return true; }
+		virtual bool OnLoseFocus() override { return false; } //never lose focus
+		virtual bool OnDisableAllUpdates() override { return true; } //disable updating all other elements
+
+		//in order not to allow the UI manager to pick it for mouse events
+		virtual int GetPosZ() const override { return 10; }
+		virtual float GetSizeX() const override { return 0.0f; }
+		virtual float GetSizeY() const override { return 0.0f; }
+	};
+
+	class ErrorButton : public MenuButton {
+	public:
+		ErrorButton(std::shared_ptr<UserInterface> ui, std::string text) : MenuButton(ui, text) {};
+		virtual int GetPosZ() const override { return 10; }
+	};
 };

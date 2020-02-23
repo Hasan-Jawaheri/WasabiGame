@@ -11,13 +11,14 @@
 #include <chrono>
 #include <ctime>
 
-namespace HBUtils {
+
+namespace WasabiGame {
 
 	class SchedulerThread {
-		friend class Scheduler;
+		friend class GameScheduler;
 
 	protected:
-		class Scheduler* m_scheduler;
+		class WasabiGame::GameScheduler* m_scheduler;
 		bool m_isRunning;
 
 	public:
@@ -37,7 +38,7 @@ namespace HBUtils {
 		virtual void Run() = 0;
 	};
 
-	class Scheduler {
+	class GameScheduler {
 		bool m_isRunning;
 		std::mutex m_threadsLock;
 		std::unordered_map<std::string, std::pair<std::thread*, SchedulerThread*>> m_threads;
@@ -51,7 +52,7 @@ namespace HBUtils {
 		std::mutex m_workMutex;
 		std::condition_variable m_workCondition;
 		std::queue<WorkUnit> m_workQueue;
-
+			
 		class SchedulerWorker : public SchedulerThread {
 		public:
 			SchedulerWorker() {
@@ -59,7 +60,7 @@ namespace HBUtils {
 
 			virtual void Run() {
 				while (m_isRunning) {
-					WorkUnit w = m_scheduler->GetWork();
+					WasabiGame::GameScheduler::WorkUnit w = m_scheduler->GetWork();
 					if (w.perform) {
 						void* result = w.perform();
 						if (w.callback)
@@ -88,7 +89,7 @@ namespace HBUtils {
 		}
 
 	public:
-		Scheduler() {
+		GameScheduler() {
 			m_isRunning = true;
 		}
 

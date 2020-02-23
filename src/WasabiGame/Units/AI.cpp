@@ -1,8 +1,10 @@
 #include "WasabiGame/Units/AI.hpp"
+#include "WasabiGame/Main.hpp"
 #include "WasabiGame/Units/Units.hpp"
 
-AI::AI(Unit* unit) : m_unit(unit) {
+
+WasabiGame::AI::AI(std::shared_ptr<Unit> unit) : m_unit(unit) {
 }
 
-AI::~AI() {
+WasabiGame::AI::~AI() {
 }

@@ -1,32 +1,33 @@
 #include "WasabiGame/Units/Units.hpp"
+#include "WasabiGame/Main.hpp"
 #include "WasabiGame/Units/AI.hpp"
 #include "WasabiGame/Units/UnitsManager.hpp"
 
-Unit::Unit(Wasabi* app, ResourceManager* resourceManager, UnitsManager* unitsManager) : m_app(app), m_resourceManager(resourceManager), m_unitsManager(unitsManager), m_model(nullptr), m_AI(nullptr) {
+
+WasabiGame::Unit::Unit(std::shared_ptr<WasabiBaseGame> app, std::shared_ptr<ResourceManager> resourceManager, std::shared_ptr<UnitsManager> unitsManager) : std::enable_shared_from_this<WasabiGame::Unit>(), m_app(app), m_resourceManager(resourceManager), m_unitsManager(unitsManager), m_model(nullptr), m_AI(nullptr) {
 	m_canLoad.store(false);
 }
 
-Unit::~Unit() {
+WasabiGame::Unit::~Unit() {
 	if (m_model) {
 		m_resourceManager->DestroyUnitModel(m_model);
 		m_model = nullptr;
 	}
-	W_SAFE_DELETE(m_AI);
 }
 
-uint Unit::GetId() const {
+uint WasabiGame::Unit::GetId() const {
 	return m_id;
 }
 
-uint Unit::GetType() const {
+uint WasabiGame::Unit::GetType() const {
 	return m_type;
 }
 
-Wasabi* Unit::GetApp() const {
+std::weak_ptr<WasabiGame::WasabiBaseGame> WasabiGame::Unit::GetApp() const {
 	return m_app;
 }
 
-WOrientation* Unit::O() const {
+WOrientation* WasabiGame::Unit::O() const {
 	if (m_model) {
 		if (m_model->rb)
 			return m_model->rb;
@@ -35,16 +36,16 @@ WOrientation* Unit::O() const {
 	return nullptr;
 }
 
-WRigidBody* Unit::RB() const {
+WRigidBody* WasabiGame::Unit::RB() const {
 	if (m_model)
 		return m_model->rb;
 	return nullptr;
 }
 
-void Unit::OnLoaded() {
+void WasabiGame::Unit::OnLoaded() {
 }
 
-void Unit::Update(float fDeltaTime) {
+void WasabiGame::Unit::Update(float fDeltaTime) {
 	if (!m_model && m_canLoad.load()) {
 		m_model = m_resourceManager->LoadUnitModel(m_loadInfo.modelName);
 		if (m_model) {
@@ -60,6 +61,6 @@ void Unit::Update(float fDeltaTime) {
 		m_AI->Update(fDeltaTime);
 }
 
-AI* Unit::GetAI() const {
+std::shared_ptr<WasabiGame::AI> WasabiGame::Unit::GetAI() const {
 	return m_AI;
 }

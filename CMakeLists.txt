@@ -59,9 +59,6 @@ list(REMOVE_ITEM RTB_CLIENT_SOURCES ${RTB_CLIENT_APP_SOURCES})
 
 file(GLOB_RECURSE RTB_TEST_SOURCES "src/RTBTest/*.cpp")
 
-file(GLOB_RECURSE RPG_SOURCES "src/RPG/*.cpp")
-file(GLOB_RECURSE RPG_HEADERS "include/RPG/*")
-
 include_directories("include/")
 include_directories(${Wasabi_INCLUDE_DIR})
 
@@ -130,15 +127,3 @@ target_link_libraries(rtb_test debug ${Wasabi_LIBRARY_DEBUG})
 set_property(TARGET rtb_test PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 #####################################################################
 
-########################### RPG Game Sample ###########################
-assign_source_group(${RPG_SOURCS} ${RPG_HEADERS})
-if (WIN32)
-    add_executable(rpg WIN32 ${RPG_SOURCS} ${RPG_HEADERS})
-else()
-    add_executable(rpg ${RPG_SOURCS} ${RPG_HEADERS})
-endif()
-target_link_libraries(rpg wasabi_game)
-target_link_libraries(rpg optimized ${Wasabi_LIBRARY_RELEASE})
-target_link_libraries(rpg debug ${Wasabi_LIBRARY_DEBUG})
-set_property(TARGET rpg PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-#####################################################################

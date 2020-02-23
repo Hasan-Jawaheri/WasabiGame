@@ -5,36 +5,43 @@
 #include "WasabiGame/UI/UI.hpp"
 #include "WasabiGame/Maps/MapLoader.hpp"
 #include "WasabiGame/Units/UnitsManager.hpp"
+#include "WasabiGame/Utilities/Scheduler.hpp"
+#include "WasabiGame/Utilities/Config.hpp"
 
-class WasabiRPG : public Wasabi {
-protected:
-	struct {
-		bool debugVulkan;
-		bool debugPhysics;
-		int screenWidth;
-		int screenHeight;
-		bool fullscreen;
-		int maxFPS;
-		std::string mediaFolder;
-	} m_settings;
 
-public:
-	WasabiRPG();
+namespace WasabiGame {
 
-	virtual void SwitchToInitialState() = 0;
+	class WasabiBaseGame : public Wasabi, public std::enable_shared_from_this<WasabiBaseGame> {
+	protected:
+		struct {
+			bool debugVulkan;
+			bool debugPhysics;
+			int screenWidth;
+			int screenHeight;
+			bool fullscreen;
+			int maxFPS;
+			std::string mediaFolder;
+		} m_settings;
 
-	virtual WError Setup();
-	virtual bool Loop(float fDeltaTime);
-	virtual void Cleanup();
+	public:
+		WasabiBaseGame();
 
-	virtual WError Resize(unsigned int width, unsigned int height);
-	virtual WError SetupRenderer();
-	virtual WPhysicsComponent* CreatePhysicsComponent();
+		virtual void SwitchToInitialState() = 0;
 
-	float fCurGameTime;
+		virtual WError Setup();
+		virtual bool Loop(float fDeltaTime);
+		virtual void Cleanup();
 
-	ResourceManager* Resources;
-	UserInterface* UI;
-	MapLoader* Maps;
-	UnitsManager* Units;
+		virtual WError Resize(unsigned int width, unsigned int height);
+		virtual WError SetupRenderer();
+		virtual WPhysicsComponent* CreatePhysicsComponent();
+
+		std::shared_ptr<GameScheduler> Scheduler;
+		std::shared_ptr<GameConfig> Config;
+		std::shared_ptr<ResourceManager> Resources;
+		std::shared_ptr<UserInterface> UI;
+		std::shared_ptr<MapLoader> Maps;
+		std::shared_ptr<UnitsManager> Units;
+	};
+
 };

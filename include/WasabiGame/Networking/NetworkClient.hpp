@@ -1,52 +1,57 @@
 #pragma once
 
-#include "RollTheBall/Networking/Selectable.hpp"
-#include "RollTheBall/Networking/Server.hpp"
-#include "RollTheBall/Utilities/Semaphore.hpp"
-#include "RollTheBall/Utilities/CircularBuffer.hpp"
+#include "WasabiGame/Networking/Selectable.hpp"
+#include "WasabiGame/Networking/NetworkListener.hpp"
+#include "WasabiGame/Utilities/Semaphore.hpp"
+#include "WasabiGame/Utilities/CircularBuffer.hpp"
 
+#if (defined WIN32 || defined _WIN32)
 #define NOMINMAX
 #include <WinSock2.h>
 #include <WS2tcpip.h>
+#endif
 
 #include <string>
 #include <atomic>
 
-namespace RPGNet {
 
-	class Client : public Selectable {
+namespace WasabiGame {
+
+	class NetworkListener;
+
+	class NetworkClient : public Selectable {
 	protected:
-		class Server* m_server;
+		std::shared_ptr<NetworkListener> m_listener;
 		std::string m_IP;
 		int m_port;
-		HBUtils::Semaphore m_writingSemaphore;
+		WasabiGame::Semaphore m_writingSemaphore;
 
-		HBUtils::CircularBuffer m_outBuffer;
-		HBUtils::CircularBuffer m_inBuffer;
-		std::function<bool(HBUtils::CircularBuffer*)> m_consumeBufferCallback;
+		WasabiGame::CircularBuffer m_outBuffer;
+		WasabiGame::CircularBuffer m_inBuffer;
+		std::function<bool(WasabiGame::CircularBuffer*)> m_consumeBufferCallback;
 
 	public:
-		Client(class Server* server) : Selectable(0) {
-			m_server = server;
+		NetworkClient(std::shared_ptr<NetworkListener> listener) : Selectable(0) {
+			m_listener = listener;
 			m_IP = "";
 			m_port = -1;
 
-			m_outBuffer.Initialize(m_server->Config.Get<size_t>("clientBufferSize"));
-			m_inBuffer.Initialize(m_server->Config.Get<size_t>("clientBufferSize"));
+			m_outBuffer.Initialize(m_listener->Config->Get<size_t>("clientBufferSize"));
+			m_inBuffer.Initialize(m_listener->Config->Get<size_t>("clientBufferSize"));
 		}
 
-		Client(class Server* server, SOCKET sock, struct sockaddr_in addr) : Selectable(sock), m_consumeBufferCallback(nullptr) {
-			m_server = server;
+		NetworkClient(std::shared_ptr<NetworkListener> listener, SOCKET sock, struct sockaddr_in addr) : Selectable(sock), m_consumeBufferCallback(nullptr) {
+			m_listener = listener;
 			char ip[256];
 			inet_ntop(AF_INET, &addr.sin_addr, ip, sizeof(ip));
 			m_IP = ip;
 			m_port = ntohs(addr.sin_port);
 
-			m_outBuffer.Initialize(m_server->Config.Get<size_t>("clientBufferSize"));
-			m_inBuffer.Initialize(m_server->Config.Get<size_t>("clientBufferSize"));
+			m_outBuffer.Initialize(m_listener->Config->Get<size_t>("clientBufferSize"));
+			m_inBuffer.Initialize(m_listener->Config->Get<size_t>("clientBufferSize"));
 		}
 
-		virtual ~Client() {
+		virtual ~NetworkClient() {
 			Close();
 		}
 
@@ -73,7 +78,7 @@ namespace RPGNet {
 
 			m_inBuffer.Clear();
 			m_outBuffer.Clear();
-			m_server->RegisterSelectable(this, false);
+			m_listener->RegisterSelectable(shared_from_this(), false);
 
 			return 0;
 		}
@@ -143,7 +148,7 @@ namespace RPGNet {
 			return numWritten > 0;
 		}
 
-		virtual bool ConsumeBuffer(HBUtils::CircularBuffer* buffer) {
+		virtual bool ConsumeBuffer(WasabiGame::CircularBuffer* buffer) {
 			if (m_consumeBufferCallback) {
 				return m_consumeBufferCallback(buffer);
 			}
@@ -151,7 +156,7 @@ namespace RPGNet {
 			return true;
 		}
 
-		void SetConsumeBufferCallback(std::function<bool(HBUtils::CircularBuffer*)> callback) {
+		void SetConsumeBufferCallback(std::function<bool(WasabiGame::CircularBuffer*)> callback) {
 			m_consumeBufferCallback = callback;
 		}
 
@@ -173,12 +178,12 @@ namespace RPGNet {
 
 			m_writingSemaphore.notify();
 
-			m_server->NotifyWriteAvailable();
+			m_listener->NotifyWriteAvailable();
 		}
 	};
 
-	class ReconnectingClient : public Client {
-		HBUtils::Semaphore m_connectingSemaphore;
+	class ReconnectingNetworkClient : public NetworkClient {
+		WasabiGame::Semaphore m_connectingSemaphore;
 		std::atomic<bool> m_reconnect;
 		std::function<void()> m_onConnecting;
 		std::function<void()> m_onConnectionFailed;
@@ -186,7 +191,7 @@ namespace RPGNet {
 		std::function<void()> m_onDisconnected;
 
 	public:
-		ReconnectingClient(class Server* server) : Client(server) {
+		ReconnectingNetworkClient(std::shared_ptr<NetworkListener> listener) : NetworkClient(listener) {
 			m_reconnect = false;
 			m_onConnecting = nullptr;
 			m_onConnectionFailed = nullptr;
@@ -203,7 +208,7 @@ namespace RPGNet {
 				Close();
 			m_reconnect = true;
 			if (fd() == 0)
-				ret = Client::Connect(hostname, port);
+				ret = NetworkClient::Connect(hostname, port);
 			if (ret == 0 && m_onConnected)
 				m_onConnected();
 			else if (ret != 0 && m_onConnectionFailed)
@@ -213,10 +218,10 @@ namespace RPGNet {
 		}
 
 		void Reconnect() {
-			m_server->Scheduler.LaunchThread("reconnect-client-" + std::to_string((uintptr_t)this), [this]() {
-				while (this->fd() == 0 && m_server->IsRunning() && this->m_reconnect.load()) {
+			m_listener->Scheduler->LaunchThread("reconnect-client-" + std::to_string((uintptr_t)this), [this]() {
+				while (this->fd() == 0 && m_listener->IsRunning() && this->m_reconnect.load()) {
 					this->Connect(m_IP, m_port);
-					if (this->fd() == 0 && m_server->IsRunning())
+					if (this->fd() == 0 && m_listener->IsRunning())
 						std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 				}
 			});
@@ -227,12 +232,12 @@ namespace RPGNet {
 		}
 
 		virtual void Close() {
-			Client::Close();
+			NetworkClient::Close();
 		}
 
 		virtual bool OnReadReady() {
-			bool bKeep = Client::OnReadReady();
-			if (!bKeep && m_server->IsRunning()) {
+			bool bKeep = NetworkClient::OnReadReady();
+			if (!bKeep && m_listener->IsRunning()) {
 				if (m_onDisconnected)
 					m_onDisconnected();
 				Reconnect();
@@ -241,8 +246,8 @@ namespace RPGNet {
 		}
 
 		virtual bool OnWriteReady() {
-			bool bKeep = Client::OnWriteReady();
-			if (!bKeep && m_server->IsRunning()) {
+			bool bKeep = NetworkClient::OnWriteReady();
+			if (!bKeep && m_listener->IsRunning()) {
 				if (m_onDisconnected)
 					m_onDisconnected();
 				Reconnect();

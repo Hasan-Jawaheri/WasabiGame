@@ -1,9 +1,10 @@
 #include "RollTheBall/Units/BallUnit.hpp"
 #include "WasabiGame/Units/UnitsManager.hpp"
 
-const char* BallUnit::modelName = "small-ball";
 
-BallUnit::BallUnit(Wasabi* app, ResourceManager* resourceManager, UnitsManager* unitsManager) : Unit(app, resourceManager, unitsManager) {
+const char* RollTheBall::BallUnit::modelName = "small-ball";
+
+RollTheBall::BallUnit::BallUnit(std::shared_ptr<WasabiGame::WasabiBaseGame> app, std::shared_ptr<class WasabiGame::ResourceManager> resourceManager, std::shared_ptr<class WasabiGame::UnitsManager> unitsManager) : WasabiGame::Unit(app, resourceManager, unitsManager) {
 	m_state.isGrounded = false;
 	m_state.didDash = true;
 	m_state.jumpDirection = WVector3(0.0f, 0.0f, 0.0f);
@@ -15,19 +16,21 @@ BallUnit::BallUnit(Wasabi* app, ResourceManager* resourceManager, UnitsManager* 
 	m_properties.dashSpeed = 300.0f;
 }
 
-BallUnit::~BallUnit() {
+RollTheBall::BallUnit::~BallUnit() {
 
 }
 
-bool BallUnit::IsOnGround() const {
+bool RollTheBall::BallUnit::IsOnGround() const {
 	return m_state.isGrounded;
 }
 
-void BallUnit::Update(float fDeltaTime) {
+void RollTheBall::BallUnit::Update(float fDeltaTime) {
+	WasabiGame::WasabiBaseGame* app = m_app.lock().get();
+
 	WRigidBody* rb = RB();
 	if (rb) {
 		WVector3 rbPos = O()->GetPosition();
-		m_state.isGrounded = m_app->PhysicsComponent->RayCast(rbPos + WVector3(0.0f, -0.98f, 0.0f), rbPos + WVector3(0.0f, -1.2f, 0.0f));
+		m_state.isGrounded = app->PhysicsComponent->RayCast(rbPos + WVector3(0.0f, -0.98f, 0.0f), rbPos + WVector3(0.0f, -1.2f, 0.0f));
 
 		if (m_state.isGrounded)
 			rb->SetLinearDamping(0.8f);
@@ -38,7 +41,7 @@ void BallUnit::Update(float fDeltaTime) {
 	Unit::Update(fDeltaTime);
 }
 
-void BallUnit::Jump(WVector3 direction) {
+void RollTheBall::BallUnit::Jump(WVector3 direction) {
 	WRigidBody* rb = RB();
 	if (rb) {
 		bool isDirection = WVec3LengthSq(direction) > 0.1f;
@@ -55,7 +58,7 @@ void BallUnit::Jump(WVector3 direction) {
 	}
 }
 
-void BallUnit::Move(WVector3 direction) {
+void RollTheBall::BallUnit::Move(WVector3 direction) {
 	if (m_state.isGrounded) {
 		WRigidBody* rb = RB();
 		if (rb) {

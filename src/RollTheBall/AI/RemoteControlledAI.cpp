@@ -1,13 +1,14 @@
 #include "RollTheBall/AI/RemoteControlledAI.hpp"
 
-RemoteControlledAI::RemoteControlledAI(Unit* unit) : RTBAI(unit) {
+
+RollTheBall::RemoteControlledAI::RemoteControlledAI(std::shared_ptr<WasabiGame::Unit> unit) : RTBAI(unit) {
 
 }
 
-RemoteControlledAI::~RemoteControlledAI() {
+RollTheBall::RemoteControlledAI::~RemoteControlledAI() {
 
 }
 
-void RemoteControlledAI::Update(float fDeltaTime) {
+void RollTheBall::RemoteControlledAI::Update(float fDeltaTime) {
 	// don't call RTBAI::Update() so that no updates are sent over the network (since this is remote-controlled only)
 }

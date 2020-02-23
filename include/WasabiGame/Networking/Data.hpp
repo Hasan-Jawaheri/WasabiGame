@@ -3,14 +3,15 @@
 #include <cstdint>
 #include <algorithm>
 
-#ifdef WIN32
+#if (defined WIN32 || defined _WIN32)
 #define NOMINMAX
 #include <WinSock2.h>
 #endif
 
-#include "RollTheBall/Utilities/CircularBuffer.hpp"
+#include "WasabiGame/Utilities/CircularBuffer.hpp"
 
-namespace RPGNet {
+
+namespace WasabiGame {
 
 	struct ClientIdentity {
 		char accountName[256];
@@ -48,7 +49,7 @@ namespace RPGNet {
 			return 10 + hdataSize;
 		}
 
-		size_t readPacket(HBUtils::CircularBuffer* packet) {
+		size_t readPacket(WasabiGame::CircularBuffer* packet) {
 			if (packet->GetSize() >= PACKET_META_SIZE) {
 				char tmp[PACKET_META_SIZE];
 				size_t availableToRead = std::min(packet->GetAvailableContigiousConsume(), PACKET_META_SIZE);

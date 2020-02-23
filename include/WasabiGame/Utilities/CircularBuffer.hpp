@@ -1,8 +1,10 @@
 #pragma once
 
 #include <cstring>
+#include <stdint.h>
 
-namespace HBUtils {
+
+namespace WasabiGame {
 
 	struct CircularBuffer {
 		char* mem;

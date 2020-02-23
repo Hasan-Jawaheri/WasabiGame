@@ -5,40 +5,51 @@
 
 #include <atomic>
 
-class Unit {
-	friend class UnitsManager;
 
-	struct LoadInfo {
-		std::string modelName;
-		WVector3 spawnPos;
-	} m_loadInfo;
-	std::atomic<bool> m_canLoad;
+namespace WasabiGame {
 
-	struct LOADED_MODEL* m_model;
-	class AI* m_AI;
-	uint m_id;
-	uint m_type;
+	class WasabiBaseGame;
+	class ResourceManager;
+	class UnitsManager;
+	class AI;
+	struct LOADED_MODEL;
 
-protected:
-	Wasabi* m_app;
-	ResourceManager* m_resourceManager;
-	class UnitsManager* m_unitsManager;
+	class Unit : public std::enable_shared_from_this<Unit> {
+		friend class UnitsManager;
 
-	Unit(Wasabi* app, ResourceManager* resourceManager, class UnitsManager* unitsManager);
-	virtual ~Unit();
+		struct LoadInfo {
+			std::string modelName;
+			WVector3 spawnPos;
+		} m_loadInfo;
+		std::atomic<bool> m_canLoad;
 
-	virtual void Update(float fDeltaTime);
-	virtual void OnLoaded();
+		LOADED_MODEL* m_model;
+		std::shared_ptr<AI> m_AI;
+		uint m_id;
+		uint m_type;
 
-public:
+	protected:
+		std::weak_ptr<WasabiBaseGame> m_app;
+		std::shared_ptr<ResourceManager> m_resourceManager;
+		std::shared_ptr<UnitsManager> m_unitsManager;
 
-	uint GetId() const;
-	uint GetType() const;
-	Wasabi* GetApp() const;
+		Unit(std::shared_ptr<WasabiBaseGame> app, std::shared_ptr<ResourceManager> resourceManager, std::shared_ptr<UnitsManager> unitsManager);
+		virtual ~Unit();
 
-	WOrientation* O() const;
-	WRigidBody* RB() const;
+		virtual void Update(float fDeltaTime);
+		virtual void OnLoaded();
 
-	template<typename T> void SetAI() { W_SAFE_DELETE(m_AI); m_AI = new T(this); }
-	class AI* GetAI() const;
+	public:
+
+		uint GetId() const;
+		uint GetType() const;
+		std::weak_ptr<WasabiBaseGame> GetApp() const;
+
+		WOrientation* O() const;
+		WRigidBody* RB() const;
+
+		template<typename T> void SetAI() { m_AI = std::make_shared<T>(this->shared_from_this()); }
+		std::shared_ptr<AI> GetAI() const;
+	};
+
 };

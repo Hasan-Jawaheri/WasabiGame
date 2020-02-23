@@ -3,13 +3,14 @@
 #include <string>
 #include <unordered_map>
 
-namespace HBUtils {
 
-	class Config {
+namespace WasabiGame {
+
+	class GameConfig {
 		std::unordered_map<std::string, void*> m_configTable;
 
 	public:
-		Config() {
+		GameConfig() {
 			m_configTable = {
 				{"numWorkers", (void*)8},
 				{"tcpPort", (void*)9965},

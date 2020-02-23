@@ -4,18 +4,22 @@
 #include "WasabiGame/Units/Units.hpp"
 #include "WasabiGame/Units/AI.hpp"
 
-class Player : public BallUnit {
-	friend class PlayerAI;
 
-protected:
+namespace RollTheBall {
 
-	virtual void Update(float fDeltaTime);
+	class Player : public BallUnit {
+		friend class PlayerAI;
 
-public:
+	protected:
 
-	static const char* modelName;
+		virtual void Update(float fDeltaTime);
 
-	Player(Wasabi* app, ResourceManager* resourceManager, class UnitsManager* unitsManager);
-	virtual ~Player();
+	public:
+
+		static const char* modelName;
+
+		Player(std::shared_ptr<WasabiGame::WasabiBaseGame> app, std::shared_ptr<class WasabiGame::ResourceManager> resourceManager, std::shared_ptr<class WasabiGame::UnitsManager> unitsManager);
+		virtual ~Player();
+	};
+
 };
-

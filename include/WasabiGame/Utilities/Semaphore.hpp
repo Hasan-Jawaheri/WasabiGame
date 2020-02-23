@@ -3,7 +3,8 @@
 #include <mutex>
 #include <condition_variable>
 
-namespace HBUtils {
+
+namespace WasabiGame {
 
 	class Semaphore {
 		std::mutex m_mutex;

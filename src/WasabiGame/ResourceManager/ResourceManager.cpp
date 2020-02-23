@@ -1,17 +1,24 @@
 #include "WasabiGame/ResourceManager/ResourceManager.hpp"
+#include "WasabiGame/Main.hpp"
+
 #include <Wasabi/Physics/Bullet/WBulletRigidBody.hpp>
 
 #include <filesystem>
 typedef std::filesystem::path stdpath;
 
-ResourceManager::ResourceManager(Wasabi* app) {
+
+WasabiGame::ResourceManager::ResourceManager(std::shared_ptr<WasabiBaseGame> app) {
 	m_app = app;
 	m_mediaFolder = "";
 	m_mapResources = {};
 	m_generalResources = {};
 }
 
-void ResourceManager::MAP_RESOURCES::Cleanup() {
+WasabiGame::ResourceManager::~ResourceManager() {
+	Cleanup();
+}
+
+void WasabiGame::ResourceManager::MAP_RESOURCES::Cleanup() {
 	for (auto asset : loadedAssets) {
 		W_SAFE_REMOVEREF(asset.obj);
 		W_SAFE_REMOVEREF(asset.rb);
@@ -27,7 +34,7 @@ void ResourceManager::MAP_RESOURCES::Cleanup() {
 	}
 }
 
-void ResourceManager::GENERAL_RESOURCES::Cleanup() {
+void WasabiGame::ResourceManager::GENERAL_RESOURCES::Cleanup() {
 	for (auto asset : loadedAssets) {
 		W_SAFE_REMOVEREF(asset.second->obj);
 		W_SAFE_REMOVEREF(asset.second->rb);
@@ -41,45 +48,47 @@ void ResourceManager::GENERAL_RESOURCES::Cleanup() {
 	}
 }
 
-WError ResourceManager::Init(std::string mediaFolder) {
+WError WasabiGame::ResourceManager::Init(std::string mediaFolder) {
 	m_mediaFolder = mediaFolder;
 
+	std::shared_ptr<WasabiBaseGame> app = m_app.lock();
+
 	m_generalResources.Cleanup();
-	m_generalResources.assetsFile = new WFile(m_app);
+	m_generalResources.assetsFile = new WFile(app.get());
 	WError err = m_generalResources.assetsFile->Open((stdpath(m_mediaFolder) / "resources.WSBI").string());
 	if (!err) {
-		m_app->WindowAndInputComponent->ShowErrorMessage("Failed to load resources: " + err.AsString());
+		app->WindowAndInputComponent->ShowErrorMessage("Failed to load resources: " + err.AsString());
 		Cleanup();
 	}
 
 	return err;
 }
 
-void ResourceManager::Update(float fDeltaTime) {
-	{
-		std::lock_guard lockGuard(m_modelsToFreeMutex);
-		for (auto it = m_modelsToFree.begin(); it != m_modelsToFree.end(); it++) {
-			W_SAFE_REMOVEREF((*it)->obj);
-			W_SAFE_REMOVEREF((*it)->rb);
-		}
-		m_modelsToFree.clear();
+void WasabiGame::ResourceManager::Update(float fDeltaTime) {
+	std::lock_guard lockGuard(m_modelsToFreeMutex);
+	for (auto it = m_modelsToFree.begin(); it != m_modelsToFree.end(); it++) {
+		W_SAFE_REMOVEREF((*it)->obj);
+		W_SAFE_REMOVEREF((*it)->rb);
 	}
+	m_modelsToFree.clear();
 }
 
-void ResourceManager::Cleanup() {
+void WasabiGame::ResourceManager::Cleanup() {
 	m_mapResources.Cleanup();
 	m_generalResources.Cleanup();
 }
 
-void ResourceManager::LoadMapFile(std::string mapFilename) {
+void WasabiGame::ResourceManager::LoadMapFile(std::string mapFilename) {
 	m_mapResources.Cleanup();
+
+	std::shared_ptr<WasabiBaseGame> app = m_app.lock();
 
 	if (mapFilename != "") {
 		std::string fullMapFilename = (stdpath(m_mediaFolder) / "Maps" / (mapFilename + ".WSBI")).string();
-		m_mapResources.mapFile = new WFile(m_app);
+		m_mapResources.mapFile = new WFile(app.get());
 		WError err = m_mapResources.mapFile->Open(fullMapFilename);
 		if (!err) {
-			m_app->WindowAndInputComponent->ShowErrorMessage("Failed to load map: " + err.AsString());
+			app->WindowAndInputComponent->ShowErrorMessage("Failed to load map: " + err.AsString());
 			m_mapResources.Cleanup();
 			return;
 		}
@@ -92,7 +101,7 @@ void ResourceManager::LoadMapFile(std::string mapFilename) {
 			if (type == WObject::_GetTypeName()) {
 				LOADED_MODEL asset;
 				WError err = m_mapResources.mapFile->LoadAsset<WObject>(name, &asset.obj, WObject::LoadArgs());
-				asset.rb = m_app->PhysicsComponent->CreateRigidBody();
+				asset.rb = app->PhysicsComponent->CreateRigidBody();
 				err = asset.rb->Create(W_RIGID_BODY_CREATE_INFO::ForComplexObject(asset.obj));
 				if (err) {
 					asset.rb->SetFriction(1.0f);
@@ -109,7 +118,7 @@ void ResourceManager::LoadMapFile(std::string mapFilename) {
 	}
 }
 
-LOADED_MODEL* ResourceManager::LoadUnitModel(std::string unitName) {
+WasabiGame::LOADED_MODEL* WasabiGame::ResourceManager::LoadUnitModel(std::string unitName) {
 	LOADED_MODEL* asset = new LOADED_MODEL();
 	std::string suffix = "-" + std::to_string((size_t)asset);
 	asset->name = unitName + suffix;
@@ -138,7 +147,7 @@ LOADED_MODEL* ResourceManager::LoadUnitModel(std::string unitName) {
 	return asset;
 }
 
-void ResourceManager::DestroyUnitModel(LOADED_MODEL* model) {
+void WasabiGame::ResourceManager::DestroyUnitModel(LOADED_MODEL* model) {
 	auto it = m_generalResources.loadedAssets.find(model->name);
 	m_generalResources.loadedAssets.erase(it);
 	{

@@ -1,18 +1,20 @@
 #include "WasabiGame/GameStates/Menu.hpp"
+#include "WasabiGame/Main.hpp"
 
-Menu::Menu(Wasabi* app, std::function<WGameState* ()> nextStateGenerator) : WGameState(app) {
+
+WasabiGame::MenuGameState::MenuGameState(Wasabi* app, std::function<BaseGameState* ()> nextStateGenerator) : BaseGameState(app) {
 	m_nextStateGenerator = nextStateGenerator;
 }
 
-Menu::~Menu() {
+WasabiGame::MenuGameState::~MenuGameState() {
 }
 
-void Menu::Load() {
+void WasabiGame::MenuGameState::Load() {
 	m_app->SwitchState(m_nextStateGenerator());
 }
 
-void Menu::Update(float fDeltaTime) {
+void WasabiGame::MenuGameState::Update(float fDeltaTime) {
 }
 
-void Menu::Cleanup() {
+void WasabiGame::MenuGameState::Cleanup() {
 }

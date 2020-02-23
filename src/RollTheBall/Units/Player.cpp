@@ -1,14 +1,15 @@
 #include "RollTheBall/Units/Player.hpp"
 #include "WasabiGame/Units/UnitsManager.hpp"
 
-const char* Player::modelName = "player";
 
-Player::Player(Wasabi* app, ResourceManager* resourceManager, UnitsManager* unitsManager) : BallUnit(app, resourceManager, unitsManager) {
+const char* RollTheBall::Player::modelName = "player";
+
+RollTheBall::Player::Player(std::shared_ptr<WasabiGame::WasabiBaseGame> app, std::shared_ptr<class WasabiGame::ResourceManager> resourceManager, std::shared_ptr<class WasabiGame::UnitsManager> unitsManager) : BallUnit(app, resourceManager, unitsManager) {
 }
 
-Player::~Player() {
+RollTheBall::Player::~Player() {
 }
 
-void Player::Update(float fDeltaTime) {
+void RollTheBall::Player::Update(float fDeltaTime) {
 	BallUnit::Update(fDeltaTime);
 }

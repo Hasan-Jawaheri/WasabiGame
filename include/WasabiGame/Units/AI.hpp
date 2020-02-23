@@ -2,15 +2,22 @@
 
 #include "Common.hpp"
 
-class AI {
-	friend class Unit;
 
-protected:
-	class Unit* m_unit;
+namespace WasabiGame {
 
-	AI(class Unit* unit);
-	virtual ~AI();
+	class Unit;
 
-public:
-	virtual void Update(float fDeltaTime) = 0;
+	class AI {
+		friend class Unit;
+
+	protected:
+		std::weak_ptr<Unit> m_unit;
+
+		AI(std::shared_ptr<Unit> unit);
+		virtual ~AI();
+
+	public:
+		virtual void Update(float fDeltaTime) = 0;
+	};
+
 };

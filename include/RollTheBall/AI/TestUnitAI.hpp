@@ -3,18 +3,23 @@
 #include "RollTheBall/AI/RTBAI.hpp"
 #include "RollTheBall/Units/BallUnit.hpp"
 
-class TestUnitAI : public RTBAI {
-public:
-	TestUnitAI(class Unit* unit) : RTBAI(unit) {
 
-	}
+namespace RollTheBall {
 
-	virtual ~TestUnitAI() {
+	class TestUnitAI : public RTBAI {
+	public:
+		TestUnitAI(std::shared_ptr<class WasabiGame::Unit> unit) : RTBAI(unit) {
 
-	}
+		}
 
-	virtual void Update(float fDeltaTime) {
+		virtual ~TestUnitAI() {
 
-	}
+		}
+
+		virtual void Update(float fDeltaTime) {
+
+		}
+	};
+
 };
 
