@@ -23,18 +23,16 @@ WasabiGame::WasabiBaseGame::WasabiBaseGame() : Wasabi(), std::enable_shared_from
 	m_settings.fullscreen = true;
 #endif
 
-	// this is to allow shared_from_this() to work in the constructor (sorry!)
-	auto wptr = std::shared_ptr<WasabiGame::WasabiBaseGame>(this, [](WasabiGame::WasabiBaseGame*) {});
-
 	Config = std::make_shared<GameConfig>();
 	Scheduler = std::make_shared<GameScheduler>();
+}
+
+WError WasabiGame::WasabiBaseGame::Setup() {
 	Resources = std::make_shared<ResourceManager>(shared_from_this());
 	UI = std::make_shared<UserInterface>(shared_from_this());
 	Maps = std::make_shared<MapLoader>(shared_from_this(), Resources);
 	Units = std::make_shared<UnitsManager>(shared_from_this(), Resources);
-}
 
-WError WasabiGame::WasabiBaseGame::Setup() {
 	SetEngineParam<bool>("enableVulkanValidation", m_settings.debugVulkan);
 
 	//
