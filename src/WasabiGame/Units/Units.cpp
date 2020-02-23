@@ -4,7 +4,7 @@
 #include "WasabiGame/Units/UnitsManager.hpp"
 
 
-WasabiGame::Unit::Unit(std::shared_ptr<WasabiBaseGame> app, std::shared_ptr<ResourceManager> resourceManager, std::shared_ptr<UnitsManager> unitsManager) : shared_from_this(), m_app(app), m_resourceManager(resourceManager), m_unitsManager(unitsManager), m_model(nullptr), m_AI(nullptr) {
+WasabiGame::Unit::Unit(std::shared_ptr<WasabiBaseGame> app, std::shared_ptr<ResourceManager> resourceManager, std::shared_ptr<UnitsManager> unitsManager) : std::enable_shared_from_this<WasabiGame::Unit>(), m_app(app), m_resourceManager(resourceManager), m_unitsManager(unitsManager), m_model(nullptr), m_AI(nullptr) {
 	m_canLoad.store(false);
 }
 
