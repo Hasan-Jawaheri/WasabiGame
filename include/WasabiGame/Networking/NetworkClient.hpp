@@ -17,9 +17,11 @@
 
 namespace WasabiGame {
 
+	class NetworkListener;
+
 	class NetworkClient : public Selectable {
 	protected:
-		class NetworkListener* m_listener;
+		std::shared_ptr<NetworkListener> m_listener;
 		std::string m_IP;
 		int m_port;
 		WasabiGame::Semaphore m_writingSemaphore;
@@ -29,24 +31,24 @@ namespace WasabiGame {
 		std::function<bool(WasabiGame::CircularBuffer*)> m_consumeBufferCallback;
 
 	public:
-		NetworkClient(class NetworkListener* listener) : Selectable(0) {
+		NetworkClient(std::shared_ptr<NetworkListener> listener) : Selectable(0) {
 			m_listener = listener;
 			m_IP = "";
 			m_port = -1;
 
-			m_outBuffer.Initialize(m_listener->Config.Get<size_t>("clientBufferSize"));
-			m_inBuffer.Initialize(m_listener->Config.Get<size_t>("clientBufferSize"));
+			m_outBuffer.Initialize(m_listener->Config->Get<size_t>("clientBufferSize"));
+			m_inBuffer.Initialize(m_listener->Config->Get<size_t>("clientBufferSize"));
 		}
 
-		NetworkClient(class NetworkListener* listener, SOCKET sock, struct sockaddr_in addr) : Selectable(sock), m_consumeBufferCallback(nullptr) {
+		NetworkClient(std::shared_ptr<NetworkListener> listener, SOCKET sock, struct sockaddr_in addr) : Selectable(sock), m_consumeBufferCallback(nullptr) {
 			m_listener = listener;
 			char ip[256];
 			inet_ntop(AF_INET, &addr.sin_addr, ip, sizeof(ip));
 			m_IP = ip;
 			m_port = ntohs(addr.sin_port);
 
-			m_outBuffer.Initialize(m_listener->Config.Get<size_t>("clientBufferSize"));
-			m_inBuffer.Initialize(m_listener->Config.Get<size_t>("clientBufferSize"));
+			m_outBuffer.Initialize(m_listener->Config->Get<size_t>("clientBufferSize"));
+			m_inBuffer.Initialize(m_listener->Config->Get<size_t>("clientBufferSize"));
 		}
 
 		virtual ~NetworkClient() {
@@ -76,7 +78,7 @@ namespace WasabiGame {
 
 			m_inBuffer.Clear();
 			m_outBuffer.Clear();
-			m_listener->RegisterSelectable(this, false);
+			m_listener->RegisterSelectable(shared_from_this(), false);
 
 			return 0;
 		}
@@ -189,7 +191,7 @@ namespace WasabiGame {
 		std::function<void()> m_onDisconnected;
 
 	public:
-		ReconnectingNetworkClient(class NetworkListener* listener) : NetworkClient(listener) {
+		ReconnectingNetworkClient(std::shared_ptr<NetworkListener> listener) : NetworkClient(listener) {
 			m_reconnect = false;
 			m_onConnecting = nullptr;
 			m_onConnectionFailed = nullptr;
@@ -216,7 +218,7 @@ namespace WasabiGame {
 		}
 
 		void Reconnect() {
-			m_listener->Scheduler.LaunchThread("reconnect-client-" + std::to_string((uintptr_t)this), [this]() {
+			m_listener->Scheduler->LaunchThread("reconnect-client-" + std::to_string((uintptr_t)this), [this]() {
 				while (this->fd() == 0 && m_listener->IsRunning() && this->m_reconnect.load()) {
 					this->Connect(m_IP, m_port);
 					if (this->fd() == 0 && m_listener->IsRunning())

@@ -1,13 +1,16 @@
 #pragma once
 
+#include <memory>
+
+
 namespace WasabiGame {
 
-	class Selectable {
+	class Selectable : public std::enable_shared_from_this<Selectable> {
 	protected:
 		int m_fd;
 
 	public:
-		Selectable(int fd) {
+		Selectable(int fd) : enable_shared_from_this<Selectable>() {
 			m_fd = fd;
 		}
 

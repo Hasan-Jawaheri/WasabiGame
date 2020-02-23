@@ -18,11 +18,13 @@
 
 namespace WasabiGame {
 
-	typedef std::function<Selectable* (class NetworkListener*, SOCKET, struct sockaddr_in)> CreateNetworkClientFunction;
-	typedef std::function<void(Selectable*)> NetworkClientConnectedFunction;
-	typedef std::function<void(Selectable*)> NetworkClientDisconnectedFunction;
+	class NetworkListener;
 
-	class NetworkListener {
+	typedef std::function<std::shared_ptr<Selectable> (std::shared_ptr<NetworkListener>, SOCKET, struct sockaddr_in)> CreateNetworkClientFunction;
+	typedef std::function<void(std::shared_ptr<Selectable>)> NetworkClientConnectedFunction;
+	typedef std::function<void(std::shared_ptr<Selectable>)> NetworkClientDisconnectedFunction;
+
+	class NetworkListener : public std::enable_shared_from_this<NetworkListener> {
 		bool m_isRunning;
 		CreateNetworkClientFunction m_createClient;
 		NetworkClientConnectedFunction m_clientConnected;
@@ -32,8 +34,8 @@ namespace WasabiGame {
 			bool deleteOnDisconnect;
 		};
 		WasabiGame::Semaphore m_registerSemaphore;
-		std::vector<std::pair<Selectable*, ClientMetadata>> m_pendingNewlyRegisteredClients;
-		std::unordered_map<Selectable*, ClientMetadata> m_clients;
+		std::vector<std::pair<std::shared_ptr<Selectable>, ClientMetadata>> m_pendingNewlyRegisteredClients;
+		std::unordered_map<std::shared_ptr<Selectable>, ClientMetadata> m_clients;
 
 		struct TCPServer {
 			int port;
@@ -86,10 +88,10 @@ namespace WasabiGame {
 				return sock > 0;
 			}
 
-			Selectable* AcceptConnection(NetworkListener* server) {
+			std::shared_ptr<Selectable> AcceptConnection(std::shared_ptr<NetworkListener> server) {
 				struct sockaddr_in addr;
 				int addrlen = sizeof(addr);
-				SOCKET newSocket = accept(sock, (struct sockaddr*) & addr, &addrlen);
+				SOCKET newSocket = accept(sock, (struct sockaddr*)&addr, &addrlen);
 				if (newSocket == INVALID_SOCKET) {
 					//LOG(fatal) << "Failed to accept socket on TCP connection (" << WSAGetLastError() << ").";
 					return nullptr;
@@ -148,7 +150,7 @@ namespace WasabiGame {
 		} m_UDPServer;
 
 	public:
-		NetworkListener(CreateNetworkClientFunction createClient, std::shared_ptr<GameConfig> config, std::shared_ptr<GameScheduler> scheduler) : Config(config), Scheduler(scheduler) {
+		NetworkListener(std::shared_ptr<GameConfig> config, std::shared_ptr<GameScheduler> scheduler, CreateNetworkClientFunction createClient) : enable_shared_from_this<NetworkListener>(), Config(config), Scheduler(scheduler) {
 			m_isRunning = true;
 			m_createClient = createClient;
 			m_clientConnected = nullptr;
@@ -163,7 +165,7 @@ namespace WasabiGame {
 		std::shared_ptr<GameConfig> Config;
 		std::shared_ptr<GameScheduler> Scheduler;
 
-		void RegisterSelectable(Selectable* client, bool deleteOnDisconnect = true) {
+		void RegisterSelectable(std::shared_ptr<Selectable> client, bool deleteOnDisconnect = true) {
 			ClientMetadata meta;
 			meta.deleteOnDisconnect = deleteOnDisconnect;
 			m_registerSemaphore.wait();
@@ -198,7 +200,6 @@ namespace WasabiGame {
 						if (client.second.deleteOnDisconnect) {
 							if (m_clientDisconnected)
 								m_clientDisconnected(client.first);
-							delete client.first;
 						}
 					}
 					m_clients.clear();
@@ -238,7 +239,7 @@ namespace WasabiGame {
 	private:
 
 		void SelectablesLoop() {
-			std::vector<std::pair<Selectable*, ClientMetadata>> clientsToDelete;
+			std::vector<std::pair<std::shared_ptr<Selectable>, ClientMetadata>> clientsToDelete;
 			while (m_isRunning && Scheduler->IsRunning()) {
 				fd_set readFDs, writeFDs;
 				int maxFDs = 0;
@@ -279,7 +280,7 @@ namespace WasabiGame {
 					if (numDescriptors > 0) {
 						if (FD_ISSET(m_TCPServer.sock, &readFDs)) {
 							// pending TCP connection
-							Selectable* newClient = m_TCPServer.AcceptConnection(this);
+							std::shared_ptr<Selectable> newClient = m_TCPServer.AcceptConnection(shared_from_this());
 							if (newClient) {
 								RegisterSelectable(newClient, true);
 								if (m_clientConnected)
@@ -309,7 +310,6 @@ namespace WasabiGame {
 							if (client.second.deleteOnDisconnect) {
 								if (m_clientDisconnected)
 									m_clientDisconnected(client.first);
-								delete client.first;
 							}
 						}
 						clientsToDelete.clear();
@@ -321,11 +321,17 @@ namespace WasabiGame {
 	};
 
 	template<typename ClientType>
-	class NetworkServerT : public NetworkListener {
+	class NetworkListenerT : public NetworkListener {
+		static std::shared_ptr<Selectable> createClient(std::shared_ptr<NetworkListener> listener, SOCKET sock, struct sockaddr_in addr) {
+			return std::make_shared<ClientType>(listener, sock, addr);
+		}
+
 	public:
-		NetworkListenerT() : NetworkListener([](NetworkListener* server, SOCKET sock, struct sockaddr_in addr) {
-			return new ClientType(server, sock, addr);
-		}) {}
+		NetworkListenerT(std::shared_ptr<GameConfig> config, std::shared_ptr<GameScheduler> scheduler) : NetworkListener(
+			config,
+			scheduler,
+			(CreateNetworkClientFunction)(NetworkListenerT<ClientType>::createClient)) {
+		}
 	};
 
 };
