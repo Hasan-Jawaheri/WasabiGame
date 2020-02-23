@@ -11,6 +11,9 @@
 #include <chrono>
 #include <ctime>
 
+#define LOGURU_WITH_STREAMS 1
+#include <Wasabi/loguru.hpp>
+
 
 namespace WasabiGame {
 
@@ -103,7 +106,8 @@ namespace WasabiGame {
 				seed = std::time(nullptr);
 			t->m_scheduler = this;
 			m_threadsLock.lock();
-			std::thread* newThread = new std::thread([t, seed]() {
+			std::thread* newThread = new std::thread([t, seed, name]() {
+				loguru::set_thread_name(name.c_str());
 				std::srand(seed);
 				t->Run();
 			});
@@ -115,16 +119,18 @@ namespace WasabiGame {
 			if (seed == -1)
 				seed = std::time(nullptr);
 			class AnonymousThread : public SchedulerThread {
+				std::string m_name;
 				std::function<void()> m_entryPoint;
 				time_t m_seed;
 			public:
-				AnonymousThread(std::function<void()> entryPoint, time_t seed) : m_entryPoint(entryPoint), m_seed(seed) {}
+				AnonymousThread(std::function<void()> entryPoint, time_t seed, std::string name) : m_entryPoint(entryPoint), m_seed(seed), m_name(name) {}
 				void Run() {
+					loguru::set_thread_name(m_name.c_str());
 					std::srand(m_seed);
 					m_entryPoint();
 				}
 			};
-			LaunchThread(name, new AnonymousThread(entryPoint, seed));
+			LaunchThread(name, new AnonymousThread(entryPoint, seed, name));
 		}
 
 		void StopThread(std::string name) {

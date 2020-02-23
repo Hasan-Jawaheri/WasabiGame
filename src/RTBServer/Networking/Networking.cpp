@@ -48,6 +48,7 @@ void RTBServer::ServerNetworking::Initialize(std::shared_ptr<ServerApplication> 
 				return onConsumeBuffer(client, buffer);
 			});
 			this->m_clients.insert(std::make_pair(client->m_id, client));
+			LOG_F(INFO, "CONNECTED: id=%d", client->m_id);
 		}
 	});
 
@@ -60,6 +61,7 @@ void RTBServer::ServerNetworking::Initialize(std::shared_ptr<ServerApplication> 
 		{
 			std::lock_guard lockGuard(this->m_clientsMutex);
 			this->m_clients.erase(client->m_id);
+			LOG_F(INFO, "DISCONNECTED: id=%d, account=%s", client->m_id, client->Identity.accountName);
 		}
 	});
 
@@ -70,6 +72,7 @@ void RTBServer::ServerNetworking::Initialize(std::shared_ptr<ServerApplication> 
 			if (this->Authenticate(identity)) {
 				memcpy(&client->Identity, &identity, sizeof(WasabiGame::ClientIdentity));
 				this->m_app->OnClientConnected(client);
+				LOG_F(INFO, "AUTHENTICATED: id=%d, account=%s", client->m_id, client->Identity.accountName);
 			} else
 				return false;
 		}
