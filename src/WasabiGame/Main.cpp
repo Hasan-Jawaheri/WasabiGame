@@ -23,6 +23,9 @@ WasabiGame::WasabiBaseGame::WasabiBaseGame() : Wasabi(), std::enable_shared_from
 	m_settings.fullscreen = true;
 #endif
 
+	// this is to allow shared_from_this() to work in the constructor (sorry!)
+	auto wptr = std::shared_ptr<WasabiGame::WasabiBaseGame>(this, [](WasabiGame::WasabiBaseGame*) {});
+
 	Config = std::make_shared<GameConfig>();
 	Scheduler = std::make_shared<GameScheduler>();
 	Resources = std::make_shared<ResourceManager>(shared_from_this());
