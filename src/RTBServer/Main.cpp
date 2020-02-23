@@ -27,9 +27,12 @@ void RTBServer::ServerApplication::Run() {
 void RTBServer::ServerApplication::Destroy() {
 	Networking->Destroy();
 	Simulation->Stop();
+	Scheduler->Stop();
 
 	Networking.reset();
 	Simulation.reset();
+	Scheduler.reset();
+	Config.reset();
 }
 
 void RTBServer::ServerApplication::OnClientConnected(std::shared_ptr<RTBServer::ServerConnectedClient> client) {
