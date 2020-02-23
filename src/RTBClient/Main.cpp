@@ -3,13 +3,13 @@
 #include "RollTheBall/Main.hpp"
 #include "WasabiGame/GameStates/Intro.hpp"
 #include "WasabiGame/GameStates/Menu.hpp"
-#include "RTBClient/GameStates/Game.hpp"
+#include "RTBClient/GameStates/MainGameState.hpp"
 #include "RollTheBall/Maps/RTBMaps.hpp"
 #include "RollTheBall/Units/RTBUnits.hpp"
 
 #include "RollTheBall/AssetsGenerator/AssetsGenerator.hpp"
 
-RTBClient::RTBClient(bool generateAssets, bool enableVulkanDebugging, bool enablePhysicsDebugging) : WasabiRTB() {
+RTBClient::ClientApplication::ClientApplication(bool generateAssets, bool enableVulkanDebugging, bool enablePhysicsDebugging) : WasabiGame::WasabiBaseGame() {
 	SetEngineParam("appName", "RTBClient");
 
 #ifdef _DEBUG
@@ -25,33 +25,34 @@ RTBClient::RTBClient(bool generateAssets, bool enableVulkanDebugging, bool enabl
 	m_settings.mediaFolder = "Media/RollTheBall";
 
 	if (generateAssets) {
-		if (!AssetGenerator(m_settings.mediaFolder).Generate())
+		if (!RollTheBall::AssetGenerator(m_settings.mediaFolder).Generate())
 			return;
 	}
 
-	Networking = new RTBNet::RTBClientNetworking();
+	Config = std::make_shared<WasabiGame::GameConfig>();
+	Scheduler = std::make_shared<WasabiGame::GameScheduler>();
+	Networking = std::make_shared<RTBClient::ClientNetworking>(Config, Scheduler);
 	Networking->Initialize();
 }
 
-RTBClient::~RTBClient() {
+RTBClient::ClientApplication::~ClientApplication() {
 	Networking->Destroy();
-	delete Networking;
+	Scheduler->Stop();
+
+	Networking.reset();
+	Scheduler.reset();
+	Config.reset();
 }
 
-void RTBClient::SwitchToInitialState() {
-	SetupRTBMaps(Maps);
-	SetupRTBUnits(Units, false);
+void RTBClient::ClientApplication::SwitchToInitialState() {
+	RollTheBall::SetupRTBMaps(Maps);
+	RollTheBall::SetupRTBUnits(Units, false);
 
 	PhysicsComponent->SetGravity(0, -40, 0);
 
 #ifndef _DEBUG
-	SwitchState(new Intro(this, { "Media/RollTheBall/me3.jpg" }, [this]() { return new Menu(this, [this]() { return new Game(this); }); }));
+	SwitchState(new IntroGameState(this, { "Media/RollTheBall/me3.jpg" }, [this]() { return new MenuGameState(this, [this]() { return new MainGameState(this); }); }));
 #else
-	SwitchState(new Game(this));
+	SwitchState(new MainGameState(this));
 #endif
-}
-
-void RTBClient::SendNetworkUpdate(RPGNet::NetworkUpdate& update, bool important) {
-	if (Networking->Status == RTBNet::RTBConnectionStatus::CONNECTION_CONNECTED)
-		Networking->SendUpdate(update, important);
 }

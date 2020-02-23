@@ -2,24 +2,24 @@
 
 #include <random>
 
-RTBNet::RTBClientNetworking::RTBClientNetworking() {
+RTBClient::ClientNetworking::ClientNetworking(std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler) {
 	m_networkingThread = nullptr;
-	m_server = new RPGNet::ServerT<RPGNet::Client>();
-	m_tcpConnection = new RPGNet::ReconnectingClient(m_server);
-	m_udpConnection = new RPGNet::ReconnectingClient(m_server);
+	m_listener = std::make_shared<WasabiGame::NetworkListenerT<WasabiGame::NetworkClient>>(config, scheduler);
+	m_tcpConnection = std::make_shared<WasabiGame::ReconnectingNetworkClient>(m_listener);
+	m_udpConnection = std::make_shared<WasabiGame::ReconnectingNetworkClient>(m_listener);
 	Status = RTBConnectionStatus::CONNECTION_NOT_CONNECTED;
 }
 
-void RTBNet::RTBClientNetworking::Initialize() {
+void RTBClient::ClientNetworking::Initialize() {
 	WSADATA wsa;
 	(void)WSAStartup(MAKEWORD(2, 2), &wsa);
 
-	m_server->Config.Set<int>("tcpPort", 0);
-	m_server->Config.Set<int>("udpPort", 0);
-	m_server->Config.Set<int>("numWorkers", 1);
+	m_listener->Config->Set<int>("tcpPort", 0);
+	m_listener->Config->Set<int>("udpPort", 0);
+	m_listener->Config->Set<int>("numWorkers", 1);
 
-	std::function<bool(HBUtils::CircularBuffer*)> onConsumeBuffer = [this](HBUtils::CircularBuffer* buffer) {
-		RPGNet::NetworkUpdate update;
+	std::function<bool(WasabiGame::CircularBuffer*)> onConsumeBuffer = [this](WasabiGame::CircularBuffer* buffer) {
+		WasabiGame::NetworkUpdate update;
 		while (true) {
 			size_t size = update.readPacket(buffer);
 			if (size == 0)
@@ -35,8 +35,8 @@ void RTBNet::RTBClientNetworking::Initialize() {
 	m_udpConnection->SetConsumeBufferCallback(onConsumeBuffer);
 	
 	m_tcpConnection->SetOnConnectedCallback([this]() {
-		RPGNet::NetworkUpdate loginUpdate;
-		RTBNet::UpdateBuilders::Login(loginUpdate, ("ghandi-" + std::to_string(std::rand() % 10000)).c_str(), "123456");
+		WasabiGame::NetworkUpdate loginUpdate;
+		RollTheBall::UpdateBuilders::Login(loginUpdate, ("ghandi-" + std::to_string(std::rand() % 10000)).c_str(), "123456");
 		SendUpdate(loginUpdate);
 		this->Status = RTBConnectionStatus::CONNECTION_CONNECTED;
 	});
@@ -55,27 +55,27 @@ void RTBNet::RTBClientNetworking::Initialize() {
 
 	m_networkingThread = new std::thread([this]() {
 		std::srand(std::time(nullptr) + 7511);
-		this->m_server->Run();
+		this->m_listener->Run();
 	});
 }
 
-void RTBNet::RTBClientNetworking::Destroy() {
+void RTBClient::ClientNetworking::Destroy() {
 	Logout();
-	m_server->Stop();
+	m_listener->Stop();
 	m_networkingThread->join();
 	delete m_networkingThread;
 }
 
-void RTBNet::RTBClientNetworking::Login() {
+void RTBClient::ClientNetworking::Login() {
 	m_tcpConnection->Connect("127.0.0.1", 9965);
 }
 
-void RTBNet::RTBClientNetworking::Logout() {
+void RTBClient::ClientNetworking::Logout() {
 	m_tcpConnection->StopReconnecting();
 }
 
-void RTBNet::RTBClientNetworking::SendUpdate(RPGNet::NetworkUpdate& update, bool important) {
-	char packet[RPGNet::MAX_PACKET_SIZE];
+void RTBClient::ClientNetworking::SendUpdate(WasabiGame::NetworkUpdate& update, bool important) {
+	char packet[WasabiGame::MAX_PACKET_SIZE];
 	size_t size = update.fillPacket(packet);
 
 	if (important)
@@ -84,14 +84,14 @@ void RTBNet::RTBClientNetworking::SendUpdate(RPGNet::NetworkUpdate& update, bool
 		m_udpConnection->Write(packet, size);
 }
 
-void RTBNet::RTBClientNetworking::RegisterNetworkUpdateCallback(RPGNet::NetworkUpdateType type, std::function<void(RPGNet::NetworkUpdate&)> callback) {
+void RTBClient::ClientNetworking::RegisterNetworkUpdateCallback(WasabiGame::NetworkUpdateType type, std::function<void(WasabiGame::NetworkUpdate&)> callback) {
 	auto it = m_updateCallbacks.find(type);
 	if (it != m_updateCallbacks.end())
 		m_updateCallbacks.erase(it);
 	m_updateCallbacks.insert(std::make_pair(type, callback));
 }
 
-void RTBNet::RTBClientNetworking::ClearNetworkUpdateCallback(RPGNet::NetworkUpdateType type) {
+void RTBClient::ClientNetworking::ClearNetworkUpdateCallback(WasabiGame::NetworkUpdateType type) {
 	auto it = m_updateCallbacks.find(type);
 	if (it != m_updateCallbacks.end())
 		m_updateCallbacks.erase(it);
