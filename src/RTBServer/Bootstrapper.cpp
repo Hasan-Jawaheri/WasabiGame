@@ -15,10 +15,10 @@ void RedirectIOToConsole() {
 Wasabi* WInitialize() {
 	RedirectIOToConsole();
 
-	RTBServer server;
-	server.Initialize();
-	server.Run();
-	server.Destroy();
+	std::shared_ptr<RTBServer::ServerApplication> server = std::make_shared<RTBServer::ServerApplication>();
+	server->Initialize();
+	server->Run();
+	server->Destroy();
 
 	return nullptr;
 }

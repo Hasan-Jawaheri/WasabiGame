@@ -1,5 +1,7 @@
 #pragma once
 
+#include "WasabiGame/Utilities/Config.hpp"
+#include "WasabiGame/Utilities/Scheduler.hpp"
 #include "RTBServer/Simulation/Simulation.hpp"
 #include "RTBServer/Networking/Networking.hpp"
 #include "RTBServer/Game/RTBConnectedPlayer.hpp"
@@ -7,24 +9,30 @@
 #include <cstdint>
 #include <unordered_map>
 
-namespace RTBNet {
-	class RTBServerNetworking;
-	class RTBServerConnectedClient;
-};
 
-class RTBServer {
-	std::unordered_map<class RTBNet::RTBServerConnectedClient*, std::shared_ptr<RTBConnectedPlayer>> m_connectedPlayers;
+namespace RTBServer {
 
-public:
-	RTBServer();
+	class ServerNetworking;
+	class ServerConnectedClient;
+	class ServerSimulation;
 
-	class RTBNet::RTBServerNetworking* Networking;
-	class ServerSimulation* Simulation;
+	class ServerApplication : public std::enable_shared_from_this<ServerApplication> {
+		std::unordered_map<uint32_t, std::shared_ptr<RTBConnectedPlayer>> m_connectedPlayers;
 
-	void Initialize(bool generateAssets = true);
-	void Destroy();
-	void Run();
+	public:
+		ServerApplication();
 
-	void OnClientConnected(class RTBNet::RTBServerConnectedClient* client);
-	void OnClientDisconnected(class RTBNet::RTBServerConnectedClient* client);
+		std::shared_ptr<WasabiGame::GameConfig> Config;
+		std::shared_ptr<WasabiGame::GameScheduler> Scheduler;
+		std::shared_ptr<ServerNetworking> Networking;
+		std::shared_ptr<ServerSimulation> Simulation;
+
+		void Initialize(bool generateAssets = true);
+		void Destroy();
+		void Run();
+
+		void OnClientConnected(std::shared_ptr<ServerConnectedClient> client);
+		void OnClientDisconnected(std::shared_ptr<ServerConnectedClient> client);
+	};
+
 };
