@@ -78,7 +78,7 @@ namespace WasabiGame {
 
 			m_inBuffer.Clear();
 			m_outBuffer.Clear();
-			m_listener->RegisterSelectable(shared_from_this(), false);
+			m_listener->RegisterSelectable(shared_from_this());
 
 			return 0;
 		}

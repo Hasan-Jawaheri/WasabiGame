@@ -1,4 +1,3 @@
-#include "Common.hpp"
 #include "RTBServer/Main.hpp"
 
 
@@ -7,7 +6,7 @@ void RedirectIOToConsole() {
 	// allocate a console for this app
 	AllocConsole();
 
-	FILE *scout, *scin, *scerr;
+	FILE* scout, * scin, * scerr;
 	freopen_s(&scout, "CONOUT$", "w", stdout);
 	freopen_s(&scerr, "CONOUT$", "w", stderr);
 	freopen_s(&scin, "CONIN$", "r", stdin);
@@ -34,10 +33,7 @@ void RedirectIOToConsole() {
 Wasabi* WInitialize() {
 	RedirectIOToConsole();
 
-	std::shared_ptr<RTBServer::ServerApplication> server = std::make_shared<RTBServer::ServerApplication>();
-	server->Initialize();
-	server->Run();
-	server->Destroy();
-
+	std::shared_ptr<RTBServer::ServerApplication> app = std::make_shared<RTBServer::ServerApplication>();
+	RunWasabi(app.get());
 	return nullptr;
 }

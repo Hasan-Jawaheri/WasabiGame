@@ -7,6 +7,7 @@
 #include "WasabiGame/Units/UnitsManager.hpp"
 #include "WasabiGame/Utilities/Scheduler.hpp"
 #include "WasabiGame/Utilities/Config.hpp"
+#include "WasabiGame/Networking/NetworkManager.hpp"
 
 
 namespace WasabiGame {
@@ -22,6 +23,8 @@ namespace WasabiGame {
 			int maxFPS;
 			std::string mediaFolder;
 		} m_settings;
+
+		std::thread* m_schedulerThread;
 
 	public:
 		WasabiBaseGame();
@@ -42,6 +45,7 @@ namespace WasabiGame {
 		std::shared_ptr<UserInterface> UI;
 		std::shared_ptr<MapLoader> Maps;
 		std::shared_ptr<UnitsManager> Units;
+		std::shared_ptr<NetworkManager> Networking;
 	};
 
 };

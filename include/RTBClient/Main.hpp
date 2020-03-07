@@ -16,10 +16,6 @@ namespace RTBClient {
 		ClientApplication(bool generateAssets = true, bool enableVulkanDebugging = true, bool enablePhysicsDebugging = true);
 		~ClientApplication();
 
-		std::shared_ptr<WasabiGame::GameConfig> Config;
-		std::shared_ptr<WasabiGame::GameScheduler> Scheduler;
-		std::shared_ptr<ClientNetworking> Networking;
-
 		void SwitchToInitialState();
 	};
 

@@ -1,38 +1,38 @@
 #include "RTBServer/Main.hpp"
+#include "RTBServer/Simulation/Simulation.hpp"
 
-RTBServer::ServerApplication::ServerApplication() : std::enable_shared_from_this<ServerApplication>() {
-	Config = std::make_shared<WasabiGame::GameConfig>();
-	Scheduler = std::make_shared<WasabiGame::GameScheduler>();
-	Networking = nullptr;
-	Simulation = nullptr;
+#include "RollTheBall/AssetsGenerator/AssetsGenerator.hpp"
+
+RTBServer::ServerApplication::ServerApplication(bool generateAssets, bool enableVulkanDebugging, bool enablePhysicsDebugging) : WasabiGame::WasabiBaseGame() {
+	SetEngineParam("appName", "RTBServer");
+	
+#ifdef _DEBUG
+	m_settings.debugVulkan = enableVulkanDebugging;
+	m_settings.debugPhysics = enablePhysicsDebugging;
+	m_settings.fullscreen = false;
+#else
+	m_settings.debugVulkan = false;
+	m_settings.debugPhysics = false;
+	m_settings.fullscreen = false;
+#endif
+
+	m_settings.mediaFolder = "Media/RollTheBall";
+
+	if (generateAssets) {
+		if (!RollTheBall::AssetGenerator(m_settings.mediaFolder).Generate())
+			return;
+	}
 }
 
-void RTBServer::ServerApplication::Initialize(bool generateAssets) {
-	Networking = std::make_shared<ServerNetworking>(Config, Scheduler);
-	Simulation = std::make_shared<ServerSimulation>(shared_from_this(), generateAssets);
-	std::shared_ptr<WasabiGame::NetworkListenerT<ServerConnectedClient>> listener = Networking->GetListener();
-
-	Networking->Initialize(shared_from_this());
-
-	Scheduler->LaunchThread("simulation-thread", [this]() {
-		this->Simulation->Run();
-		this->Scheduler->Stop();
-	});
+RTBServer::ServerApplication::~ServerApplication() {
 }
 
-void RTBServer::ServerApplication::Run() {
-	Networking->GetListener()->Run();
-}
+void RTBServer::ServerApplication::SwitchToInitialState() {
+	Networking = std::make_shared<RTBServer::ServerNetworking>(shared_from_this(), Config, Scheduler);
+	Networking->Initialize();
 
-void RTBServer::ServerApplication::Destroy() {
-	Networking->Destroy();
-	Simulation->Stop();
-	Scheduler->Stop();
-
-	Networking.reset();
-	Simulation.reset();
-	Scheduler.reset();
-	Config.reset();
+	Simulation = std::make_shared<ServerSimulationGameState>(this);
+	SwitchState(Simulation.get());
 }
 
 void RTBServer::ServerApplication::OnClientConnected(std::shared_ptr<RTBServer::ServerConnectedClient> client) {

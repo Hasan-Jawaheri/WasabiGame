@@ -25,6 +25,13 @@ WasabiGame::WasabiBaseGame::WasabiBaseGame() : Wasabi(), std::enable_shared_from
 
 	Config = std::make_shared<GameConfig>();
 	Scheduler = std::make_shared<GameScheduler>();
+	Networking = nullptr;
+
+	
+	m_schedulerThread = new std::thread([this]() {
+		std::srand(std::time(nullptr) + 7511);
+		this->Scheduler->Run();
+	});
 }
 
 WError WasabiGame::WasabiBaseGame::Setup() {
@@ -85,6 +92,11 @@ bool WasabiGame::WasabiBaseGame::Loop(float fDeltaTime) {
 
 void WasabiGame::WasabiBaseGame::Cleanup() {
 	SwitchState(nullptr);
+	if (Networking)
+		Networking->Destroy();
+	Scheduler->Stop();
+	m_schedulerThread->join();
+	delete m_schedulerThread;
 }
 
 WError WasabiGame::WasabiBaseGame::Resize(unsigned int width, unsigned int height) {

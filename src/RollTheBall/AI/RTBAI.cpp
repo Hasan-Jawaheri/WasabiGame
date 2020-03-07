@@ -28,7 +28,6 @@ void RollTheBall::RTBAI::Update(float fDeltaTime) {
 
 void RollTheBall::RTBAI::SendNetworkUpdate(WasabiGame::NetworkUpdate& update) {
 	// Wasabi* app = m_app.lock().get();
-	// app->
 	// ((WasabiRTB*)m_unit->GetApp())->SendNetworkUpdate(update);
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "WasabiGame/Networking/Data.hpp"
+#include "WasabiGame/Networking/NetworkManager.hpp"
 #include "WasabiGame/Networking/NetworkListener.hpp"
 #include "WasabiGame/Networking/NetworkClient.hpp"
 #include "RollTheBall/Networking/Protocol.hpp"
@@ -18,29 +19,26 @@ namespace RTBClient {
 		CONNECTION_CONNECTED = 3,
 	};
 
-	class ClientNetworking {
+	class ClientNetworking : public WasabiGame::NetworkManager {
 		std::shared_ptr<WasabiGame::NetworkListenerT<WasabiGame::NetworkClient>> m_listener;
-		std::thread* m_networkingThread;
 
 		std::shared_ptr<WasabiGame::ReconnectingNetworkClient> m_tcpConnection;
 		std::shared_ptr<WasabiGame::ReconnectingNetworkClient> m_udpConnection;
 
-		std::unordered_map<WasabiGame::NetworkUpdateType, std::function<void(WasabiGame::NetworkUpdate&)>> m_updateCallbacks;
-
 	public:
-		ClientNetworking(std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler);
+		ClientNetworking(std::shared_ptr<WasabiGame::WasabiBaseGame> app, std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler);
 
 		std::atomic<RTBConnectionStatus> Status;
 
-		void Initialize();
-		void Destroy();
+		virtual void Initialize() override;
+		virtual void Destroy() override;
 
 		void Login();
 		void Logout();
 
-		void SendUpdate(WasabiGame::NetworkUpdate& update, bool important = true);
-		void RegisterNetworkUpdateCallback(WasabiGame::NetworkUpdateType type, std::function<void(WasabiGame::NetworkUpdate&)> callback);
-		void ClearNetworkUpdateCallback(WasabiGame::NetworkUpdateType type);
+		virtual void SendUpdate(std::shared_ptr<WasabiGame::NetworkClient> client, WasabiGame::NetworkUpdate& update, bool important = true);
+		virtual void SendUpdate(uint32_t clientId, WasabiGame::NetworkUpdate& update, bool important = true);
+		virtual void SendUpdate(WasabiGame::NetworkUpdate& update, bool important = true);
 	};
 
 };

@@ -2,8 +2,7 @@
 #include "RollTheBall/Networking/Protocol.hpp"
 
 
-RTBServer::ServerNetworking::ServerNetworking(std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler) {
-	m_app = nullptr;
+RTBServer::ServerNetworking::ServerNetworking(std::shared_ptr<WasabiGame::WasabiBaseGame> app, std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler) : WasabiGame::NetworkManager(app) {
 	m_listener = std::make_shared<WasabiGame::NetworkListenerT<ServerConnectedClient>>(config, scheduler);
 	m_curClientId = 1;
 }
@@ -12,12 +11,7 @@ uint32_t RTBServer::ServerNetworking::GenerateClientId() {
 	return m_curClientId++;
 }
 
-void RTBServer::ServerNetworking::Initialize(std::shared_ptr<ServerApplication> app) {
-	m_app = app;
-
-	WSADATA wsa;
-	(void)WSAStartup(MAKEWORD(2, 2), &wsa);
-
+void RTBServer::ServerNetworking::Initialize() {
 	// client sent new data over TCP
 	auto onConsumeBuffer = [this](std::shared_ptr<ServerConnectedClient> client, WasabiGame::CircularBuffer* buffer) {
 		WasabiGame::NetworkUpdate update;
@@ -56,7 +50,7 @@ void RTBServer::ServerNetworking::Initialize(std::shared_ptr<ServerApplication> 
 	m_listener->SetOnClientDisconnected([this](std::shared_ptr<WasabiGame::Selectable> _client) {
 		std::shared_ptr<ServerConnectedClient> client = std::dynamic_pointer_cast<ServerConnectedClient>(_client);
 
-		this->m_app->OnClientDisconnected(client);
+		std::static_pointer_cast<ServerApplication>(this->m_app)->OnClientDisconnected(client);
 
 		{
 			std::lock_guard lockGuard(this->m_clientsMutex);
@@ -66,24 +60,28 @@ void RTBServer::ServerNetworking::Initialize(std::shared_ptr<ServerApplication> 
 	});
 
 	// login update callback
-	RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN, [this](std::shared_ptr<ServerConnectedClient> client, WasabiGame::NetworkUpdate& loginUpdate) {
+	RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN, [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& loginUpdate) {
+		std::shared_ptr<ServerConnectedClient> client = std::dynamic_pointer_cast<ServerConnectedClient>(_client);
 		WasabiGame::ClientIdentity identity;
 		if (RollTheBall::UpdateBuilders::ReadLoginPacket(loginUpdate, identity)) {
 			if (this->Authenticate(identity)) {
 				memcpy(&client->Identity, &identity, sizeof(WasabiGame::ClientIdentity));
-				this->m_app->OnClientConnected(client);
+				std::static_pointer_cast<ServerApplication>(this->m_app)->OnClientConnected(client);
 				LOG_F(INFO, "AUTHENTICATED: id=%d, account=%s", client->m_id, client->Identity.accountName);
 			} else
 				return false;
 		}
 		return true;
 	});
+
+	m_listener->RunDetached();
 }
 
 void RTBServer::ServerNetworking::Destroy() {
 	m_app = nullptr;
+	m_listener->SetOnClientConnected(nullptr);
+	m_listener->SetOnClientDisconnected(nullptr);
 	m_listener->Stop();
-	m_listener.reset();
 }
 
 std::shared_ptr<WasabiGame::NetworkListenerT<RTBServer::ServerConnectedClient>> RTBServer::ServerNetworking::GetListener() const {
@@ -103,7 +101,7 @@ void RTBServer::ServerNetworking::SendUpdate(uint32_t clientId, WasabiGame::Netw
 		SendUpdate(client, update, important);
 }
 
-void RTBServer::ServerNetworking::SendUpdate(std::shared_ptr<ServerConnectedClient> client, WasabiGame::NetworkUpdate& update, bool important) {
+void RTBServer::ServerNetworking::SendUpdate(std::shared_ptr<WasabiGame::NetworkClient> client, WasabiGame::NetworkUpdate& update, bool important) {
 	char packet[WasabiGame::MAX_PACKET_SIZE];
 	size_t size = update.fillPacket(packet);
 
@@ -123,17 +121,10 @@ void RTBServer::ServerNetworking::SendUpdate(std::shared_ptr<ServerConnectedClie
 	}
 }
 
-void RTBServer::ServerNetworking::RegisterNetworkUpdateCallback(WasabiGame::NetworkUpdateType type, std::function<bool(std::shared_ptr<ServerConnectedClient>, WasabiGame::NetworkUpdate&)> callback) {
-	auto it = m_updateCallbacks.find(type);
-	if (it != m_updateCallbacks.end())
-		m_updateCallbacks.erase(it);
-	m_updateCallbacks.insert(std::make_pair(type, callback));
-}
-
-void RTBServer::ServerNetworking::ClearNetworkUpdateCallback(WasabiGame::NetworkUpdateType type) {
-	auto it = m_updateCallbacks.find(type);
-	if (it != m_updateCallbacks.end())
-		m_updateCallbacks.erase(it);
+void RTBServer::ServerNetworking::SendUpdate(WasabiGame::NetworkUpdate& update, bool important) {
+	std::lock_guard lockGuard(this->m_clientsMutex);
+	for (auto client : m_clients)
+		SendUpdate(client.second, update, important);
 }
 
 bool RTBServer::ServerNetworking::Authenticate(WasabiGame::ClientIdentity& identity) {

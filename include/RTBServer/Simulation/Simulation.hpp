@@ -1,5 +1,6 @@
 #pragma once
 
+#include "WasabiGame/GameStates/BaseState.hpp"
 #include "WasabiGame/Utilities/Scheduler.hpp"
 #include "RTBServer/Main.hpp"
 #include "RTBServer/Game/RTBConnectedPlayer.hpp"
@@ -7,28 +8,37 @@
 #include <atomic>
 
 
-class SimulationWasabi;
-class SimulationGameState;
-
 namespace RTBServer {
 
 	class ServerApplication;
 
-	class ServerSimulation : public WasabiGame::SchedulerThread, public std::enable_shared_from_this<ServerSimulation> {
-		friend class SimulationWasabi;
-		friend class SimulationGameState;
+	class ServerSimulationGameState : public WasabiGame::BaseGameState {
+		ServerApplication* m_server;
 
-		std::atomic<void*> m_gameState;
-		bool m_simulationLoaded;
-		std::shared_ptr<ServerApplication> m_server;
-		bool m_generateAssets;
+		struct {
+			float fYaw, fPitch, fDist;
+			WVector3 vPos;
+			bool bMouseHidden;
+			int lastX, lastY;
+		} m_cam;
 
-		void WaitForSimulationLaunch();
+		uint32_t m_currentUnitId;
+		std::mutex m_unitIdsMutex;
+
+		std::unordered_map<uint32_t, std::pair<std::shared_ptr<RTBConnectedPlayer>, std::shared_ptr<WasabiGame::Unit>>> m_players;
+		std::mutex m_playersMutex;
+		float m_lastBroadcastTime;
+
+		uint32_t GenerateUnitId();
+		void ApplyMousePivot();
 
 	public:
-		ServerSimulation(std::shared_ptr<ServerApplication> server, bool generateAssets = true);
+		ServerSimulationGameState(Wasabi* app);
+		virtual ~ServerSimulationGameState();
 
-		void Run();
+		virtual void Load();
+		virtual void Update(float fDeltaTime);
+		virtual void Cleanup();
 
 		void AddPlayer(std::shared_ptr<RTBConnectedPlayer> player);
 		void RemovePlayer(std::shared_ptr<RTBConnectedPlayer> player);

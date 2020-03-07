@@ -28,23 +28,15 @@ RTBClient::ClientApplication::ClientApplication(bool generateAssets, bool enable
 		if (!RollTheBall::AssetGenerator(m_settings.mediaFolder).Generate())
 			return;
 	}
-
-	Config = std::make_shared<WasabiGame::GameConfig>();
-	Scheduler = std::make_shared<WasabiGame::GameScheduler>();
-	Networking = std::make_shared<RTBClient::ClientNetworking>(Config, Scheduler);
-	Networking->Initialize();
 }
 
 RTBClient::ClientApplication::~ClientApplication() {
-	Networking->Destroy();
-	Scheduler->Stop();
-
-	Networking.reset();
-	Scheduler.reset();
-	Config.reset();
 }
 
 void RTBClient::ClientApplication::SwitchToInitialState() {
+	Networking = std::make_shared<RTBClient::ClientNetworking>(shared_from_this(), Config, Scheduler);
+	Networking->Initialize();
+	
 	RollTheBall::SetupRTBMaps(Maps);
 	RollTheBall::SetupRTBUnits(Units, false);
 

@@ -3,6 +3,7 @@
 #include "RTBServer/Main.hpp"
 
 #include "WasabiGame/Networking/Data.hpp"
+#include "WasabiGame/Networking/NetworkManager.hpp"
 #include "WasabiGame/Networking/NetworkClient.hpp"
 #include "WasabiGame/Networking/NetworkListener.hpp"
 #include "RollTheBall/Networking/Protocol.hpp"
@@ -25,10 +26,8 @@ namespace RTBServer {
 		uint32_t m_id;
 	};
 
-	class ServerNetworking {
-		std::shared_ptr<ServerApplication> m_app;
+	class ServerNetworking : public WasabiGame::NetworkManager {
 		std::shared_ptr<WasabiGame::NetworkListenerT<ServerConnectedClient>> m_listener;
-		std::unordered_map<WasabiGame::NetworkUpdateType, std::function<bool(std::shared_ptr<ServerConnectedClient>, WasabiGame::NetworkUpdate&)>> m_updateCallbacks;
 
 		std::mutex m_clientsMutex;
 		std::unordered_map<uint32_t, std::shared_ptr<ServerConnectedClient>> m_clients;
@@ -37,17 +36,15 @@ namespace RTBServer {
 		uint32_t GenerateClientId();
 
 	public:
-		ServerNetworking(std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler);
+		ServerNetworking(std::shared_ptr<WasabiGame::WasabiBaseGame> app, std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler);
 
-		void Initialize(std::shared_ptr<ServerApplication> app);
-		void Destroy();
+		virtual void Initialize() override;
+		virtual void Destroy() override;
 		std::shared_ptr<WasabiGame::NetworkListenerT<ServerConnectedClient>> GetListener() const;
 
-		void SendUpdate(std::shared_ptr<ServerConnectedClient>  client, WasabiGame::NetworkUpdate& update, bool important = true);
-		void SendUpdate(uint32_t clientId, WasabiGame::NetworkUpdate& update, bool important = true);
-
-		void RegisterNetworkUpdateCallback(WasabiGame::NetworkUpdateType type, std::function<bool(std::shared_ptr<ServerConnectedClient>, WasabiGame::NetworkUpdate&)> callback);
-		void ClearNetworkUpdateCallback(WasabiGame::NetworkUpdateType type);
+		virtual void SendUpdate(std::shared_ptr<WasabiGame::NetworkClient>  client, WasabiGame::NetworkUpdate& update, bool important = true) override;
+		virtual void SendUpdate(uint32_t clientId, WasabiGame::NetworkUpdate& update, bool important = true) override;
+		virtual void SendUpdate(WasabiGame::NetworkUpdate& update, bool important = true) override;
 
 		bool Authenticate(WasabiGame::ClientIdentity& identity);
 	};

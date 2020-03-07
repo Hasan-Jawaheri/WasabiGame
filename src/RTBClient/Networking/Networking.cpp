@@ -2,8 +2,7 @@
 
 #include <random>
 
-RTBClient::ClientNetworking::ClientNetworking(std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler) {
-	m_networkingThread = nullptr;
+RTBClient::ClientNetworking::ClientNetworking(std::shared_ptr<WasabiGame::WasabiBaseGame> app, std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler) : WasabiGame::NetworkManager(app) {
 	m_listener = std::make_shared<WasabiGame::NetworkListenerT<WasabiGame::NetworkClient>>(config, scheduler);
 	m_tcpConnection = std::make_shared<WasabiGame::ReconnectingNetworkClient>(m_listener);
 	m_udpConnection = std::make_shared<WasabiGame::ReconnectingNetworkClient>(m_listener);
@@ -26,7 +25,7 @@ void RTBClient::ClientNetworking::Initialize() {
 				break;
 			auto it = m_updateCallbacks.find(update.type);
 			if (it != m_updateCallbacks.end())
-				it->second(update);
+				it->second(nullptr, update);
 		}
 		return true;
 	};
@@ -53,17 +52,14 @@ void RTBClient::ClientNetworking::Initialize() {
 		this->Status = RTBConnectionStatus::CONNECTION_NOT_CONNECTED;
 	});
 
-	m_networkingThread = new std::thread([this]() {
-		std::srand(std::time(nullptr) + 7511);
-		this->m_listener->Run();
-	});
+	m_listener->RunDetached();
 }
 
 void RTBClient::ClientNetworking::Destroy() {
 	Logout();
+	m_listener->SetOnClientConnected(nullptr);
+	m_listener->SetOnClientDisconnected(nullptr);
 	m_listener->Stop();
-	m_networkingThread->join();
-	delete m_networkingThread;
 }
 
 void RTBClient::ClientNetworking::Login() {
@@ -74,6 +70,14 @@ void RTBClient::ClientNetworking::Logout() {
 	m_tcpConnection->StopReconnecting();
 }
 
+void RTBClient::ClientNetworking::SendUpdate(std::shared_ptr<WasabiGame::NetworkClient> client, WasabiGame::NetworkUpdate& update, bool important) {
+	SendUpdate(update, important);
+}
+
+void RTBClient::ClientNetworking::SendUpdate(uint32_t clientId, WasabiGame::NetworkUpdate& update, bool important) {
+	SendUpdate(update, important);
+}
+
 void RTBClient::ClientNetworking::SendUpdate(WasabiGame::NetworkUpdate& update, bool important) {
 	char packet[WasabiGame::MAX_PACKET_SIZE];
 	size_t size = update.fillPacket(packet);
@@ -82,17 +86,4 @@ void RTBClient::ClientNetworking::SendUpdate(WasabiGame::NetworkUpdate& update, 
 		m_tcpConnection->Write(packet, size);
 	else
 		m_udpConnection->Write(packet, size);
-}
-
-void RTBClient::ClientNetworking::RegisterNetworkUpdateCallback(WasabiGame::NetworkUpdateType type, std::function<void(WasabiGame::NetworkUpdate&)> callback) {
-	auto it = m_updateCallbacks.find(type);
-	if (it != m_updateCallbacks.end())
-		m_updateCallbacks.erase(it);
-	m_updateCallbacks.insert(std::make_pair(type, callback));
-}
-
-void RTBClient::ClientNetworking::ClearNetworkUpdateCallback(WasabiGame::NetworkUpdateType type) {
-	auto it = m_updateCallbacks.find(type);
-	if (it != m_updateCallbacks.end())
-		m_updateCallbacks.erase(it);
 }

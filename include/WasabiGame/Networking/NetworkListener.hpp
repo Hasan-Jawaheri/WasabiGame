@@ -31,7 +31,6 @@ namespace WasabiGame {
 		NetworkClientDisconnectedFunction m_clientDisconnected;
 
 		struct ClientMetadata {
-			bool deleteOnDisconnect;
 		};
 		WasabiGame::Semaphore m_registerSemaphore;
 		std::vector<std::pair<std::shared_ptr<Selectable>, ClientMetadata>> m_pendingNewlyRegisteredClients;
@@ -165,16 +164,15 @@ namespace WasabiGame {
 		std::shared_ptr<GameConfig> Config;
 		std::shared_ptr<GameScheduler> Scheduler;
 
-		void RegisterSelectable(std::shared_ptr<Selectable> client, bool deleteOnDisconnect = true) {
+		void RegisterSelectable(std::shared_ptr<Selectable> client) {
 			ClientMetadata meta;
-			meta.deleteOnDisconnect = deleteOnDisconnect;
 			m_registerSemaphore.wait();
 			m_pendingNewlyRegisteredClients.push_back(std::make_pair(client, meta));
 			m_registerSemaphore.notify();
 			NotifyWriteAvailable();
 		}
 
-		void Run() {
+		void RunDetached() {
 			WSADATA wsa;
 			if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
 				// LOG(fatal) << "Failed to initialize WinSock.";
@@ -187,31 +185,21 @@ namespace WasabiGame {
 			strcpy_s(m_TCPServer.host, sizeof(m_TCPServer.host), Config->Get<char*>("hostname"));
 			strcpy_s(m_UDPServer.host, sizeof(m_UDPServer.host), Config->Get<char*>("hostname"));
 
-			if (m_TCPServer.port <= 0 || m_TCPServer.Initialize() == 0) {
-				if (m_UDPServer.port <= 0 || m_UDPServer.Initialize() == 0) {
-					Scheduler->LaunchWorkers(Config->Get<int>("numWorkers"));
-					Scheduler->LaunchThread("selectables-loop", [this]() {
-						this->SelectablesLoop();
-						this->Scheduler->Stop();
-					});
-					Scheduler->Run();
+			if (m_TCPServer.port > 0 && m_TCPServer.Initialize() != 0)
+				m_TCPServer.port = 0;
+			if (m_UDPServer.port > 0 && m_UDPServer.Initialize() != 0)
+				m_UDPServer.port = 0;
 
-					for (auto client : m_clients) {
-						if (client.second.deleteOnDisconnect) {
-							if (m_clientDisconnected)
-								m_clientDisconnected(client.first);
-						}
-					}
-					m_clients.clear();
+			Scheduler->LaunchWorkers(Config->Get<int>("numWorkers"));
+			Scheduler->LaunchThread("selectables-loop", [this]() {
+				this->SelectablesLoop();
 
-					if (m_UDPServer.port > 0)
-						m_UDPServer.Cleanup();
-				}
+				if (m_UDPServer.port > 0)
+					m_UDPServer.Cleanup();
+
 				if (m_TCPServer.port > 0)
 					m_TCPServer.Cleanup();
-			}
-
-			WSACleanup();
+			});
 		}
 
 		void Stop() {
@@ -282,7 +270,7 @@ namespace WasabiGame {
 							// pending TCP connection
 							std::shared_ptr<Selectable> newClient = m_TCPServer.AcceptConnection(shared_from_this());
 							if (newClient) {
-								RegisterSelectable(newClient, true);
+								RegisterSelectable(newClient);
 								if (m_clientConnected)
 									m_clientConnected(newClient);
 							}
@@ -307,16 +295,20 @@ namespace WasabiGame {
 
 						for (auto client : clientsToDelete) {
 							m_clients.erase(client.first);
-							if (client.second.deleteOnDisconnect) {
-								if (m_clientDisconnected)
-									m_clientDisconnected(client.first);
-							}
+							if (m_clientDisconnected)
+								m_clientDisconnected(client.first);
 						}
 						clientsToDelete.clear();
 					}
 				} else
 					std::this_thread::sleep_for(std::chrono::milliseconds(200));
 			}
+
+			for (auto client : m_clients) {
+				if (m_clientDisconnected)
+					m_clientDisconnected(client.first);
+			}
+			m_clients.clear();
 		}
 	};
 
