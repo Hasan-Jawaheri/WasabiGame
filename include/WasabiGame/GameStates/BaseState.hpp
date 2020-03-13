@@ -11,12 +11,12 @@ namespace WasabiGame {
 		BaseGameState(Wasabi* app);
 		virtual ~BaseGameState();
 
-		virtual void OnKeyDown(char c);
-		virtual void OnKeyUp(char c);
-		virtual void OnMouseDown(W_MOUSEBUTTON button, int mx, int my);
-		virtual void OnMouseUp(W_MOUSEBUTTON button, int mx, int my);
-		virtual void OnMouseMove(int mx, int my);
-		virtual void OnInput(char c);
+		virtual void OnKeyDown(uint32_t c) override;
+		virtual void OnKeyUp(uint32_t c) override;
+		virtual void OnMouseDown(W_MOUSEBUTTON button, double mx, double my) override;
+		virtual void OnMouseUp(W_MOUSEBUTTON button, double mx, double my) override;
+		virtual void OnMouseMove(double mx, double my) override;
+		virtual void OnInput(uint32_t c) override;
 	};
 
 };

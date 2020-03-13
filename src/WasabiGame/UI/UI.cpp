@@ -133,6 +133,9 @@ void WasabiGame::UserInterface::RemoveUIElement(std::shared_ptr<UIElement> eleme
 			}
 		}
 
+		if (element->m_parent)
+			element->m_parent->RemoveChild(element);
+
 		UI.erase(it);
 		for (auto child : element->m_children)
 			RemoveUIElement(child);
@@ -204,7 +207,7 @@ std::shared_ptr<WasabiGame::UIElement> WasabiGame::UserInterface::GetFocus() {
 	return focus;
 }
 
-std::shared_ptr<WasabiGame::UIElement> WasabiGame::UserInterface::GetElementAt(int mx, int my) {
+std::shared_ptr<WasabiGame::UIElement> WasabiGame::UserInterface::GetElementAt(double mx, double my) {
 	vector<std::shared_ptr<UIElement>> possibilities;
 	for (auto it : UI) {
 		std::shared_ptr<UIElement> curElem = it.first;

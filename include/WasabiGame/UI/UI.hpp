@@ -41,11 +41,11 @@ namespace WasabiGame {
 		virtual bool Update(float fDeltaTime) { return true; };
 
 		virtual bool OnInput() { return true; }
-		virtual void OnKeydown(short key) {}
-		virtual void OnKeyup(short key) {}
-		virtual void OnMouseMove(int mx, int my) {}
-		virtual void OnMouseButton(int mx, int my, bool bDown) {}
-		virtual void OnMouseButton2(int mx, int my, bool bDown) {}
+		virtual void OnKeydown(uint32_t key) {}
+		virtual void OnKeyup(uint32_t key) {}
+		virtual void OnMouseMove(double mx, double my) {}
+		virtual void OnMouseButton(double mx, double my, bool bDown) {}
+		virtual void OnMouseButton2(double mx, double my, bool bDown) {}
 		virtual bool OnTab() { return true; }
 		virtual bool OnEnter() { return true; }
 		virtual bool OnEscape() { return true; }
@@ -87,7 +87,7 @@ namespace WasabiGame {
 		void RemoveUIElement(std::shared_ptr<UIElement> element);
 		void SetFocus(std::shared_ptr<UIElement> element);
 		std::shared_ptr<UIElement> GetFocus();
-		std::shared_ptr<UIElement> GetElementAt(int mx, int my);
+		std::shared_ptr<UIElement> GetElementAt(double mx, double my);
 	};
 
 	template<typename PSType>

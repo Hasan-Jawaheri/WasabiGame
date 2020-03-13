@@ -25,7 +25,7 @@ namespace WasabiGame {
 		virtual bool OnTab() override { return false; }
 		virtual bool OnEnter() override { return true; }
 		virtual bool OnEscape() override { return false; }
-		virtual void OnMouseButton(int mx, int my, bool bDown) override;
+		virtual void OnMouseButton(double mx, double my, bool bDown) override;
 		virtual bool OnFocus() override { return false; } //cannot gain focus
 
 		virtual void OnClick() {}

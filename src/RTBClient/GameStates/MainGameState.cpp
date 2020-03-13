@@ -110,7 +110,7 @@ bool RTBClient::GameInputHandler::OnEnter() {
 	return true;
 }
 
-void RTBClient::GameInputHandler::OnKeydown(short key) {
+void RTBClient::GameInputHandler::OnKeydown(uint32_t key) {
 	/*
 	switch (key) {
 	case 'W':
@@ -145,7 +145,7 @@ void RTBClient::GameInputHandler::OnKeydown(short key) {
 	@TODO: CHANGE HERE*/
 }
 
-void RTBClient::GameInputHandler::OnKeyup(short key) {
+void RTBClient::GameInputHandler::OnKeyup(uint32_t key) {
 	/*
 	char actionKeys[10] = { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' };
 	switch (key) {
@@ -182,7 +182,7 @@ void RTBClient::GameInputHandler::OnKeyup(short key) {
 	@TODO: CHANGE HERE*/
 }
 
-void RTBClient::GameInputHandler::OnMouseButton(int mx, int my, bool bDown) {
+void RTBClient::GameInputHandler::OnMouseButton(double mx, double my, bool bDown) {
 	/*
 	if (bDown) {
 		if (WImage* img = m_game->m_ui.stanceBar->GetCurrentImage()) {
@@ -196,7 +196,7 @@ void RTBClient::GameInputHandler::OnMouseButton(int mx, int my, bool bDown) {
 	@TODO: CHANGE HERE*/
 }
 
-void RTBClient::GameInputHandler::OnMouseButton2(int mx, int my, bool bDown) {
+void RTBClient::GameInputHandler::OnMouseButton2(double mx, double my, bool bDown) {
 	if (bDown)
 		(std::dynamic_pointer_cast<RollTheBall::PlayerAI>(m_game->m_player->GetAI()))->BeginDragCamera();
 	else

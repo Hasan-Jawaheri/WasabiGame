@@ -15,15 +15,16 @@ namespace RTBClient {
 
 	public:
 		GameInputHandler(MainGameState* gameState);
-		virtual void OnMouseButton(int mx, int my, bool bDown);
-		virtual void OnMouseButton2(int mx, int my, bool bDown);
-		virtual bool OnFocus() { return false; }
-		virtual bool OnInput() { return true; }
-		virtual bool OnEnter();
-		virtual void OnKeydown(short key);
-		virtual void OnKeyup(short key);
-		virtual bool OnEscape();
-		virtual int GetPosZ() const { return 0; }
+
+		virtual void OnMouseButton(double mx, double my, bool bDown) override;
+		virtual void OnMouseButton2(double mx, double my, bool bDown) override;
+		virtual bool OnFocus() override { return false; }
+		virtual bool OnInput() override { return true; }
+		virtual bool OnEnter() override;
+		virtual void OnKeydown(uint32_t key) override;
+		virtual void OnKeyup(uint32_t key) override;
+		virtual bool OnEscape() override;
+		virtual int GetPosZ() const override { return 0; }
 	};
 
 	class MainGameState : public WasabiGame::BaseGameState {
@@ -36,7 +37,7 @@ namespace RTBClient {
 
 	public:
 		MainGameState(Wasabi* app);
-		~MainGameState();
+		virtual ~MainGameState();
 
 		void Load();
 		void Update(float fDeltaTime);

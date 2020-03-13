@@ -16,7 +16,7 @@ void RollTheBall::RTBAI::Update(float fDeltaTime) {
 	std::shared_ptr<WasabiGame::Unit> unit = m_unit.lock();
 
 	// send update to server
-	if (m_updateTimer + 0.05f < app->Timer.GetElapsedTime()) {
+	if (m_updateTimer + 0.01f < app->Timer.GetElapsedTime()) {
 		m_updateTimer = app->Timer.GetElapsedTime();
 		WVector3 rbPos = unit->O()->GetPosition();
 		std::function<void(std::string, void*, uint16_t)> addProp = nullptr;
@@ -27,8 +27,8 @@ void RollTheBall::RTBAI::Update(float fDeltaTime) {
 }
 
 void RollTheBall::RTBAI::SendNetworkUpdate(WasabiGame::NetworkUpdate& update) {
-	// Wasabi* app = m_app.lock().get();
-	// ((WasabiRTB*)m_unit->GetApp())->SendNetworkUpdate(update);
+	WasabiGame::WasabiBaseGame* app = m_app.lock().get();
+	app->Networking->SendUpdate(update);
 }
 
 void RollTheBall::RTBAI::OnNetworkUpdate(std::string prop, void* data, size_t size) {

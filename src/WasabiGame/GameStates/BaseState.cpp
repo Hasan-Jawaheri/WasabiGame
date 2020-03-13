@@ -9,7 +9,7 @@ WasabiGame::BaseGameState::BaseGameState(Wasabi* app) : WGameState(app) {
 WasabiGame::BaseGameState::~BaseGameState() {
 }
 
-void WasabiGame::BaseGameState::OnKeyDown(char c) {
+void WasabiGame::BaseGameState::OnKeyDown(uint32_t c) {
 	if (((WasabiBaseGame*)m_app)->UI->GetFocus()) {
 		if (((WasabiBaseGame*)m_app)->UI->GetFocus()->OnInput())
 			((WasabiBaseGame*)m_app)->UI->GetFocus()->OnKeydown(c);
@@ -20,7 +20,7 @@ void WasabiGame::BaseGameState::OnKeyDown(char c) {
 	}
 }
 
-void WasabiGame::BaseGameState::OnKeyUp(char c) {
+void WasabiGame::BaseGameState::OnKeyUp(uint32_t c) {
 	if (((WasabiBaseGame*)m_app)->UI->GetFocus()) {
 		if (((WasabiBaseGame*)m_app)->UI->GetFocus()->OnInput())
 			((WasabiBaseGame*)m_app)->UI->GetFocus()->OnKeyup(c);
@@ -31,7 +31,7 @@ void WasabiGame::BaseGameState::OnKeyUp(char c) {
 	}
 }
 
-void WasabiGame::BaseGameState::OnMouseDown(W_MOUSEBUTTON button, int mx, int my) {
+void WasabiGame::BaseGameState::OnMouseDown(W_MOUSEBUTTON button, double mx, double my) {
 	if (button == MOUSE_LEFT) {
 		std::shared_ptr<UIElement> targetElement = ((WasabiBaseGame*)m_app)->UI->GetElementAt(mx, my);
 		if (targetElement) {
@@ -59,7 +59,7 @@ void WasabiGame::BaseGameState::OnMouseDown(W_MOUSEBUTTON button, int mx, int my
 	}
 }
 
-void WasabiGame::BaseGameState::OnMouseUp(W_MOUSEBUTTON button, int mx, int my) {
+void WasabiGame::BaseGameState::OnMouseUp(W_MOUSEBUTTON button, double mx, double my) {
 	if (button == MOUSE_LEFT) {
 		std::shared_ptr<UIElement> targetElement = ((WasabiBaseGame*)m_app)->UI->GetElementAt(mx, my);
 		if (targetElement) {
@@ -84,13 +84,13 @@ void WasabiGame::BaseGameState::OnMouseUp(W_MOUSEBUTTON button, int mx, int my) 
 	}
 }
 
-void WasabiGame::BaseGameState::OnMouseMove(int mx, int my) {
+void WasabiGame::BaseGameState::OnMouseMove(double mx, double my) {
 	std::shared_ptr<UIElement> targetElement = ((WasabiBaseGame*)m_app)->UI->GetElementAt(mx, my);
 	if (targetElement)
 		targetElement->OnMouseMove(mx, my);
 }
 
-void WasabiGame::BaseGameState::OnInput(char c) {
+void WasabiGame::BaseGameState::OnInput(uint32_t c) {
 	if (((WasabiBaseGame*)m_app)->UI->GetFocus()) {
 		// give input to the focus or the first ancestor that accepts input
 		std::shared_ptr<UIElement> target_element = ((WasabiBaseGame*)m_app)->UI->GetFocus();

@@ -88,7 +88,7 @@ bool WasabiGame::MenuButton::Update(float fDeltaTime) {
 	return true;
 }
 
-void WasabiGame::MenuButton::OnMouseButton(int mx, int my, bool bDown) {
+void WasabiGame::MenuButton::OnMouseButton(double mx, double my, bool bDown) {
 	if (!bDown) {
 		m_isClicked = true;
 		if (GetParent())
