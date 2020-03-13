@@ -15,7 +15,7 @@ cmake -DWASABI_ROOT="<path to Wasabi build/dist folder>" ..
 ```
 
 # Progress
-Track the progress in the [current project plan](https://github.com/Hasan-Jawaheri/WasabiGame/projects/1).
+Track the progress in the [current project plan](https://github.com/Hasan-Jawaheri/WasabiGame/projects/2).
 
 ## Stage 1: Running client
 <img src="https://github.com/Hasan-Jawaheri/WasabiGame/raw/master/gitstuff/client-1.png" />
