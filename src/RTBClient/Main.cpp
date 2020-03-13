@@ -43,7 +43,17 @@ void RTBClient::ClientApplication::SwitchToInitialState() {
 	PhysicsComponent->SetGravity(0, -40, 0);
 
 #ifndef _DEBUG
-	SwitchState(new IntroGameState(this, { "Media/RollTheBall/me3.jpg" }, [this]() { return new MenuGameState(this, [this]() { return new MainGameState(this); }); }));
+	SwitchState(
+		new WasabiGame::IntroGameState(
+			this,
+			{ "Media/RollTheBall/me3.jpg" },
+			[this]() {
+				return new WasabiGame::MenuGameState(this, [this]() {
+					return new MainGameState(this);
+				});
+			}
+		)
+	);
 #else
 	SwitchState(new MainGameState(this));
 #endif
