@@ -87,131 +87,108 @@ void RTBClient::MainGameState::Cleanup() {
 	((RTBClient::ClientApplication*)m_app)->Maps->SetMap(RollTheBall::MAP_NONE);
 }
 
+std::shared_ptr<RollTheBall::Player> RTBClient::MainGameState::GetPlayer() const {
+	return m_player;
+}
+
 RTBClient::GameInputHandler::GameInputHandler(RTBClient::MainGameState* gameState) : WasabiGame::UIElement(((RTBClient::ClientApplication*)gameState->m_app)->UI) {
 	m_game = gameState;
+	m_draggingCamera = false;
+}
+
+RTBClient::GameInputHandler::~GameInputHandler() {
+}
+
+bool RTBClient::GameInputHandler::Update(float fDeltaTime) {
+	Wasabi* app = m_game->m_app;
+
+	std::shared_ptr<RollTheBall::PlayerAI> ai = std::dynamic_pointer_cast<RollTheBall::PlayerAI>(m_game->GetPlayer()->GetAI());
+	float cameraDistance = ai->GetCameraDistance();
+	float fMouseZ = (float)app->WindowAndInputComponent->MouseZ();
+	cameraDistance += fMouseZ * (abs(cameraDistance) / 10.0f);
+	app->WindowAndInputComponent->SetMouseZ(0);
+	cameraDistance = fmin(-1.0f, cameraDistance);
+	ai->SetCameraDistance(cameraDistance);
+
+	return true;
 }
 
 bool RTBClient::GameInputHandler::OnEnter() {
-	/*
-	if (((RTBClient::ClientApplication*)m_app)->UI->GetFocus() != (UIElement*)m_game->m_ui.chatEdit) {
-		m_game->ui.chatEdit->OnFocus();
-		((RTBClient::ClientApplication*)m_app)->UI->SetFocus(m_game->m_ui.chatEdit);
-	} else {
-		((RTBClient::ClientApplication*)m_app)->UI->SetFocus(this);
-		char str[512];
-		m_game->ui.chatEdit->GetText(str, 512);
-		if (strlen(str)) {
-			Unit* u = UnitManager::LoadUnit(1);
-			if (u)
-				u->GetAI()->SetPosition(m_game->m_player->GetOriDev()->GetPosition());
-		}
-		m_game->m_ui.chatEdit->SetText("");
-	} @TODO: CHANGE HERE*/
 	return true;
 }
 
 void RTBClient::GameInputHandler::OnKeydown(uint32_t key) {
-	/*
 	switch (key) {
-	case 'W':
-		m_game->m_player->GetAI()->Forward(true);
+	case W_KEY_W:
+		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveForward(true);
 		break;
-	case 'S':
-		m_game->m_player->GetAI()->Backward(true);
+	case W_KEY_S:
+		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveBackward(true);
 		break;
-	case 'A':
-		m_game->m_player->GetAI()->Left(true);
+	case W_KEY_A:
+		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveLeft(true);
 		break;
-	case 'D':
-		m_game->m_player->GetAI()->Right(true);
+	case W_KEY_D:
+		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveRight(true);
 		break;
-	case ' ':
-		m_game->m_player->GetAI()->Jump(true);
-		break;
-	case '1':
-		m_game->m_ui.stanceBar->SetStance(1);
-		break;
-	case '2':
-		m_game->m_ui.stanceBar->SetStance(2);
-		break;
-	case '3':
-		m_game->m_ui.stanceBar->SetStance(3);
-		break;
-	case '	':
-		m_game->m_target = UnitManager::FindTarget(WVector2(m_game->m_ui.targetCursor->GetPositionX() + 128,
-			m_game->m_ui.targetCursor->GetPositionY() + 128), 200);
+	case W_KEY_SPACE:
+		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveJump(true);
 		break;
 	}
-	@TODO: CHANGE HERE*/
 }
 
 void RTBClient::GameInputHandler::OnKeyup(uint32_t key) {
-	/*
-	char actionKeys[10] = { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' };
 	switch (key) {
-	case 'W':
-		m_game->m_player->GetAI()->Forward(false);
+	case W_KEY_W:
+		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveForward(false);
 		break;
-	case 'S':
-		m_game->m_player->GetAI()->Backward(false);
+	case W_KEY_S:
+		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveBackward(false);
 		break;
-	case 'A':
-		m_game->m_player->GetAI()->Left(false);
+	case W_KEY_A:
+		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveLeft(false);
 		break;
-	case 'D':
-		m_game->m_player->GetAI()->Right(false);
+	case W_KEY_D:
+		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveRight(false);
 		break;
-	case ' ':
-		m_game->m_player->GetAI()->Jump(false);
-		break;
-	case '1':
-		if (m_game->m_ui.stanceBar->GetCurrentStance() == 1)
-			m_game->m_ui.stanceBar->SetStance(0);
-		break;
-	case '2':
-		if (m_game->m_ui.stanceBar->GetCurrentStance() == 2)
-			m_game->m_ui.stanceBar->SetStance(0);
-		break;
-	case '3':
-		if (m_game->m_ui.stanceBar->GetCurrentStance() == 3)
-			m_game->m_ui.stanceBar->SetStance(0);
-		break;
-	default:
+	case W_KEY_SPACE:
+		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveJump(false);
 		break;
 	}
-	@TODO: CHANGE HERE*/
+}
+
+void RTBClient::GameInputHandler::OnMouseMove(double mx, double my) {
+	if (m_draggingCamera) {
+		std::shared_ptr<RollTheBall::Player> player = m_game->GetPlayer();
+		std::shared_ptr<RollTheBall::PlayerAI> ai = std::dynamic_pointer_cast<RollTheBall::PlayerAI>(player->GetAI());
+		float yawAngle = ai->GetYawAngle();
+		float cameraPitch = ai->GetCameraPitch();
+
+		int dx = mx - m_lastMouseX;
+		int dy = my - m_lastMouseY;
+		m_lastMouseX = mx;
+		m_lastMouseY = my;
+
+		yawAngle += (float)dx / 2.0f;
+		cameraPitch += (float)dy / 2.0f;
+
+		Wasabi* app = m_game->m_app;
+		app->TextComponent->RenderText(std::to_string(mx) + ", " + std::to_string(my), 200, 10, 32);
+
+		ai->SetYawAngle(yawAngle);
+		ai->SetCameraPitch(cameraPitch);
+	}
 }
 
 void RTBClient::GameInputHandler::OnMouseButton(double mx, double my, bool bDown) {
-	/*
-	if (bDown) {
-		if (WImage* img = m_game->m_ui.stanceBar->GetCurrentImage()) {
-			if (ComboNode* n = m_game->m_player->GetComboSystem()->AdvanceCombo(m_game->m_ui.stanceBar->GetCurrentStance() - 1, 0, m_game->m_player, m_game->m_target)) {
-				m_game->m_player->curStats.mana -= n->manaCost;
-				m_game->m_player->curStats.energy -= n->energyCost;
-				m_game->m_ui.castBar->Cast(img, m_game->m_player->GetComboSystem()->GetCurrentSpell()->GetTotalCastTime());
-			}
-		}
-	}
-	@TODO: CHANGE HERE*/
 }
 
 void RTBClient::GameInputHandler::OnMouseButton2(double mx, double my, bool bDown) {
-	if (bDown)
-		(std::dynamic_pointer_cast<RollTheBall::PlayerAI>(m_game->m_player->GetAI()))->BeginDragCamera();
-	else
-		(std::dynamic_pointer_cast<RollTheBall::PlayerAI>(m_game->m_player->GetAI()))->EndDragCamera();
-	/*
-	if (bDown) {
-		if (WImage* img = m_game->m_ui.stanceBar->GetCurrentImage()) {
-			if (ComboNode* n = m_game->m_player->GetComboSystem()->AdvanceCombo(m_game->m_ui.stanceBar->GetCurrentStance() - 1, 1, m_game->m_player, m_game->m_target)) {
-				m_game->player->curStats.mana -= n->manaCost;
-				m_game->player->curStats.energy -= n->energyCost;
-				m_game->ui.castBar->Cast(img, m_game->m_player->GetComboSystem()->GetCurrentSpell()->GetTotalCastTime());
-			}
-		}
-	}
-	@TODO: CHANGE HERE*/
+	Wasabi* app = m_game->m_app;
+	m_draggingCamera = bDown;
+	app->WindowAndInputComponent->SetCursorMotionMode(m_draggingCamera);
+	m_lastMouseX = mx;
+	m_lastMouseY = my;
 }
 
 bool RTBClient::GameInputHandler::OnEscape() {

@@ -13,9 +13,16 @@ namespace RTBClient {
 	class GameInputHandler : public WasabiGame::UIElement {
 		MainGameState* m_game;
 
+		bool m_draggingCamera;
+		double m_lastMouseX, m_lastMouseY;
+
 	public:
 		GameInputHandler(MainGameState* gameState);
+		virtual ~GameInputHandler();
 
+		virtual bool Update(float fDeltaTime) override;
+
+		virtual void OnMouseMove(double mx, double my) override;
 		virtual void OnMouseButton(double mx, double my, bool bDown) override;
 		virtual void OnMouseButton2(double mx, double my, bool bDown) override;
 		virtual bool OnFocus() override { return false; }
@@ -42,6 +49,8 @@ namespace RTBClient {
 		void Load();
 		void Update(float fDeltaTime);
 		void Cleanup();
+
+		std::shared_ptr<RollTheBall::Player> GetPlayer() const;
 	};
 
 };

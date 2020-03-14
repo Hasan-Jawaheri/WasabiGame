@@ -50,6 +50,10 @@ namespace WasabiGame {
 
 		template<typename T> void SetAI() { m_AI = std::make_shared<T>(this->shared_from_this()); }
 		std::shared_ptr<AI> GetAI() const;
+
+		virtual bool IsOnGround() const = 0;
+		virtual void Jump(WVector3 direction) = 0;
+		virtual void Move(WVector3 direction) = 0;
 	};
 
 };

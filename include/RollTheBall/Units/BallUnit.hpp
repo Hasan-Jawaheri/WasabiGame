@@ -32,9 +32,9 @@ namespace RollTheBall {
 			float dashSpeed;
 		} m_properties;
 
-		bool IsOnGround() const;
-		void Jump(WVector3 direction);
-		void Move(WVector3 direction);
+		virtual bool IsOnGround() const override;
+		virtual void Jump(WVector3 direction) override;
+		virtual void Move(WVector3 direction) override;
 	};
 
 };
