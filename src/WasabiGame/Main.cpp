@@ -84,6 +84,7 @@ bool WasabiGame::WasabiBaseGame::Loop(float fDeltaTime) {
 		Maps->Update(fDeltaTime);
 		Units->Update(fDeltaTime);
 		Resources->Update(fDeltaTime);
+		Networking->Update(fDeltaTime);
 	}
 
 	// a null state means exit

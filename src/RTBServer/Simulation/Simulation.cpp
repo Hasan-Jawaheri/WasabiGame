@@ -33,9 +33,6 @@ uint32_t RTBServer::ServerSimulationGameState::GenerateUnitId() {
 }
 
 void RTBServer::ServerSimulationGameState::Load() {
-	RollTheBall::SetupRTBMaps(m_server->Maps);
-	RollTheBall::SetupRTBUnits(m_server->Units, true);
-
 	m_server->PhysicsComponent->SetGravity(0, -40, 0);
 
 	m_server->UI->Load();

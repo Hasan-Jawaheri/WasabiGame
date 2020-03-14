@@ -1,11 +1,12 @@
 #include "RTBClient/Main.hpp"
 #include "RTBClient/GameStates/MainGameState.hpp"
 #include "RTBClient/Networking/Networking.hpp"
+#include "RTBClient/Networking/MovementNetworkingManager.hpp"
 
 #include "RollTheBall/Maps/RTBMaps.hpp"
 #include "RollTheBall/Units/RTBUnits.hpp"
-#include "RollTheBall/AI/PlayerAI.hpp"
 #include "RollTheBall/AI/RTBAI.hpp"
+#include "RollTheBall/AI/PlayerAI.hpp"
 
 #include "WasabiGame/Maps/MapLoader.hpp"
 #include "WasabiGame/Units/UnitsManager.hpp"
@@ -118,47 +119,60 @@ bool RTBClient::GameInputHandler::OnEnter() {
 }
 
 void RTBClient::GameInputHandler::OnKeydown(uint32_t key) {
+	RTBClient::ClientApplication* app = ((RTBClient::ClientApplication*)m_game->m_app);
 	switch (key) {
 	case W_KEY_W:
 		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveForward(true);
+		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveForward(true);
 		break;
 	case W_KEY_S:
 		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveBackward(true);
+		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveBackward(true);
 		break;
 	case W_KEY_A:
 		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveLeft(true);
+		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveLeft(true);
 		break;
 	case W_KEY_D:
 		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveRight(true);
+		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveRight(true);
 		break;
 	case W_KEY_SPACE:
 		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveJump(true);
+		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveJump(true);
 		break;
 	}
 }
 
 void RTBClient::GameInputHandler::OnKeyup(uint32_t key) {
+	RTBClient::ClientApplication* app = ((RTBClient::ClientApplication*)m_game->m_app);
 	switch (key) {
 	case W_KEY_W:
 		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveForward(false);
+		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveForward(false);
 		break;
 	case W_KEY_S:
 		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveBackward(false);
+		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveBackward(false);
 		break;
 	case W_KEY_A:
 		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveLeft(false);
+		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveLeft(false);
 		break;
 	case W_KEY_D:
 		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveRight(false);
+		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveRight(false);
 		break;
 	case W_KEY_SPACE:
 		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveJump(false);
+		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveJump(false);
 		break;
 	}
 }
 
 void RTBClient::GameInputHandler::OnMouseMove(double mx, double my) {
 	if (m_draggingCamera) {
+		RTBClient::ClientApplication* app = ((RTBClient::ClientApplication*)m_game->m_app);
 		std::shared_ptr<RollTheBall::Player> player = m_game->GetPlayer();
 		std::shared_ptr<RollTheBall::PlayerAI> ai = std::dynamic_pointer_cast<RollTheBall::PlayerAI>(player->GetAI());
 		float yawAngle = ai->GetYawAngle();
@@ -172,11 +186,9 @@ void RTBClient::GameInputHandler::OnMouseMove(double mx, double my) {
 		yawAngle += (float)dx / 2.0f;
 		cameraPitch += (float)dy / 2.0f;
 
-		Wasabi* app = m_game->m_app;
-		app->TextComponent->RenderText(std::to_string(mx) + ", " + std::to_string(my), 200, 10, 32);
-
 		ai->SetYawAngle(yawAngle);
 		ai->SetCameraPitch(cameraPitch);
+		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetYawAngle(yawAngle);
 	}
 }
 

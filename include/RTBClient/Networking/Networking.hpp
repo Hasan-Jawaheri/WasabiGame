@@ -19,6 +19,8 @@ namespace RTBClient {
 		CONNECTION_CONNECTED = 3,
 	};
 
+	class MovementNetworkingManager;
+
 	class ClientNetworking : public WasabiGame::NetworkManager {
 		std::shared_ptr<WasabiGame::NetworkListenerT<WasabiGame::NetworkClient>> m_listener;
 
@@ -29,9 +31,11 @@ namespace RTBClient {
 		ClientNetworking(std::shared_ptr<WasabiGame::WasabiBaseGame> app, std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler);
 
 		std::atomic<RTBConnectionStatus> Status;
+		std::shared_ptr<MovementNetworkingManager> Movement;
 
 		virtual void Initialize() override;
 		virtual void Destroy() override;
+		virtual void Update(float fDeltaTime) override;
 
 		void Login();
 		void Logout();

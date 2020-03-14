@@ -9,7 +9,7 @@ namespace WasabiGame {
 
 	class WasabiBaseGame;
 
-	class NetworkManager {
+	class NetworkManager : public std::enable_shared_from_this<NetworkManager> {
 
 	protected:
 		std::shared_ptr<WasabiGame::WasabiBaseGame> m_app;
@@ -22,10 +22,10 @@ namespace WasabiGame {
 		
 		virtual void Initialize() = 0;
 		virtual void Destroy() = 0;
+		virtual void Update(float fDeltaTime) {}
 
 		void RegisterNetworkUpdateCallback(WasabiGame::NetworkUpdateType type, std::function<bool(std::shared_ptr<Selectable>, WasabiGame::NetworkUpdate&)> callback);
 		void ClearNetworkUpdateCallback(WasabiGame::NetworkUpdateType type);
-
 
 		virtual void SendUpdate(std::shared_ptr<NetworkClient> client, WasabiGame::NetworkUpdate& update, bool important = true) = 0;
 		virtual void SendUpdate(uint32_t clientId, WasabiGame::NetworkUpdate& update, bool important = true) = 0;

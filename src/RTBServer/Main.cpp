@@ -2,6 +2,8 @@
 #include "RTBServer/Simulation/Simulation.hpp"
 
 #include "RollTheBall/AssetsGenerator/AssetsGenerator.hpp"
+#include "RollTheBall/Maps/RTBMaps.hpp"
+#include "RollTheBall/Units/RTBUnits.hpp"
 
 RTBServer::ServerApplication::ServerApplication(bool generateAssets, bool enableVulkanDebugging, bool enablePhysicsDebugging) : WasabiGame::WasabiBaseGame() {
 	SetEngineParam("appName", "RTBServer");
@@ -30,6 +32,9 @@ RTBServer::ServerApplication::~ServerApplication() {
 void RTBServer::ServerApplication::SwitchToInitialState() {
 	Networking = std::make_shared<RTBServer::ServerNetworking>(shared_from_this(), Config, Scheduler);
 	Networking->Initialize();
+
+	RollTheBall::SetupRTBMaps(Maps);
+	RollTheBall::SetupRTBUnits(Units, true);
 
 	Simulation = std::make_shared<ServerSimulationGameState>(this);
 	SwitchState(Simulation.get());

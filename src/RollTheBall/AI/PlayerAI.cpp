@@ -53,3 +53,4 @@ float RollTheBall::PlayerAI::GetCameraPitch() const {
 float RollTheBall::PlayerAI::GetCameraDistance() const {
 	return m_cameraDistance;
 }
+
