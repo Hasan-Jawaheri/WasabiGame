@@ -5,7 +5,7 @@
 #include <thread>
 
 #define GENERATE_ASSETS true
-#define NUM_CLIENTS 1
+#define NUM_CLIENTS 2
 
 void RedirectIOToConsole() {
 #ifdef _WIN32

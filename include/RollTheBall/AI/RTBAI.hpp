@@ -11,10 +11,9 @@
 namespace RollTheBall {
 
 	class RTBAI : public WasabiGame::AI {
-		float m_updateTimer;
-		WasabiGame::NetworkUpdate m_unitUpdate;
+	protected:
 
-		struct {
+		struct AI_MOVEMENT {
 			float angle;
 			bool forward;
 			bool backward;
@@ -24,7 +23,6 @@ namespace RollTheBall {
 			bool jumpReady;
 		} m_movement;
 
-	protected:
 		std::weak_ptr<WasabiGame::WasabiBaseGame> m_app;
 
 		void SendNetworkUpdate(WasabiGame::NetworkUpdate& update);
@@ -33,7 +31,7 @@ namespace RollTheBall {
 		RTBAI(std::shared_ptr<WasabiGame::Unit> unit);
 		virtual ~RTBAI();
 
-		virtual void Update(float fDeltaTime);
+		virtual void Update(float fDeltaTime) override;
 
 		virtual void OnNetworkUpdate(std::string prop, void* data, size_t size);
 

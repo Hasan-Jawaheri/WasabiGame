@@ -4,7 +4,6 @@
 
 RollTheBall::RTBAI::RTBAI(std::shared_ptr<WasabiGame::Unit> unit) : AI(unit) {
 	m_app = unit->GetApp();
-	m_updateTimer = m_app.lock().get()->Timer.GetElapsedTime();
 
 	memset(&m_movement, 0, sizeof(m_movement));
 }
@@ -43,16 +42,6 @@ void RollTheBall::RTBAI::Update(float fDeltaTime) {
 	if (isDirection) {
 		unit->Move(inputDirection);
 	}
-
-	// send update to server
-	if (m_updateTimer + 0.01f < app->Timer.GetElapsedTime()) {
-		m_updateTimer = app->Timer.GetElapsedTime();
-		WVector3 rbPos = unit->O()->GetPosition();
-		std::function<void(std::string, void*, uint16_t)> addProp = nullptr;
-		RollTheBall::UpdateBuilders::SetUnitProps(m_unitUpdate, unit->GetId(), &addProp);
-		addProp("pos", &rbPos, sizeof(WVector3));
-		SendNetworkUpdate(m_unitUpdate);
-	}
 }
 
 void RollTheBall::RTBAI::SendNetworkUpdate(WasabiGame::NetworkUpdate& update) {
@@ -61,15 +50,6 @@ void RollTheBall::RTBAI::SendNetworkUpdate(WasabiGame::NetworkUpdate& update) {
 }
 
 void RollTheBall::RTBAI::OnNetworkUpdate(std::string prop, void* data, size_t size) {
-	std::shared_ptr<WasabiGame::Unit> unit = m_unit.lock();
-	WOrientation* orientation = unit->O();
-
-	if (prop == "pos" && size == sizeof(WVector3)) {
-		WVector3 pos;
-		memcpy(&pos, data, sizeof(WVector3));
-		if (orientation)
-			orientation->SetPosition(pos);
-	}
 }
 
 void RollTheBall::RTBAI::SetYawAngle(float angle) {

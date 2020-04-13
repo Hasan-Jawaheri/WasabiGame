@@ -20,6 +20,7 @@ namespace WasabiGame {
 		NetworkManager(std::shared_ptr<WasabiGame::WasabiBaseGame> app);
 		virtual ~NetworkManager();
 		
+		std::shared_ptr<WasabiGame::WasabiBaseGame> GetApp() const { return m_app; }
 		virtual void Initialize() = 0;
 		virtual void Destroy() = 0;
 		virtual void Update(float fDeltaTime) {}

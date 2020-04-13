@@ -82,6 +82,10 @@ void RTBClient::MainGameState::Load() {
 }
 
 void RTBClient::MainGameState::Update(float fDeltaTime) {
+	if (m_player && m_player->O()) {
+		RTBClient::ClientApplication* app = (RTBClient::ClientApplication*)m_app;
+		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->UpdatePlayer(std::static_pointer_cast<WasabiGame::Unit>(m_player));
+	}
 }
 
 void RTBClient::MainGameState::Cleanup() {
