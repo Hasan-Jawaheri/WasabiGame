@@ -30,6 +30,32 @@ bool RollTheBall::UpdateBuilders::ReadLoginPacket(WasabiGame::NetworkUpdate& inp
 	return true;
 }
 
+void RollTheBall::UpdateBuilders::LoginStatus(WasabiGame::NetworkUpdate& output, bool success) {
+	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN_STATUS;
+	output.dataSize = 1;
+	memcpy(output.data, &success, output.dataSize);
+}
+
+bool RollTheBall::UpdateBuilders::ReadLoginStatusPacket(WasabiGame::NetworkUpdate& input, bool& success) {
+	if (input.dataSize != 1)
+		return false;
+	memcpy(&success, input.data, input.dataSize);
+	return true;
+}
+
+void RollTheBall::UpdateBuilders::SelectGameMode(WasabiGame::NetworkUpdate& output, uint32_t gameMode) {
+	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SELECT_GAME_MODE;
+	output.dataSize = sizeof(uint32_t);
+	memcpy(output.data, &gameMode, output.dataSize);
+}
+
+bool RollTheBall::UpdateBuilders::ReadSelectGameMode(WasabiGame::NetworkUpdate& input, uint32_t& gameMode) {
+	if (input.dataSize != sizeof(uint32_t))
+		return false;
+	memcpy(&gameMode, input.data, input.dataSize);
+	return true;
+}
+
 void RollTheBall::UpdateBuilders::LoadUnit(WasabiGame::NetworkUpdate& output, uint32_t unitType, uint32_t unitId, WVector3 spawnPos) {
 	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOAD_UNIT;
 	output.purpose = unitType;

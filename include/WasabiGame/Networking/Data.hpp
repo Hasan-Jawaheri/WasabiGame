@@ -21,8 +21,8 @@ namespace WasabiGame {
 	const size_t MAX_PACKET_SIZE = 4096;
 	const size_t PACKET_META_SIZE = 10;
 
-	typedef short NetworkUpdateType;
-	typedef short PacketPurpose;
+	typedef uint16_t NetworkUpdateType;
+	typedef uint16_t PacketPurpose;
 
 	struct NetworkUpdate {
 		NetworkUpdateType type;
@@ -39,10 +39,10 @@ namespace WasabiGame {
 			targetId = htonl(targetId);
 			dataSize = htons(dataSize);
 
-			memcpy(packet, (char*)& type, sizeof(NetworkUpdateType));
-			memcpy(packet + 2, (char*)& purpose, sizeof(PacketPurpose));
-			memcpy(packet + 4, (char*)& targetId, sizeof(uint32_t));
-			memcpy(packet + 8, (char*)& dataSize, sizeof(uint16_t));
+			memcpy(packet, (char*)&type, sizeof(NetworkUpdateType));
+			memcpy(packet + 2, (char*)&purpose, sizeof(PacketPurpose));
+			memcpy(packet + 4, (char*)&targetId, sizeof(uint32_t));
+			memcpy(packet + 8, (char*)&dataSize, sizeof(uint16_t));
 			if (hdataSize > 0)
 				memcpy(packet + 10, (char*)data, hdataSize);
 

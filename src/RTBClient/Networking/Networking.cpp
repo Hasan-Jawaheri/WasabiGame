@@ -37,10 +37,11 @@ void RTBClient::ClientNetworking::Initialize() {
 	m_udpConnection->SetConsumeBufferCallback(onConsumeBuffer);
 	
 	m_tcpConnection->SetOnConnectedCallback([this]() {
+		this->Status = RTBConnectionStatus::CONNECTION_CONNECTED;
+		// send a login update
 		WasabiGame::NetworkUpdate loginUpdate;
 		RollTheBall::UpdateBuilders::Login(loginUpdate, ("ghandi-" + std::to_string(std::rand() % 10000)).c_str(), "123456");
 		SendUpdate(loginUpdate);
-		this->Status = RTBConnectionStatus::CONNECTION_CONNECTED;
 	});
 
 	m_tcpConnection->SetOnDisconnectedCallback([this]() {

@@ -45,8 +45,6 @@ namespace RTBServer {
 		virtual void SendUpdate(std::shared_ptr<WasabiGame::NetworkClient>  client, WasabiGame::NetworkUpdate& update, bool important = true) override;
 		virtual void SendUpdate(uint32_t clientId, WasabiGame::NetworkUpdate& update, bool important = true) override;
 		virtual void SendUpdate(WasabiGame::NetworkUpdate& update, bool important = true) override;
-
-		bool Authenticate(WasabiGame::ClientIdentity& identity);
 	};
 
 };

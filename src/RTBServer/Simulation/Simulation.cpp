@@ -42,7 +42,7 @@ void RTBServer::ServerSimulationGameState::Load() {
 
 	std::shared_ptr<ServerNetworking> Networking = std::static_pointer_cast<ServerNetworking>(m_server->Networking);
 
-	Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_WHOIS_UNIT, [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& update) {
+	/*Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_WHOIS_UNIT, [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& update) {
 		std::shared_ptr<RTBServer::ServerConnectedClient> client = std::static_pointer_cast<RTBServer::ServerConnectedClient>(_client);
 		uint32_t unitId;
 		RollTheBall::UpdateBuilders::ReadWhoIsUnitPacket(update, &unitId);
@@ -86,7 +86,7 @@ void RTBServer::ServerSimulationGameState::Load() {
 			std::dynamic_pointer_cast<RollTheBall::RTBAI>(unit->GetAI())->OnNetworkUpdate(prop, data, size);
 		});
 		return unit != nullptr;
-	});
+	});*/
 }
 
 void RTBServer::ServerSimulationGameState::Update(float fDeltaTime) {

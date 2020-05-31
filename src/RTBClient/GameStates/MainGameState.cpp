@@ -7,6 +7,7 @@
 #include "RollTheBall/Units/RTBUnits.hpp"
 #include "RollTheBall/AI/RTBAI.hpp"
 #include "RollTheBall/AI/PlayerAI.hpp"
+#include "RollTheBall/GameModes/GameModes.hpp"
 
 #include "WasabiGame/Maps/MapLoader.hpp"
 #include "WasabiGame/Units/UnitsManager.hpp"
@@ -77,6 +78,19 @@ void RTBClient::MainGameState::Load() {
 		return true;
 	});
 
+	((RTBClient::ClientApplication*)m_app)->Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN_STATUS, [this](std::shared_ptr<WasabiGame::Selectable> s, WasabiGame::NetworkUpdate& update) {
+		bool loginSuccessful = false;
+		RollTheBall::UpdateBuilders::ReadLoginStatusPacket(update, loginSuccessful);
+		if (loginSuccessful) {
+			WasabiGame::NetworkUpdate gameModeUpdate;
+			RollTheBall::UpdateBuilders::SelectGameMode(gameModeUpdate, RollTheBall::RTB_GAME_MODE::GAME_MODE_ONE_VS_ONE);
+			((RTBClient::ClientApplication*)this->m_app)->Networking->SendUpdate(gameModeUpdate);
+		}
+
+		return loginSuccessful;
+	});
+
+
 	// Login to server
 	std::static_pointer_cast<ClientNetworking>(((RTBClient::ClientApplication*)m_app)->Networking)->Login();
 }
@@ -99,6 +113,7 @@ std::shared_ptr<RollTheBall::Player> RTBClient::MainGameState::GetPlayer() const
 RTBClient::GameInputHandler::GameInputHandler(RTBClient::MainGameState* gameState) : WasabiGame::UIElement(((RTBClient::ClientApplication*)gameState->m_app)->UI) {
 	m_game = gameState;
 	m_draggingCamera = false;
+	m_lastMouseX = m_lastMouseY = 0.0;
 }
 
 RTBClient::GameInputHandler::~GameInputHandler() {

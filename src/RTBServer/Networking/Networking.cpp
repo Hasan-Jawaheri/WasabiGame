@@ -1,5 +1,6 @@
 #include "RTBServer/Networking/Networking.hpp"
 #include "RollTheBall/Networking/Protocol.hpp"
+#include "RTBServer/Repositories/ClientsRepository.hpp"
 
 
 RTBServer::ServerNetworking::ServerNetworking(std::shared_ptr<WasabiGame::WasabiBaseGame> app, std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler) : WasabiGame::NetworkManager(app) {
@@ -19,6 +20,7 @@ void RTBServer::ServerNetworking::Initialize() {
 		while (size > 0) {
 			size = update.readPacket(buffer);
 			if (size > 0) {
+				// first message from the client must be a login message
 				if (update.type != RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN && client->Identity.accountName[0] == 0)
 					return false;
 
@@ -44,34 +46,22 @@ void RTBServer::ServerNetworking::Initialize() {
 			this->m_clients.insert(std::make_pair(client->m_id, client));
 			LOG_F(INFO, "CONNECTED: id=%d", client->m_id);
 		}
+		
+		std::shared_ptr<ServerApplication> app = std::static_pointer_cast<ServerApplication>(this->m_app);
+		app->ClientsRepository->SetClientConnected(client, app->GetLoginCell());
 	});
 
 	// client disconnected
 	m_listener->SetOnClientDisconnected([this](std::shared_ptr<WasabiGame::Selectable> _client) {
 		std::shared_ptr<ServerConnectedClient> client = std::dynamic_pointer_cast<ServerConnectedClient>(_client);
 
-		std::static_pointer_cast<ServerApplication>(this->m_app)->OnClientDisconnected(client);
+		std::static_pointer_cast<ServerApplication>(this->m_app)->ClientsRepository->SetClientDisconnected(client);
 
 		{
 			std::lock_guard lockGuard(this->m_clientsMutex);
 			this->m_clients.erase(client->m_id);
 			LOG_F(INFO, "DISCONNECTED: id=%d, account=%s", client->m_id, client->Identity.accountName);
 		}
-	});
-
-	// login update callback
-	RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN, [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& loginUpdate) {
-		std::shared_ptr<ServerConnectedClient> client = std::dynamic_pointer_cast<ServerConnectedClient>(_client);
-		WasabiGame::ClientIdentity identity;
-		if (RollTheBall::UpdateBuilders::ReadLoginPacket(loginUpdate, identity)) {
-			if (this->Authenticate(identity)) {
-				memcpy(&client->Identity, &identity, sizeof(WasabiGame::ClientIdentity));
-				std::static_pointer_cast<ServerApplication>(this->m_app)->OnClientConnected(client);
-				LOG_F(INFO, "AUTHENTICATED: id=%d, account=%s", client->m_id, client->Identity.accountName);
-			} else
-				return false;
-		}
-		return true;
 	});
 
 	m_listener->RunDetached();
@@ -125,8 +115,4 @@ void RTBServer::ServerNetworking::SendUpdate(WasabiGame::NetworkUpdate& update, 
 	std::lock_guard lockGuard(this->m_clientsMutex);
 	for (auto client : m_clients)
 		SendUpdate(client.second, update, important);
-}
-
-bool RTBServer::ServerNetworking::Authenticate(WasabiGame::ClientIdentity& identity) {
-	return std::string(identity.accountName).find("ghandi") == 0 && std::string(identity.passwordHash) == "123456";
 }
