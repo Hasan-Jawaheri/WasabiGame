@@ -21,6 +21,7 @@ namespace RTBServer {
 
 	class ServerApplication : public WasabiGame::WasabiBaseGame {
 		std::unordered_map<uint32_t, std::shared_ptr<RTBConnectedPlayer>> m_connectedPlayers;
+		std::mutex m_cellsMutex;
 		/* 
 		 * cells are logical partitions of players (e.g. game rooms, battlegrounds, separate maps, etc...)
 		 * m_cells[0] is the login cell and m_cells[1] is the matchmaking cell, both are created on startup
@@ -38,6 +39,7 @@ namespace RTBServer {
 
 		void SwitchToInitialState();
 
+		void RegisterCell(std::shared_ptr<ServerCell> cell);
 		std::shared_ptr<ServerCell> GetLoginCell() const;
 		std::shared_ptr<ServerCell> GetMatchmakingCell() const;
 	};

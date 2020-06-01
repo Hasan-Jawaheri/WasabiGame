@@ -6,7 +6,10 @@
 
 namespace RTBServer {
 
-    class MatchmakingCell : public ServerCell {
+    class MatchmakingCell : public ServerCell, public std::enable_shared_from_this<MatchmakingCell> {
+
+        float m_lastUpdateTime;
+        float m_updatePeriod;
 
     public:
         MatchmakingCell(std::shared_ptr<ServerApplication> app);

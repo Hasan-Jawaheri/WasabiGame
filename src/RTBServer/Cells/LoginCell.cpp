@@ -49,7 +49,7 @@ bool RTBServer::LoginCell::OnClientSelectedGameMode(std::shared_ptr<WasabiGame::
     if (RollTheBall::UpdateBuilders::ReadSelectGameMode(gameModeUpdate, gameMode)) {
         switch (gameMode) {
         case RollTheBall::RTB_GAME_MODE::GAME_MODE_ONE_VS_ONE:
-            app->ClientsRepository->MoveClientToCell(client, app->GetMatchmakingCell(), (void*)gameMode);
+            app->ClientsRepository->MoveClientToCell(client, app->GetMatchmakingCell(), (void*)(size_t)gameMode);
             break;
         default:
             LOG_F(WARNING, "Client id=%d, account=%s requested invalid game mode: %d", client->m_id, client->Identity.accountName, gameMode);

@@ -24,6 +24,8 @@ RTBServer::ServerApplication::ServerApplication(bool generateAssets, bool enable
 		if (!RollTheBall::AssetGenerator(m_settings.mediaFolder).Generate())
 			return;
 	}
+
+	Config->Set("MatchmakingCellUpdatePeriodS", 1.0f);
 }
 
 RTBServer::ServerApplication::~ServerApplication() {
@@ -37,8 +39,8 @@ void RTBServer::ServerApplication::SwitchToInitialState() {
 	Networking = std::make_shared<RTBServer::ServerNetworking>(std::static_pointer_cast<WasabiBaseGame>(sharedThis), Config, Scheduler);
 	Networking->Initialize();
 
-	m_cells.push_back(std::make_shared<LoginCell>(sharedThis));
-	m_cells.push_back(std::make_shared<MatchmakingCell>(sharedThis));
+	RegisterCell(std::make_shared<LoginCell>(sharedThis));
+	RegisterCell(std::make_shared<MatchmakingCell>(sharedThis));
 
 	Scheduler->LaunchThread("ServerCellRunner", [this]() { this->UpdateCellsThread(); });
 
@@ -54,6 +56,7 @@ void RTBServer::ServerApplication::UpdateCellsThread() {
 	// This is running in a separate thread
 	//
 	while (true) {
+		std::lock_guard<std::mutex> lock(m_cellsMutex);
 		for (int i = 0; i < m_cells.size(); i++) {
 			if (!m_cells[i]->Update()) {
 				m_cells.erase(m_cells.begin() + i);
@@ -98,6 +101,11 @@ void RTBServer::ServerApplication::OnClientDisconnected(std::shared_ptr<RTBServe
 	// 	m_connectedPlayers.erase(it); // this will remove reference to the pointer
 	// }
 }*/
+
+void RTBServer::ServerApplication::RegisterCell(std::shared_ptr<ServerCell> cell) {
+	std::lock_guard<std::mutex> lock(m_cellsMutex);
+	m_cells.push_back(cell);
+}
 
 std::shared_ptr<RTBServer::ServerCell> RTBServer::ServerApplication::GetLoginCell() const {
 	return m_cells[0];
