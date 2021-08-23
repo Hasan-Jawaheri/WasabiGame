@@ -31,13 +31,13 @@ namespace WasabiGame {
 
 		virtual void SwitchToInitialState() = 0;
 
-		virtual WError Setup();
-		virtual bool Loop(float fDeltaTime);
-		virtual void Cleanup();
+		virtual WError Setup() override;
+		virtual bool Loop(float fDeltaTime) override;
+		virtual void Cleanup() override;
 
-		virtual WError Resize(unsigned int width, unsigned int height);
-		virtual WError SetupRenderer();
-		virtual WPhysicsComponent* CreatePhysicsComponent();
+		virtual WError Resize(unsigned int width, unsigned int height) override;
+		virtual WError SetupRenderer() override;
+		virtual WPhysicsComponent* CreatePhysicsComponent() override;
 
 		std::shared_ptr<GameScheduler> Scheduler;
 		std::shared_ptr<GameConfig> Config;

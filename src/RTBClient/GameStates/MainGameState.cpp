@@ -33,6 +33,8 @@ void RTBClient::MainGameState::Load() {
 	((RTBClient::ClientApplication*)m_app)->UI->AddUIElement(ok, err);
 	((RTBClient::ClientApplication*)m_app)->UI->Load();
 
+	m_input->DisableInput(); // disable input (loading)
+
 	// Load the map
 	((RTBClient::ClientApplication*)m_app)->Maps->SetMap(RollTheBall::MAP_TEST);
 
@@ -41,8 +43,10 @@ void RTBClient::MainGameState::Load() {
 		WVector3 spawnPos;
 		RollTheBall::UpdateBuilders::ReadLoadUnitPacket(update, &unitType, &unitId, &spawnPos);
 		std::shared_ptr<WasabiGame::Unit> unit = ((RTBClient::ClientApplication*)this->m_app)->Units->LoadUnit(unitType, unitId, spawnPos);
-		if (unitType == RollTheBall::UNIT_PLAYER && !this->m_player)
+		if (unitType == RollTheBall::UNIT_PLAYER && !this->m_player) {
+			m_input->EnableInput(); // enable input now that player is loaded
 			this->m_player = std::dynamic_pointer_cast<RollTheBall::Player>(unit);
+		}
 		return true;
 	});
 
@@ -114,9 +118,18 @@ RTBClient::GameInputHandler::GameInputHandler(RTBClient::MainGameState* gameStat
 	m_game = gameState;
 	m_draggingCamera = false;
 	m_lastMouseX = m_lastMouseY = 0.0;
+	m_inputEnabled = true;
 }
 
 RTBClient::GameInputHandler::~GameInputHandler() {
+}
+
+void RTBClient::GameInputHandler::EnableInput() {
+	m_inputEnabled = true;
+}
+
+void RTBClient::GameInputHandler::DisableInput() {
+	m_inputEnabled = false;
 }
 
 bool RTBClient::GameInputHandler::Update(float fDeltaTime) {
@@ -134,95 +147,109 @@ bool RTBClient::GameInputHandler::Update(float fDeltaTime) {
 }
 
 bool RTBClient::GameInputHandler::OnEnter() {
+	if (m_inputEnabled) {
+	}
 	return true;
 }
 
 void RTBClient::GameInputHandler::OnKeydown(uint32_t key) {
-	RTBClient::ClientApplication* app = ((RTBClient::ClientApplication*)m_game->m_app);
-	switch (key) {
-	case W_KEY_W:
-		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveForward(true);
-		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveForward(true);
-		break;
-	case W_KEY_S:
-		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveBackward(true);
-		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveBackward(true);
-		break;
-	case W_KEY_A:
-		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveLeft(true);
-		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveLeft(true);
-		break;
-	case W_KEY_D:
-		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveRight(true);
-		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveRight(true);
-		break;
-	case W_KEY_SPACE:
-		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveJump(true);
-		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveJump(true);
-		break;
+	if (m_inputEnabled) {
+		RTBClient::ClientApplication* app = ((RTBClient::ClientApplication*)m_game->m_app);
+		switch (key) {
+		case W_KEY_W:
+			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveForward(true);
+			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveForward(true);
+			break;
+		case W_KEY_S:
+			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveBackward(true);
+			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveBackward(true);
+			break;
+		case W_KEY_A:
+			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveLeft(true);
+			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveLeft(true);
+			break;
+		case W_KEY_D:
+			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveRight(true);
+			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveRight(true);
+			break;
+		case W_KEY_SPACE:
+			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveJump(true);
+			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveJump(true);
+			break;
+		}
 	}
 }
 
 void RTBClient::GameInputHandler::OnKeyup(uint32_t key) {
-	RTBClient::ClientApplication* app = ((RTBClient::ClientApplication*)m_game->m_app);
-	switch (key) {
-	case W_KEY_W:
-		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveForward(false);
-		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveForward(false);
-		break;
-	case W_KEY_S:
-		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveBackward(false);
-		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveBackward(false);
-		break;
-	case W_KEY_A:
-		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveLeft(false);
-		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveLeft(false);
-		break;
-	case W_KEY_D:
-		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveRight(false);
-		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveRight(false);
-		break;
-	case W_KEY_SPACE:
-		std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveJump(false);
-		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveJump(false);
-		break;
+	if (m_inputEnabled) {
+		RTBClient::ClientApplication* app = ((RTBClient::ClientApplication*)m_game->m_app);
+		switch (key) {
+		case W_KEY_W:
+			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveForward(false);
+			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveForward(false);
+			break;
+		case W_KEY_S:
+			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveBackward(false);
+			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveBackward(false);
+			break;
+		case W_KEY_A:
+			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveLeft(false);
+			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveLeft(false);
+			break;
+		case W_KEY_D:
+			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveRight(false);
+			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveRight(false);
+			break;
+		case W_KEY_SPACE:
+			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveJump(false);
+			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveJump(false);
+			break;
+		}
 	}
 }
 
 void RTBClient::GameInputHandler::OnMouseMove(double mx, double my) {
-	if (m_draggingCamera) {
-		RTBClient::ClientApplication* app = ((RTBClient::ClientApplication*)m_game->m_app);
-		std::shared_ptr<RollTheBall::Player> player = m_game->GetPlayer();
-		std::shared_ptr<RollTheBall::PlayerAI> ai = std::dynamic_pointer_cast<RollTheBall::PlayerAI>(player->GetAI());
-		float yawAngle = ai->GetYawAngle();
-		float cameraPitch = ai->GetCameraPitch();
+	if (m_inputEnabled) {
+		if (m_draggingCamera) {
+			RTBClient::ClientApplication* app = ((RTBClient::ClientApplication*)m_game->m_app);
+			std::shared_ptr<RollTheBall::Player> player = m_game->GetPlayer();
+			std::shared_ptr<RollTheBall::PlayerAI> ai = std::dynamic_pointer_cast<RollTheBall::PlayerAI>(player->GetAI());
+			float yawAngle = ai->GetYawAngle();
+			float cameraPitch = ai->GetCameraPitch();
 
-		int dx = mx - m_lastMouseX;
-		int dy = my - m_lastMouseY;
-		m_lastMouseX = mx;
-		m_lastMouseY = my;
+			int dx = mx - m_lastMouseX;
+			int dy = my - m_lastMouseY;
+			m_lastMouseX = mx;
+			m_lastMouseY = my;
 
-		yawAngle += (float)dx / 2.0f;
-		cameraPitch += (float)dy / 2.0f;
+			yawAngle += (float)dx / 2.0f;
+			cameraPitch += (float)dy / 2.0f;
 
-		ai->SetYawAngle(yawAngle);
-		ai->SetCameraPitch(cameraPitch);
-		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetYawAngle(yawAngle);
+			ai->SetYawAngle(yawAngle);
+			ai->SetCameraPitch(cameraPitch);
+			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetYawAngle(yawAngle);
+		}
 	}
 }
 
 void RTBClient::GameInputHandler::OnMouseButton(double mx, double my, bool bDown) {
+	if (m_inputEnabled) {
+	}
 }
 
 void RTBClient::GameInputHandler::OnMouseButton2(double mx, double my, bool bDown) {
-	Wasabi* app = m_game->m_app;
-	m_draggingCamera = bDown;
-	app->WindowAndInputComponent->SetCursorMotionMode(m_draggingCamera);
-	m_lastMouseX = mx;
-	m_lastMouseY = my;
+	if (m_inputEnabled) {
+		Wasabi* app = m_game->m_app;
+		m_draggingCamera = bDown;
+		app->WindowAndInputComponent->SetCursorMotionMode(m_draggingCamera);
+		m_lastMouseX = mx;
+		m_lastMouseY = my;
+	}
 }
 
 bool RTBClient::GameInputHandler::OnEscape() {
-	m_game->m_app->SwitchState(nullptr);
+	if (m_inputEnabled) {
+		m_game->m_app->SwitchState(nullptr);
+	}
 	return false;
 }

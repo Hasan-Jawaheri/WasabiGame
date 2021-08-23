@@ -2,11 +2,7 @@
 #include "WasabiGame/Main.hpp"
 
 
-WasabiGame::NetworkManager::NetworkManager() : NetworkManager(nullptr) {
-}
-
-WasabiGame::NetworkManager::NetworkManager(std::shared_ptr<WasabiGame::WasabiBaseGame> app) : std::enable_shared_from_this<NetworkManager>() {
-	m_app = app;
+WasabiGame::NetworkManager::NetworkManager() : std::enable_shared_from_this<NetworkManager>() {
 }
 
 WasabiGame::NetworkManager::~NetworkManager() {

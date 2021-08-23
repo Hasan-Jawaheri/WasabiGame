@@ -9,6 +9,7 @@ This project uses the CMake build system.
 - Clone and build [Wasabi](https://github.com/Hasan-Jawaheri/Wasabi) and make sure Vulkan is installed.
 - Run
 ```bash
+git submodule init && git submodule update
 mkdir build
 cd build
 cmake -DWASABI_ROOT="<path to Wasabi build/dist folder>" ..

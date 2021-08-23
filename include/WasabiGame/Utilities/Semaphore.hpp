@@ -15,7 +15,7 @@ namespace WasabiGame {
 		Semaphore(uint32_t count = 1) : m_count(count) {}
 
 		void notify() {
-			std::lock_guard<decltype(m_mutex)> lock(m_mutex);
+			std::scoped_lock<decltype(m_mutex)> lock(m_mutex);
 			m_count++;
 			m_cv.notify_one();
 		}
@@ -29,7 +29,7 @@ namespace WasabiGame {
 		}
 
 		bool try_wait() {
-			std::lock_guard<decltype(m_mutex)> lock(m_mutex);
+			std::scoped_lock<decltype(m_mutex)> lock(m_mutex);
 			if (m_count) {
 				m_count--;
 				return true;

@@ -7,7 +7,7 @@
 #ifndef __INCLUDE_LOGURU__
 #define __INCLUDE_LOGURU__
 #define LOGURU_WITH_STREAMS 1
-#include <Wasabi/loguru.hpp>
+#include <loguru.hpp>
 #endif __INCLUDE_LOGURU__
 
 #define APPNAME "WasabiGame"

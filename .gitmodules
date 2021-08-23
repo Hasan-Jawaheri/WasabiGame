@@ -1,0 +1,3 @@
+[submodule "dependencies/loguru"]
+	path = dependencies/loguru
+	url = git@github.com:emilk/loguru.git

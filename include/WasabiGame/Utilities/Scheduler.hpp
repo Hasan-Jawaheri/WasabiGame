@@ -14,7 +14,7 @@
 #ifndef __INCLUDE_LOGURU__
 #define __INCLUDE_LOGURU__
 #define LOGURU_WITH_STREAMS 1
-#include <Wasabi/loguru.hpp>
+#include <loguru.hpp>
 #endif __INCLUDE_LOGURU__
 
 
@@ -201,7 +201,7 @@ namespace WasabiGame {
 
 		void Run() {
 			while (m_isRunning) {
-				std::this_thread::sleep_for(std::chrono::milliseconds(250));
+				std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 			}
 
 			// cleanup

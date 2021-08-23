@@ -13,6 +13,7 @@ namespace RTBClient {
 	class GameInputHandler : public WasabiGame::UIElement {
 		MainGameState* m_game;
 
+		bool m_inputEnabled;
 		bool m_draggingCamera;
 		double m_lastMouseX, m_lastMouseY;
 
@@ -32,6 +33,9 @@ namespace RTBClient {
 		virtual void OnKeyup(uint32_t key) override;
 		virtual bool OnEscape() override;
 		virtual int GetPosZ() const override { return 0; }
+
+		void EnableInput();
+		void DisableInput();
 	};
 
 	class MainGameState : public WasabiGame::BaseGameState {

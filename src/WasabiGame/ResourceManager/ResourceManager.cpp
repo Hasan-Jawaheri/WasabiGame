@@ -65,7 +65,7 @@ WError WasabiGame::ResourceManager::Init(std::string mediaFolder) {
 }
 
 void WasabiGame::ResourceManager::Update(float fDeltaTime) {
-	std::lock_guard lockGuard(m_modelsToFreeMutex);
+	std::scoped_lock lockGuard(m_modelsToFreeMutex);
 	for (auto it = m_modelsToFree.begin(); it != m_modelsToFree.end(); it++) {
 		W_SAFE_REMOVEREF((*it)->obj);
 		W_SAFE_REMOVEREF((*it)->rb);
@@ -151,7 +151,7 @@ void WasabiGame::ResourceManager::DestroyUnitModel(LOADED_MODEL* model) {
 	auto it = m_generalResources.loadedAssets.find(model->name);
 	m_generalResources.loadedAssets.erase(it);
 	{
-		std::lock_guard lockGuard(m_modelsToFreeMutex);
+		std::scoped_lock lockGuard(m_modelsToFreeMutex);
 		m_modelsToFree.push_back(model);
 	}
 }

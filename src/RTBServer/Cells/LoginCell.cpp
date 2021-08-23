@@ -5,13 +5,14 @@
 #include "RollTheBall/GameModes/GameModes.hpp"
 
 
-RTBServer::LoginCell::LoginCell(std::shared_ptr<ServerApplication> app) : ServerCell(app) {
+RTBServer::LoginCell::LoginCell(std::weak_ptr<ServerApplication> app) : ServerCell(app) {
 	// login update callback
-	app->Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN, [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& loginUpdate) {
+    std::shared_ptr sharedApp = app.lock();
+    sharedApp->Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN, [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& loginUpdate) {
         return this->OnClientLoginUpdate(_client, loginUpdate);
 	});
 
-    app->Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SELECT_GAME_MODE, [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& gameModeUpdate) {
+    sharedApp->Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SELECT_GAME_MODE, [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& gameModeUpdate) {
         return this->OnClientSelectedGameMode(_client, gameModeUpdate);
     });
 }

@@ -51,7 +51,9 @@ WError WasabiGame::WasabiBaseGame::Setup() {
 		WindowAndInputComponent->SetFullScreenState(m_settings.fullscreen);
 
 	if (err) {
-		PhysicsComponent->Start();
+		if (PhysicsComponent)
+			PhysicsComponent->Start();
+
 		WindowAndInputComponent->SetQuitKeys(false, false);
 		CameraManager->GetDefaultCamera()->SetRange(1, 1000);
 

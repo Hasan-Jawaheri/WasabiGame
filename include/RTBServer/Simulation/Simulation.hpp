@@ -12,8 +12,8 @@ namespace RTBServer {
 
 	class ServerApplication;
 
-	class ServerSimulationGameState : public WasabiGame::BaseGameState {
-		ServerApplication* m_server;
+	class ServerSimulation {
+		std::weak_ptr<ServerApplication> m_server;
 
 		struct {
 			float fYaw, fPitch, fDist;
@@ -33,12 +33,12 @@ namespace RTBServer {
 		void ApplyMousePivot();
 
 	public:
-		ServerSimulationGameState(Wasabi* app);
-		virtual ~ServerSimulationGameState();
+		ServerSimulation(std::weak_ptr<ServerApplication> server);
+		virtual ~ServerSimulation();
 
-		virtual void Load();
-		virtual void Update(float fDeltaTime);
-		virtual void Cleanup();
+		void Initialize();
+		void Update();
+		void Cleanup();
 
 		void AddPlayer(std::shared_ptr<RTBConnectedPlayer> player);
 		void RemovePlayer(std::shared_ptr<RTBConnectedPlayer> player);

@@ -2,6 +2,7 @@
 
 #include "RTBClient/Networking/Networking.hpp"
 #include "WasabiGame/Units/Units.hpp"
+#include "Wasabi/Core/WTimer.hpp"
 
 
 namespace RTBClient {
@@ -9,12 +10,13 @@ namespace RTBClient {
 	class MovementNetworkingManager {
 		std::weak_ptr<ClientNetworking> m_clientNetworking;
 
+		::WTimer* m_clientTimer;
 		float m_periodicUpdateTimer;
 		WasabiGame::NetworkUpdate m_update;
 		WVector3 m_playerPosition;
 
 	public:
-		MovementNetworkingManager(std::weak_ptr<ClientNetworking> clientNetworking);
+		MovementNetworkingManager(std::weak_ptr<ClientNetworking> clientNetworking, ::WTimer* clientTimer);
 
 		void Update(float fDeltaTime);
 

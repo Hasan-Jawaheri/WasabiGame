@@ -27,6 +27,8 @@ namespace RTBServer {
 	};
 
 	class ServerNetworking : public WasabiGame::NetworkManager {
+		std::shared_ptr<ServerApplication> m_app;
+
 		std::shared_ptr<WasabiGame::NetworkListenerT<ServerConnectedClient>> m_listener;
 
 		std::mutex m_clientsMutex;
@@ -36,7 +38,7 @@ namespace RTBServer {
 		uint32_t GenerateClientId();
 
 	public:
-		ServerNetworking(std::shared_ptr<WasabiGame::WasabiBaseGame> app, std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler);
+		ServerNetworking(std::shared_ptr<ServerApplication> app, std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler);
 
 		virtual void Initialize() override;
 		virtual void Destroy() override;

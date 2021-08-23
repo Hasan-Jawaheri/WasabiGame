@@ -5,7 +5,7 @@
 #include <thread>
 
 #define GENERATE_ASSETS true
-#define NUM_CLIENTS 1
+#define NUM_CLIENTS 2
 
 void RedirectIOToConsole() {
 #ifdef _WIN32
@@ -47,8 +47,8 @@ Wasabi* WInitialize() {
 
 	std::thread serverThread([]() {
 		std::srand(std::time(nullptr) + 3179);
-		std::shared_ptr<RTBServer::ServerApplication> server = std::make_shared<RTBServer::ServerApplication>(false, false, false);
-		RunWasabi(server.get());
+		std::shared_ptr<RTBServer::ServerApplication> server = std::make_shared<RTBServer::ServerApplication>(false);
+		server.get()->Run();
 	});
 
 	std::vector<std::thread> clientThreads;

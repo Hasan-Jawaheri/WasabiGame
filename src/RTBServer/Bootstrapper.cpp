@@ -34,6 +34,6 @@ Wasabi* WInitialize() {
 	RedirectIOToConsole();
 
 	std::shared_ptr<RTBServer::ServerApplication> app = std::make_shared<RTBServer::ServerApplication>();
-	RunWasabi(app.get());
+	app.get()->Run();
 	return nullptr;
 }

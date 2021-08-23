@@ -12,15 +12,12 @@ namespace WasabiGame {
 	class NetworkManager : public std::enable_shared_from_this<NetworkManager> {
 
 	protected:
-		std::shared_ptr<WasabiGame::WasabiBaseGame> m_app;
 		std::unordered_map<WasabiGame::NetworkUpdateType, std::function<bool(std::shared_ptr<Selectable>, WasabiGame::NetworkUpdate&)>> m_updateCallbacks;
 
 	public:
 		NetworkManager();
-		NetworkManager(std::shared_ptr<WasabiGame::WasabiBaseGame> app);
 		virtual ~NetworkManager();
 		
-		std::shared_ptr<WasabiGame::WasabiBaseGame> GetApp() const { return m_app; }
 		virtual void Initialize() = 0;
 		virtual void Destroy() = 0;
 		virtual void Update(float fDeltaTime) {}

@@ -5,17 +5,18 @@ void RTBServer::ServerClientsRepository::SetClientConnected(std::shared_ptr<RTBS
     std::shared_ptr<CELL_DATA> cellData;
 
     {
-        std::lock_guard<std::recursive_mutex> lock(m_clientsDataByCellMutex);
-        auto clientsIter = m_clientsDataByCell.find(initialCell);
-        if (clientsIter == m_clientsDataByCell.end()) {
+        std::scoped_lock<std::recursive_mutex> lock(m_clientsDataByCellMutex);
+        auto clientsIter = m_clientsDataByCellId.find(initialCell->GetId());
+        if (clientsIter == m_clientsDataByCellId.end()) {
             cellData = std::make_shared<CELL_DATA>();
-            m_clientsDataByCell.insert(std::make_pair(initialCell, cellData));
+            cellData->cell = initialCell;
+            m_clientsDataByCellId.insert(std::make_pair(initialCell->GetId(), cellData));
         } else
             cellData = clientsIter->second;
     }
 
     {
-        std::lock_guard<std::recursive_mutex> lock(cellData->mutex);
+        std::scoped_lock<std::recursive_mutex> lock(cellData->mutex);
         cellData->clientsMap.insert(std::make_pair(client->m_id, client));
     }
 
@@ -26,13 +27,13 @@ void RTBServer::ServerClientsRepository::SetClientDisconnected(std::shared_ptr<R
     std::shared_ptr<ServerCell> cell;
 
     {
-        std::lock_guard<std::recursive_mutex> lock(m_clientsDataByCellMutex);
-        for (auto clientsIter : m_clientsDataByCell) {
-            std::lock_guard<std::recursive_mutex> lock(clientsIter.second->mutex);
+        std::scoped_lock<std::recursive_mutex> lock(m_clientsDataByCellMutex);
+        for (auto clientsIter : m_clientsDataByCellId) {
+            std::scoped_lock<std::recursive_mutex> lock(clientsIter.second->mutex);
             if (clientsIter.second->clientsMap.erase(client->m_id) > 0) {
                 if (clientsIter.second->clientsMap.size() == 0)
-                    m_clientsDataByCell.erase(cell);
-                cell = clientsIter.first;
+                    m_clientsDataByCellId.erase(clientsIter.second->cell->GetId());
+                cell = clientsIter.second->cell;
                 break;
             }
         }
@@ -43,16 +44,16 @@ void RTBServer::ServerClientsRepository::SetClientDisconnected(std::shared_ptr<R
 }
 
 void RTBServer::ServerClientsRepository::MoveClientToCell(std::shared_ptr<RTBServer::ServerConnectedClient> client, std::shared_ptr<ServerCell> newCell, void* arg) {
-    std::lock_guard<std::recursive_mutex> lock(m_clientsDataByCellMutex);
+    std::scoped_lock<std::recursive_mutex> lock(m_clientsDataByCellMutex);
 
     SetClientDisconnected(client);
     SetClientConnected(client, newCell, arg);
 }
 
 void RTBServer::ServerClientsRepository::LockCellClients(std::shared_ptr<ServerCell> cell, ServerCellClientsMap** clientsMap) {
-    std::lock_guard<std::recursive_mutex> lock(m_clientsDataByCellMutex);
-    auto clientsIter = m_clientsDataByCell.find(cell);
-    if (clientsIter == m_clientsDataByCell.end()) {
+    std::scoped_lock<std::recursive_mutex> lock(m_clientsDataByCellMutex);
+    auto clientsIter = m_clientsDataByCellId.find(cell->GetId());
+    if (clientsIter == m_clientsDataByCellId.end()) {
         *clientsMap = nullptr;
     } else {
         clientsIter->second->mutex.lock();
@@ -61,9 +62,9 @@ void RTBServer::ServerClientsRepository::LockCellClients(std::shared_ptr<ServerC
 }
 
 void RTBServer::ServerClientsRepository::UnlockCellClients(std::shared_ptr<ServerCell> cell, ServerCellClientsMap** clientsMap) {
-    std::lock_guard<std::recursive_mutex> lock(m_clientsDataByCellMutex);
-    auto clientsIter = m_clientsDataByCell.find(cell);
-    if (clientsIter != m_clientsDataByCell.end())
+    std::scoped_lock<std::recursive_mutex> lock(m_clientsDataByCellMutex);
+    auto clientsIter = m_clientsDataByCellId.find(cell->GetId());
+    if (clientsIter != m_clientsDataByCellId.end())
         clientsIter->second->mutex.unlock();
     *clientsMap = nullptr;
 }

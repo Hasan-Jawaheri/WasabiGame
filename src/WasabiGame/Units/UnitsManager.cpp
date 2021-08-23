@@ -20,7 +20,7 @@ void WasabiGame::UnitsManager::ResetUnits() {
 
 std::shared_ptr<WasabiGame::Unit> WasabiGame::UnitsManager::LoadUnit(uint32_t type, uint32_t id, WVector3 spawnPos) {
 	{
-		std::lock_guard lockGuard(m_unitsMutex);
+		std::scoped_lock lockGuard(m_unitsMutex);
 		auto it = m_units.find(id);
 		if (it != m_units.end())
 			return it->second.second;
@@ -34,14 +34,14 @@ std::shared_ptr<WasabiGame::Unit> WasabiGame::UnitsManager::LoadUnit(uint32_t ty
 	unit->m_type = type;
 
 	{
-		std::lock_guard lockGuard(m_unitsMutex);
+		std::scoped_lock lockGuard(m_unitsMutex);
 		m_units.insert(std::make_pair(id, std::make_pair(type, unit)));
 	}
 	return unit;
 }
 
 std::shared_ptr<WasabiGame::Unit> WasabiGame::UnitsManager::GetUnit(uint32_t id) {
-	std::lock_guard lockGuard(m_unitsMutex);
+	std::scoped_lock lockGuard(m_unitsMutex);
 	auto it = m_units.find(id);
 	if (it != m_units.end()) {
 		return it->second.second;
@@ -54,7 +54,7 @@ void WasabiGame::UnitsManager::DestroyUnit(std::shared_ptr<Unit> unit) {
 }
 
 void WasabiGame::UnitsManager::DestroyUnit(uint32_t id) {
-	std::lock_guard lockGuard(m_unitsMutex);
+	std::scoped_lock lockGuard(m_unitsMutex);
 	auto it = m_units.find(id);
 	if (it != m_units.end()) {
 		m_units.erase(it);
@@ -62,7 +62,7 @@ void WasabiGame::UnitsManager::DestroyUnit(uint32_t id) {
 }
 
 void WasabiGame::UnitsManager::Update(float fDeltaTime) {
-	std::lock_guard lockGuard(m_unitsMutex);
+	std::scoped_lock lockGuard(m_unitsMutex);
 	std::shared_ptr<Unit> unitToDelete = nullptr;
 	for (auto unit : m_units) {
 		unit.second.second->Update(fDeltaTime);
@@ -76,7 +76,7 @@ void WasabiGame::UnitsManager::Update(float fDeltaTime) {
 }
 
 void WasabiGame::UnitsManager::Cleanup() {
-	std::lock_guard lockGuard(m_unitsMutex);
+	std::scoped_lock lockGuard(m_unitsMutex);
 
 	m_units.clear();
 
