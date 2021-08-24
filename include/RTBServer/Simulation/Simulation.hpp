@@ -15,6 +15,17 @@ namespace RTBServer {
 	class ServerSimulation {
 		std::weak_ptr<ServerApplication> m_server;
 
+		// this is only used for physics, it is not properly initialized
+		class ::Wasabi* m_wasabi;
+
+		std::chrono::steady_clock::time_point m_lastUpdateStart;
+		double m_targetUpdateDurationMs;
+		// this is counting the additional milliseconds that we slept for that we shouldn't have
+		double m_millisecondsSleptBeyondTarget;
+
+		void InitializeFPSRegulation();
+		double RegulateFPS();
+
 		struct {
 			float fYaw, fPitch, fDist;
 			WVector3 vPos;

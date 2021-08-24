@@ -1,6 +1,8 @@
 #include "RTBServer/Simulation/Simulation.hpp"
 #include "RollTheBall/Main.hpp"
 #include "WasabiGame/GameStates/BaseState.hpp"
+#include "Wasabi/Wasabi.hpp"
+#include "Wasabi/Physics/Bullet/WBulletPhysics.hpp"
 
 #include "WasabiGame/ResourceManager/ResourceManager.hpp"
 #include "WasabiGame/Maps/MapLoader.hpp"
@@ -10,9 +12,20 @@
 
 #include "RollTheBall/AI/RTBAI.hpp"
 
+class PhysicsOnlyWasabi : public Wasabi {
+public:
+	PhysicsOnlyWasabi() { PhysicsComponent = new WBulletPhysics(this); }
+	virtual WError Setup() override { return WError(); }
+	virtual bool Loop(float fDeltaTime) override { return false;  }
+	virtual void Cleanup() override {}
+};
+
 
 RTBServer::ServerSimulation::ServerSimulation(std::weak_ptr<ServerApplication> server) {
 	m_server = server;
+	m_wasabi = new PhysicsOnlyWasabi();
+	m_targetUpdateDurationMs = 1000.0 / m_server.lock()->Config->Get<float>("MaxSimulationUpdatesPerSecond");
+	m_millisecondsSleptBeyondTarget = 0.0;
 
 	m_currentUnitId = 1;
 	m_lastBroadcastTime = 0.0f;
@@ -25,6 +38,7 @@ RTBServer::ServerSimulation::ServerSimulation(std::weak_ptr<ServerApplication> s
 }
 
 RTBServer::ServerSimulation::~ServerSimulation() {
+	delete m_wasabi;
 }
 
 uint32_t RTBServer::ServerSimulation::GenerateUnitId() {
@@ -33,6 +47,16 @@ uint32_t RTBServer::ServerSimulation::GenerateUnitId() {
 }
 
 void RTBServer::ServerSimulation::Initialize() {
+	//
+	// This is called in a different thread than Update() and Cleanup()
+	//
+
+	m_wasabi->Timer.Start();
+	m_wasabi->PhysicsComponent->Initialize(true);
+	m_wasabi->PhysicsComponent->Start();
+
+	InitializeFPSRegulation();
+
 	/*m_settings.mediaFolder = "Media/RollTheBall";
 	RollTheBall::SetupRTBMaps(Maps);
 	RollTheBall::SetupRTBUnits(Units, true);
@@ -93,7 +117,57 @@ void RTBServer::ServerSimulation::Initialize() {
 	});*/
 }
 
+void RTBServer::ServerSimulation::InitializeFPSRegulation() {
+	m_lastUpdateStart = std::chrono::high_resolution_clock::now();
+}
+
+double RTBServer::ServerSimulation::RegulateFPS() {
+	auto lastUpdateEnd = std::chrono::high_resolution_clock::now();
+	double updateDurationMs = std::chrono::duration<double, std::milli>(lastUpdateEnd - m_lastUpdateStart).count();
+
+	double targetSleepTimeMs = std::max(0.0, m_targetUpdateDurationMs - updateDurationMs);
+	double targetSleepTimeWithErrorMs = targetSleepTimeMs - m_millisecondsSleptBeyondTarget / 2.0;
+
+	if (targetSleepTimeWithErrorMs >= 5) {
+		// sleep for targetSleepTimeWithErrorMs at 1ms chunks, when we are 5ms away, stop sleeping and just hot loop to avoid sleep inaccuracy
+		double totalSleptDuration = 0;
+		do {
+			if (totalSleptDuration > targetSleepTimeWithErrorMs - 5)
+				std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(1));
+			totalSleptDuration = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - lastUpdateEnd).count();
+		} while (totalSleptDuration < targetSleepTimeWithErrorMs);
+
+		lastUpdateEnd = std::chrono::high_resolution_clock::now();
+		updateDurationMs = std::chrono::duration<double, std::milli>(lastUpdateEnd - m_lastUpdateStart).count();
+
+		/* 
+		 * correct m_millisecondsSleptBeyondTarget: we slept for m_millisecondsSleptBeyondTarget/2 less than target, so error now is
+		 * m_millisecondsSleptBeyondTarget/2 millis less. But due to sleep inaccuracy, there may still be error. The error
+		 * is now just the sleep inaccuracy
+		 */
+		double sleepInaccuracyMs = std::min(100.0, std::max(-100.0, updateDurationMs - m_targetUpdateDurationMs)); // +-100ms max
+		m_millisecondsSleptBeyondTarget -= m_millisecondsSleptBeyondTarget / 2.0 - sleepInaccuracyMs;
+	} else {
+		/*
+		 * m_millisecondsSleptBeyondTarget is too big (i.e. we are behind schedule) and we skipped sleeping this frame. But because
+		 * we skipped sleeping, we are doing better than target so correct m_millisecondsSleptBeyondTarget by how much better we did
+		 * than target (that's how much ahead of schedule we've gotten)
+		 */
+		m_millisecondsSleptBeyondTarget -= targetSleepTimeMs;
+	}
+
+	m_lastUpdateStart = std::chrono::high_resolution_clock::now();
+	return (m_targetUpdateDurationMs + m_millisecondsSleptBeyondTarget) / 1000.0;
+}
+
 void RTBServer::ServerSimulation::Update() {
+	//
+	// This is called in a different thread than Initialize() and Cleanup()
+	//
+
+	double deltaTime = RegulateFPS();
+	m_wasabi->PhysicsComponent->Step(deltaTime);
+
 	/*ApplyMousePivot();
 
 	{
@@ -118,11 +192,20 @@ void RTBServer::ServerSimulation::Update() {
 }
 
 void RTBServer::ServerSimulation::Cleanup() {
+	//
+	// This is called in a different thread than Update() and Initialize()
+	//
+
+	m_wasabi->PhysicsComponent->Cleanup();
 	//m_server->Maps->SetMap(RollTheBall::MAP_NONE);
 }
 
 void RTBServer::ServerSimulation::AddPlayer(std::shared_ptr<RTBServer::RTBConnectedPlayer> player) {
-	/*// this is called in a different thread
+	//
+	// this is called in a different thread than Initialize(), Cleanup() and Update()
+	//
+
+	/*
 	WVector3 spawnPos = WVector3(player->m_x, player->m_y, player->m_z);
 	std::shared_ptr<WasabiGame::Unit> newPlayerUnit = m_server->Units->LoadUnit(RollTheBall::UNIT_PLAYER, GenerateUnitId(), spawnPos);
 
@@ -138,7 +221,11 @@ void RTBServer::ServerSimulation::AddPlayer(std::shared_ptr<RTBServer::RTBConnec
 }
 
 void RTBServer::ServerSimulation::RemovePlayer(std::shared_ptr<RTBServer::RTBConnectedPlayer> player) {
-	/*// this is called in a different thread
+	//
+	// this is called in a different thread than Initialize(), Cleanup() and Update()
+	//
+
+	/*
 	std::shared_ptr<WasabiGame::Unit> playerUnit = nullptr;
 	{
 		std::scoped_lock lockGuard(m_playersMutex);

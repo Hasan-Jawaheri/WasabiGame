@@ -33,6 +33,7 @@ void RTBServer::ServerApplication::Run() {
 
 	Config = std::make_shared<WasabiGame::GameConfig>();
 	Config->Set("MatchmakingCellUpdatePeriodS", 1.0f);
+	Config->Set("MaxSimulationUpdatesPerSecond", 30.0f);
 
 	Scheduler = std::make_shared<WasabiGame::GameScheduler>();
 	ClientsRepository = std::make_shared<RTBServer::ServerClientsRepository>();
