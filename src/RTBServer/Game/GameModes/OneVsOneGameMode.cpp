@@ -41,9 +41,10 @@ void RTBServer::OneVsOneGameMode::Initialize(std::weak_ptr<ServerCell> weakCell)
 
 	server->ClientsRepository->UnlockCellClients(cell, &clientsMap);
 
-	server->Scheduler->LaunchThread("SimulationThread-Cell" + cell->GetId(), [this]() {
-		std::shared_ptr simulation = this->m_simulation; // acquire ownership of simulation
-		while (this->m_simulation != nullptr) { // this->m_simulation is set to nullptr when the game mode exits, so exit simultion then
+	std::shared_ptr<OneVsOneGameMode> sharedThis = std::dynamic_pointer_cast<OneVsOneGameMode>(shared_from_this());
+	server->Scheduler->LaunchThread("SimulationThread-Cell" + cell->GetId(), [sharedThis]() {
+		std::shared_ptr simulation = sharedThis->m_simulation; // acquire ownership of simulation
+		while (sharedThis->m_simulation != nullptr) { // this->m_simulation is set to nullptr when the game mode exits, so exit simultion then
 			simulation->Update();
 		}
 		simulation->Cleanup();

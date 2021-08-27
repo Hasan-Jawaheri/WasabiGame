@@ -5,7 +5,6 @@
 
 #include "WasabiGame/Utilities/Config.hpp"
 #include "WasabiGame/Utilities/Scheduler.hpp"
-#include "WasabiGame/Networking/NetworkManager.hpp"
 #include "RTBServer/Networking/Networking.hpp"
 #include "RTBServer/Cells/ServerCell.hpp"
 #include "RTBServer/Game/RTBConnectedPlayer.hpp"
@@ -20,6 +19,7 @@ namespace RTBServer {
 	class ServerSimulationGameState;
 	class ServerCell;
 	class ServerClientsRepository;
+	class ServerNetworking;
 
 	class ServerApplication : public std::enable_shared_from_this<ServerApplication> {
 		
@@ -48,7 +48,7 @@ namespace RTBServer {
 		std::shared_ptr<ServerClientsRepository> ClientsRepository;
 		std::shared_ptr<WasabiGame::GameScheduler> Scheduler;
 		std::shared_ptr<WasabiGame::GameConfig> Config;
-		std::shared_ptr<WasabiGame::NetworkManager> Networking;
+		std::shared_ptr<ServerNetworking> Networking;
 
 		void RegisterCell(std::shared_ptr<ServerCell> cell);
 		std::shared_ptr<ServerCell> GetLoginCell() const;

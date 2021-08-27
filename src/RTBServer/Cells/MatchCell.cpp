@@ -23,7 +23,7 @@ bool RTBServer::MatchCell::Update() {
     app->ClientsRepository->LockCellClients(sharedThis, &clientsMap);
 
     // cell stays alive as long as there are clients
-    if (clientsMap->size() > 0) {
+    if (clientsMap != nullptr && clientsMap->size() > 0) {
         isMoreThanOnePlayer = true;
         m_gameMode->Update();
     }

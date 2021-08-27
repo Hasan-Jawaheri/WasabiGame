@@ -41,7 +41,6 @@ namespace RTBServer {
 		float m_lastBroadcastTime;
 
 		uint32_t GenerateUnitId();
-		void ApplyMousePivot();
 
 	public:
 		ServerSimulation(std::weak_ptr<ServerApplication> server);

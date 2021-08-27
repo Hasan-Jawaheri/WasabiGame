@@ -26,14 +26,17 @@ public:
 
 
 RTBServer::ServerSimulation::ServerSimulation(std::weak_ptr<ServerApplication> server) {
+	std::shared_ptr<ServerApplication> sharedServer = server.lock();
+
 	m_server = server;
 	m_wasabi = std::make_shared<PhysicsOnlyWasabi>();
-	m_targetUpdateDurationMs = 1000.0 / m_server.lock()->Config->Get<float>("MaxSimulationUpdatesPerSecond");
+	m_targetUpdateDurationMs = 1000.0 / sharedServer->Config->Get<float>("MaxSimulationUpdatesPerSecond");
 	m_millisecondsSleptBeyondTarget = 0.0;
 
 	m_wasabi->Resources = std::make_shared<WasabiGame::ResourceManager>(m_wasabi, true);
 	m_wasabi->Maps = std::make_shared<WasabiGame::MapLoader>(m_wasabi, m_wasabi->Resources);
 	m_wasabi->Units = std::make_shared<WasabiGame::UnitsManager>(m_wasabi, m_wasabi->Resources);
+	m_wasabi->Networking = sharedServer->Networking; // we have a separate networking class in ServerApplication, use that
 	m_currentUnitId = 1;
 	m_lastBroadcastTime = 0.0f;
 
@@ -61,6 +64,7 @@ void RTBServer::ServerSimulation::Initialize() {
 
 	m_wasabi->Timer.Start();
 	m_wasabi->PhysicsComponent->Initialize(true);
+	m_wasabi->PhysicsComponent->SetGravity(0, -40, 0);
 	m_wasabi->PhysicsComponent->Start();
 
 	m_wasabi->Resources->Init(server->Config->Get<std::string>("MediaFolderNoTrailingSlash"));
@@ -70,18 +74,7 @@ void RTBServer::ServerSimulation::Initialize() {
 
 	InitializeFPSRegulation();
 
-	/*m_settings.mediaFolder = "Media/RollTheBall";
-	RollTheBall::SetupRTBMaps(Maps);
-	RollTheBall::SetupRTBUnits(Units, true);
-
-	m_server->PhysicsComponent->SetGravity(0, -40, 0);
-
-	m_server->UI->Load();
-
-	// Load the map
-	m_server->Maps->SetMap(RollTheBall::MAP_TEST);
-
-	std::shared_ptr<ServerNetworking> Networking = std::static_pointer_cast<ServerNetworking>(m_server->Networking);
+	std::shared_ptr<ServerNetworking> Networking = std::static_pointer_cast<ServerNetworking>(m_wasabi->Networking);
 
 	Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_WHOIS_UNIT, [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& update) {
 		std::shared_ptr<RTBServer::ServerConnectedClient> client = std::static_pointer_cast<RTBServer::ServerConnectedClient>(_client);
@@ -92,14 +85,14 @@ void RTBServer::ServerSimulation::Initialize() {
 			std::scoped_lock lockGuard(m_playersMutex);
 			actualUnitId = m_players.find(client->m_id)->second.second->GetId();
 		}
-		std::shared_ptr<WasabiGame::Unit> unit = this->m_server->Units->GetUnit(actualUnitId);
+		std::shared_ptr<WasabiGame::Unit> unit = this->m_wasabi->Units->GetUnit(actualUnitId);
 		if (unit && unit->O()) {
 			WasabiGame::NetworkUpdate unitLoadUpdate;
 			uint32_t unitType = unit->GetType();
 			if (unitType == RollTheBall::UNIT_PLAYER && unitId != 0)
 				unitType = RollTheBall::UNIT_OTHER_PLAYER;
 			RollTheBall::UpdateBuilders::LoadUnit(unitLoadUpdate, unitType, unitId, unit->O()->GetPosition());
-			this->m_server->Networking->SendUpdate(client->m_id, unitLoadUpdate);
+			this->m_wasabi->Networking->SendUpdate(client->m_id, unitLoadUpdate);
 		}
 		return true;
 	});
@@ -118,7 +111,7 @@ void RTBServer::ServerSimulation::Initialize() {
 				unitId = m_players.find(clientId)->second.second->GetId();
 			}
 			if (!unit) {
-				unit = this->m_server->Units->GetUnit(unitId);
+				unit = this->m_wasabi->Units->GetUnit(unitId);
 				if (!unit) {
 					unitId = -1;
 					return;
@@ -127,7 +120,7 @@ void RTBServer::ServerSimulation::Initialize() {
 			std::dynamic_pointer_cast<RollTheBall::RTBAI>(unit->GetAI())->OnNetworkUpdate(prop, data, size);
 		});
 		return unit != nullptr;
-	});*/
+	});
 }
 
 void RTBServer::ServerSimulation::InitializeFPSRegulation() {
@@ -135,6 +128,7 @@ void RTBServer::ServerSimulation::InitializeFPSRegulation() {
 }
 
 double RTBServer::ServerSimulation::RegulateFPS() {
+	m_wasabi->Timer.GetElapsedTime(true); // all subsequent calls to GetElapsedTime will get the time recorded here (for consistent and performance)
 	auto lastUpdateEnd = std::chrono::high_resolution_clock::now();
 	double updateDurationMs = std::chrono::duration<double, std::milli>(lastUpdateEnd - m_lastUpdateStart).count();
 
@@ -185,12 +179,10 @@ void RTBServer::ServerSimulation::Update() {
 	m_wasabi->Units->Update(deltaTime);
 	m_wasabi->Resources->Update(deltaTime);
 
-	/*ApplyMousePivot();
-
 	{
 		std::scoped_lock lockGuard(m_playersMutex);
-		if (m_app->Timer.GetElapsedTime() - m_lastBroadcastTime > 0.05f) {
-			m_lastBroadcastTime = m_app->Timer.GetElapsedTime();
+		if (m_wasabi->Timer.GetElapsedTime() - m_lastBroadcastTime > 0.05f) {
+			m_lastBroadcastTime = m_wasabi->Timer.GetElapsedTime();
 			for (auto senderPlayer : m_players) {
 				WasabiGame::NetworkUpdate update;
 				std::function<void(std::string, void*, uint16_t)> addProp = nullptr;
@@ -200,12 +192,12 @@ void RTBServer::ServerSimulation::Update() {
 
 				for (auto receiverPlayer : m_players) {
 					if (senderPlayer.second != receiverPlayer.second) {
-						m_server->Networking->SendUpdate(receiverPlayer.second.first->m_clientId, update);
+						m_wasabi->Networking->SendUpdate(receiverPlayer.second.first->m_clientId, update);
 					}
 				}
 			}
 		}
-	}*/
+	}
 }
 
 void RTBServer::ServerSimulation::Cleanup() {
@@ -224,19 +216,15 @@ void RTBServer::ServerSimulation::AddPlayer(std::shared_ptr<RTBServer::RTBConnec
 	WVector3 spawnPos = WVector3(player->m_x, player->m_y, player->m_z);
 	std::shared_ptr<WasabiGame::Unit> newPlayerUnit = m_wasabi->Units->LoadUnit(RollTheBall::UNIT_PLAYER, GenerateUnitId(), spawnPos);
 
-	/*
-	WVector3 spawnPos = WVector3(player->m_x, player->m_y, player->m_z);
-	std::shared_ptr<WasabiGame::Unit> newPlayerUnit = m_server->Units->LoadUnit(RollTheBall::UNIT_PLAYER, GenerateUnitId(), spawnPos);
-
 	// special message for the player, make sure the first unit it loads is the player unit (and each player thinks his id is 0)
 	WasabiGame::NetworkUpdate unitLoadUpdate;
 	RollTheBall::UpdateBuilders::LoadUnit(unitLoadUpdate, RollTheBall::UNIT_PLAYER, 0, spawnPos);
-	m_server->Networking->SendUpdate(player->m_clientId, unitLoadUpdate);
+	m_wasabi->Networking->SendUpdate(player->m_clientId, unitLoadUpdate);
 
 	{
 		std::scoped_lock lockGuard(m_playersMutex);
 		m_players.insert(std::make_pair(player->m_clientId, std::make_pair(player, newPlayerUnit)));
-	}*/
+	}
 }
 
 void RTBServer::ServerSimulation::RemovePlayer(std::shared_ptr<RTBServer::RTBConnectedPlayer> player) {
@@ -244,7 +232,6 @@ void RTBServer::ServerSimulation::RemovePlayer(std::shared_ptr<RTBServer::RTBCon
 	// this is called in a different thread than Initialize(), Cleanup() and Update()
 	//
 
-	/*
 	std::shared_ptr<WasabiGame::Unit> playerUnit = nullptr;
 	{
 		std::scoped_lock lockGuard(m_playersMutex);
@@ -258,57 +245,7 @@ void RTBServer::ServerSimulation::RemovePlayer(std::shared_ptr<RTBServer::RTBCon
 	if (playerUnit) {
 		WasabiGame::NetworkUpdate unitUnloadUpdate;
 		RollTheBall::UpdateBuilders::UnloadUnit(unitUnloadUpdate, playerUnit->GetId());
-		m_server->Networking->SendUpdate(nullptr, unitUnloadUpdate);
-		m_server->Units->DestroyUnit(playerUnit);
-	}*/
-}
-
-void RTBServer::ServerSimulation::ApplyMousePivot() {
-	/*WCamera* cam = m_app->CameraManager->GetDefaultCamera();
-	if (m_app->WindowAndInputComponent->MouseClick(MOUSE_LEFT)) {
-		if (!m_cam.bMouseHidden) {
-			m_app->WindowAndInputComponent->ShowCursor(false);
-			m_cam.bMouseHidden = true;
-
-			m_cam.lastX = m_app->WindowAndInputComponent->MouseX(MOUSEPOS_DESKTOP, 0);
-			m_cam.lastY = m_app->WindowAndInputComponent->MouseY(MOUSEPOS_DESKTOP, 0);
-
-			m_app->WindowAndInputComponent->SetMousePosition(640 / 2, 480 / 2, MOUSEPOS_VIEWPORT);
-		}
-
-		int mx = m_app->WindowAndInputComponent->MouseX(MOUSEPOS_VIEWPORT, 0);
-		int my = m_app->WindowAndInputComponent->MouseY(MOUSEPOS_VIEWPORT, 0);
-
-		int dx = mx - 640 / 2;
-		int dy = my - 480 / 2;
-
-		if (fabs(dx) < 2)
-			dx = 0;
-		if (fabs(dy) < 2)
-			dy = 0;
-
-		m_cam.fYaw += (float)dx / 2.0f;
-		m_cam.fPitch += (float)dy / 2.0f;
-
-		if (dx || dy)
-			m_app->WindowAndInputComponent->SetMousePosition(640 / 2, 480 / 2);
-	} else {
-		if (m_cam.bMouseHidden) {
-			m_app->WindowAndInputComponent->ShowCursor(true);
-			m_cam.bMouseHidden = false;
-
-			m_app->WindowAndInputComponent->SetMousePosition(m_cam.lastX, m_cam.lastY, MOUSEPOS_DESKTOP);
-		}
+		m_wasabi->Networking->SendUpdate(nullptr, unitUnloadUpdate);
+		m_wasabi->Units->DestroyUnit(playerUnit);
 	}
-
-	float fMouseZ = (float)m_app->WindowAndInputComponent->MouseZ();
-	m_cam.fDist += (fMouseZ) * (abs(m_cam.fDist) / 10.0f);
-	m_app->WindowAndInputComponent->SetMouseZ(0);
-	m_cam.fDist = fmin(-1, m_cam.fDist);
-
-	cam->SetPosition(m_cam.vPos);
-	cam->SetAngle(WQuaternion());
-	cam->Yaw(m_cam.fYaw);
-	cam->Pitch(m_cam.fPitch);
-	cam->Move(m_cam.fDist);*/
 }
