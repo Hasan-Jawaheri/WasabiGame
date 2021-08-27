@@ -15,12 +15,13 @@ namespace WasabiGame {
 		WRigidBody* rb;
 		WSkeleton* skeleton;
 
-		LOADED_MODEL() : obj(nullptr), rb(nullptr) {}
+		LOADED_MODEL() : obj(nullptr), rb(nullptr), skeleton(nullptr) {}
 	};
 
 	class ResourceManager {
 		std::weak_ptr<WasabiBaseGame> m_app;
 		std::string m_mediaFolder;
+		bool m_onlyPhysics;
 
 		struct MAP_RESOURCES {
 			WFile* mapFile;
@@ -41,7 +42,7 @@ namespace WasabiGame {
 		std::vector<LOADED_MODEL*> m_modelsToFree;
 
 	public:
-		ResourceManager(std::shared_ptr<WasabiBaseGame> app);
+		ResourceManager(std::shared_ptr<WasabiBaseGame> app, bool onlyPhysics = false);
 		~ResourceManager();
 
 		WError Init(std::string mediaFolder);

@@ -24,7 +24,6 @@ void RTBServer::OneVsOneGameMode::Initialize(std::weak_ptr<ServerCell> weakCell)
 		std::shared_ptr<ServerConnectedClient> client = iter->second;
 		std::shared_ptr<RTBConnectedPlayer> player = std::make_shared<RTBConnectedPlayer>(client->m_id);
 		m_connectedPlayers.insert(std::make_pair(client->m_id, player));
-		m_simulation->AddPlayer(player);
 
 		if (!player->Load(client->Identity)) {
 			// failed to load player data

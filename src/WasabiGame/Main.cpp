@@ -26,15 +26,15 @@ WasabiGame::WasabiBaseGame::WasabiBaseGame() : Wasabi(), std::enable_shared_from
 	Config = std::make_shared<GameConfig>();
 	Scheduler = std::make_shared<GameScheduler>();
 	Networking = nullptr;
+	m_schedulerThread = nullptr;
+}
 
-	
+WError WasabiGame::WasabiBaseGame::Setup() {
 	m_schedulerThread = new std::thread([this]() {
 		std::srand(std::time(nullptr) + 7511);
 		this->Scheduler->Run();
 	});
-}
 
-WError WasabiGame::WasabiBaseGame::Setup() {
 	Resources = std::make_shared<ResourceManager>(shared_from_this());
 	UI = std::make_shared<UserInterface>(shared_from_this());
 	Maps = std::make_shared<MapLoader>(shared_from_this(), Resources);

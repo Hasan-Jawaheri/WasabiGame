@@ -89,6 +89,13 @@ namespace RollTheBall {
 
 			plain->SetName("test-plain");
 			mapFile->SaveAsset(plain);
+
+			// save rigidbodies for server to load
+			saveRigidBodyForObject(app, mapFile, plain);
+			for (uint i = 0; i < boxes.size(); i++) {
+				saveRigidBodyForObject(app, mapFile, boxes[i]);
+			}
+
 			W_SAFE_REMOVEREF(plain);
 
 			for (uint i = 0; i < boxes.size(); i++) {
@@ -104,6 +111,32 @@ namespace RollTheBall {
 			}
 
 			return true;
+		}
+
+		static void saveRigidBodyForObject(Wasabi* app, WFile* mapFile, WObject* object) {
+			WGeometry* geometry = object->GetGeometry();
+			W_VERTEX_DESCRIPTION vertexDescription = geometry->GetVertexDescription();
+			WVector3* vertexPositions = new WVector3[geometry->GetNumVertices()];
+			char* vertices;
+			uint32_t* indices;
+			geometry->MapVertexBuffer((void**)&vertices, W_MAP_READ);
+			geometry->MapIndexBuffer((void**)&indices, W_MAP_READ);
+
+			// copy over the vertex positions only
+			for (int i = 0; i < geometry->GetNumVertices(); i++) {
+				memcpy(&vertexPositions[i], vertices + vertexDescription.GetSize() * i + vertexDescription.GetOffset(W_ATTRIBUTE_POSITION.name), sizeof(WVector3));
+			}
+
+			WRigidBody* rb = app->PhysicsComponent->CreateRigidBody();
+			rb->Create(W_RIGID_BODY_CREATE_INFO::ForComplexRawGeometry(vertexPositions, geometry->GetNumVertices(), indices, geometry->GetNumIndices() / 3, true, object), true);
+			rb->SetFriction(1.0f);
+			rb->SetName(object->GetName() + "-rigidbody");
+			mapFile->SaveAsset(rb);
+			W_SAFE_REMOVEREF(rb);
+
+			geometry->UnmapVertexBuffer(false);
+			geometry->UnmapIndexBuffer();
+			W_SAFE_DELETE_ARRAY(vertexPositions);
 		}
 	};
 

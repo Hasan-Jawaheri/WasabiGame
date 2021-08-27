@@ -16,7 +16,7 @@ namespace RTBServer {
 		std::weak_ptr<ServerApplication> m_server;
 
 		// this is only used for physics, it is not properly initialized
-		class ::Wasabi* m_wasabi;
+		std::shared_ptr<WasabiGame::WasabiBaseGame> m_wasabi;
 
 		std::chrono::steady_clock::time_point m_lastUpdateStart;
 		double m_targetUpdateDurationMs;

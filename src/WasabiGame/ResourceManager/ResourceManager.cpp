@@ -7,11 +7,12 @@
 typedef std::filesystem::path stdpath;
 
 
-WasabiGame::ResourceManager::ResourceManager(std::shared_ptr<WasabiBaseGame> app) {
+WasabiGame::ResourceManager::ResourceManager(std::shared_ptr<WasabiBaseGame> app, bool onlyPhysics) {
 	m_app = app;
 	m_mediaFolder = "";
 	m_mapResources = {};
 	m_generalResources = {};
+	m_onlyPhysics = onlyPhysics;
 }
 
 WasabiGame::ResourceManager::~ResourceManager() {
@@ -83,66 +84,93 @@ void WasabiGame::ResourceManager::LoadMapFile(std::string mapFilename) {
 
 	std::shared_ptr<WasabiBaseGame> app = m_app.lock();
 
+	WError err = WError(W_SUCCEEDED);
 	if (mapFilename != "") {
 		std::string fullMapFilename = (stdpath(m_mediaFolder) / "Maps" / (mapFilename + ".WSBI")).string();
 		m_mapResources.mapFile = new WFile(app.get());
-		WError err = m_mapResources.mapFile->Open(fullMapFilename);
-		if (!err) {
-			app->WindowAndInputComponent->ShowErrorMessage("Failed to load map: " + err.AsString());
-			m_mapResources.Cleanup();
-			return;
-		}
+		err = m_mapResources.mapFile->Open(fullMapFilename);
+		if (err) {
+			uint numAssets = m_mapResources.mapFile->GetAssetsCount();
+			for (uint i = 0; i < numAssets; i++) {
+				std::pair<std::string, std::string> info = m_mapResources.mapFile->GetAssetInfo(i);
+				std::string& name = info.first;
+				std::string& type = info.second;
+				if (!m_onlyPhysics) {
+					if (type == WObject::_GetTypeName()) {
+						LOADED_MODEL asset;
+						WError err = m_mapResources.mapFile->LoadAsset<WObject>(name, &asset.obj, WObject::LoadArgs());
+						if (!err) {
+							break;
+						}
 
-		uint numAssets = m_mapResources.mapFile->GetAssetsCount();
-		for (uint i = 0; i < numAssets; i++) {
-			std::pair<std::string, std::string> info = m_mapResources.mapFile->GetAssetInfo(i);
-			std::string& name = info.first;
-			std::string& type = info.second;
-			if (type == WObject::_GetTypeName()) {
-				LOADED_MODEL asset;
-				WError err = m_mapResources.mapFile->LoadAsset<WObject>(name, &asset.obj, WObject::LoadArgs());
-				asset.rb = app->PhysicsComponent->CreateRigidBody();
-				err = asset.rb->Create(W_RIGID_BODY_CREATE_INFO::ForComplexObject(asset.obj));
-				if (err) {
-					asset.rb->SetFriction(1.0f);
-					asset.rb->BindObject(asset.obj, asset.obj);
+						asset.rb = app->PhysicsComponent->CreateRigidBody();
+						err = asset.rb->Create(W_RIGID_BODY_CREATE_INFO::ForComplexObject(asset.obj));
+						if (!err) {
+							break;
+						}
+
+						asset.rb->SetFriction(1.0f);
+						asset.rb->BindObject(asset.obj, asset.obj);
+
+						m_mapResources.loadedAssets.push_back(asset);
+					} else if (type == WLight::_GetTypeName()) {
+						WLight* light = nullptr;
+						WError err = m_mapResources.mapFile->LoadAsset<WLight>(name, &light, WLight::LoadArgs());
+						if (!err) {
+							break;
+						}
+
+						m_mapResources.loadedLights.push_back(light);
+					}
+				} else {
+					// only load rigid bodies if in onlyPhysics mode
+					if (type == WBulletRigidBody::_GetTypeName()) {
+						LOADED_MODEL asset;
+						WError err = m_mapResources.mapFile->LoadAsset<WBulletRigidBody>(name, (WBulletRigidBody**)&asset.rb, WBulletRigidBody::LoadArgs());
+						m_mapResources.loadedAssets.push_back(asset);
+					}
 				}
-				m_mapResources.loadedAssets.push_back(asset);
-			} else if (type == WLight::_GetTypeName()) {
-				WLight* light = nullptr;
-				WError err = m_mapResources.mapFile->LoadAsset<WLight>(name, &light, WLight::LoadArgs());
-				if (err)
-					m_mapResources.loadedLights.push_back(light);
 			}
 		}
+	}
+
+	if (!err) {
+		app->WindowAndInputComponent->ShowErrorMessage("Failed to load map: " + err.AsString());
+		m_mapResources.Cleanup();
+		return;
 	}
 }
 
 WasabiGame::LOADED_MODEL* WasabiGame::ResourceManager::LoadUnitModel(std::string unitName) {
+	WError err;
 	LOADED_MODEL* asset = new LOADED_MODEL();
 	std::string suffix = "-" + std::to_string((size_t)asset);
 	asset->name = unitName + suffix;
 
-	WError err = m_generalResources.assetsFile->LoadAsset<WObject>(unitName, &asset->obj, WObject::LoadArgs(), suffix);
-	if (!err) {
-		delete asset;
-		return nullptr;
+	if (!m_onlyPhysics) {
+		err = m_generalResources.assetsFile->LoadAsset<WObject>(unitName, &asset->obj, WObject::LoadArgs(), suffix);
+		if (!err) {
+			delete asset;
+			return nullptr;
+		}
 	}
-
-	m_generalResources.loadedAssets.insert(std::make_pair(asset->name, asset));
 
 	err = m_generalResources.assetsFile->LoadAsset<WBulletRigidBody>(unitName + "-rigidbody", (WBulletRigidBody**)&asset->rb, WBulletRigidBody::LoadArgs(), suffix);
 	if (err == W_SUCCEEDED) {
 		asset->rb->BindObject(asset->obj, asset->obj);
 	}
 
-	err = m_generalResources.assetsFile->LoadAsset<WSkeleton>(unitName + "-skeleton", &asset->skeleton, WSkeleton::LoadArgs(), suffix);
-	if (err == W_SUCCEEDED) {
-		asset->obj->SetAnimation(asset->skeleton);
-		asset->skeleton->Play();
-		asset->skeleton->SetPlaySpeed(10);
-		asset->skeleton->RemoveReference();
+	if (!m_onlyPhysics) {
+		err = m_generalResources.assetsFile->LoadAsset<WSkeleton>(unitName + "-skeleton", &asset->skeleton, WSkeleton::LoadArgs(), suffix);
+		if (err == W_SUCCEEDED) {
+			asset->obj->SetAnimation(asset->skeleton);
+			asset->skeleton->Play();
+			asset->skeleton->SetPlaySpeed(10);
+			asset->skeleton->RemoveReference();
+		}
 	}
+
+	m_generalResources.loadedAssets.insert(std::make_pair(asset->name, asset));
 
 	return asset;
 }

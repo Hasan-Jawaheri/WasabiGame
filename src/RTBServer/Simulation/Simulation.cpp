@@ -1,7 +1,6 @@
 #include "RTBServer/Simulation/Simulation.hpp"
 #include "RollTheBall/Main.hpp"
-#include "WasabiGame/GameStates/BaseState.hpp"
-#include "Wasabi/Wasabi.hpp"
+#include "WasabiGame/Main.hpp"
 #include "Wasabi/Physics/Bullet/WBulletPhysics.hpp"
 
 #include "WasabiGame/ResourceManager/ResourceManager.hpp"
@@ -12,21 +11,29 @@
 
 #include "RollTheBall/AI/RTBAI.hpp"
 
-class PhysicsOnlyWasabi : public Wasabi {
+class PhysicsOnlyWasabi : public WasabiGame::WasabiBaseGame {
 public:
-	PhysicsOnlyWasabi() { PhysicsComponent = new WBulletPhysics(this); }
+	PhysicsOnlyWasabi() {
+		PhysicsComponent = new WBulletPhysics(this);
+		FileManager = new WFileManager(this);
+	}
+
 	virtual WError Setup() override { return WError(); }
 	virtual bool Loop(float fDeltaTime) override { return false;  }
 	virtual void Cleanup() override {}
+	virtual void SwitchToInitialState() override {}
 };
 
 
 RTBServer::ServerSimulation::ServerSimulation(std::weak_ptr<ServerApplication> server) {
 	m_server = server;
-	m_wasabi = new PhysicsOnlyWasabi();
+	m_wasabi = std::make_shared<PhysicsOnlyWasabi>();
 	m_targetUpdateDurationMs = 1000.0 / m_server.lock()->Config->Get<float>("MaxSimulationUpdatesPerSecond");
 	m_millisecondsSleptBeyondTarget = 0.0;
 
+	m_wasabi->Resources = std::make_shared<WasabiGame::ResourceManager>(m_wasabi, true);
+	m_wasabi->Maps = std::make_shared<WasabiGame::MapLoader>(m_wasabi, m_wasabi->Resources);
+	m_wasabi->Units = std::make_shared<WasabiGame::UnitsManager>(m_wasabi, m_wasabi->Resources);
 	m_currentUnitId = 1;
 	m_lastBroadcastTime = 0.0f;
 
@@ -38,7 +45,6 @@ RTBServer::ServerSimulation::ServerSimulation(std::weak_ptr<ServerApplication> s
 }
 
 RTBServer::ServerSimulation::~ServerSimulation() {
-	delete m_wasabi;
 }
 
 uint32_t RTBServer::ServerSimulation::GenerateUnitId() {
@@ -51,9 +57,16 @@ void RTBServer::ServerSimulation::Initialize() {
 	// This is called in a different thread than Update() and Cleanup()
 	//
 
+	std::shared_ptr<ServerApplication> server = m_server.lock();
+
 	m_wasabi->Timer.Start();
 	m_wasabi->PhysicsComponent->Initialize(true);
 	m_wasabi->PhysicsComponent->Start();
+
+	m_wasabi->Resources->Init(server->Config->Get<std::string>("MediaFolderNoTrailingSlash"));
+	RollTheBall::SetupRTBUnits(m_wasabi->Units, true);
+	RollTheBall::SetupRTBMaps(m_wasabi->Maps);
+	m_wasabi->Maps->SetMap(RollTheBall::MAP_NAME::MAP_TEST);
 
 	InitializeFPSRegulation();
 
@@ -168,6 +181,10 @@ void RTBServer::ServerSimulation::Update() {
 	double deltaTime = RegulateFPS();
 	m_wasabi->PhysicsComponent->Step(deltaTime);
 
+	m_wasabi->Maps->Update(deltaTime);
+	m_wasabi->Units->Update(deltaTime);
+	m_wasabi->Resources->Update(deltaTime);
+
 	/*ApplyMousePivot();
 
 	{
@@ -204,6 +221,8 @@ void RTBServer::ServerSimulation::AddPlayer(std::shared_ptr<RTBServer::RTBConnec
 	//
 	// this is called in a different thread than Initialize(), Cleanup() and Update()
 	//
+	WVector3 spawnPos = WVector3(player->m_x, player->m_y, player->m_z);
+	std::shared_ptr<WasabiGame::Unit> newPlayerUnit = m_wasabi->Units->LoadUnit(RollTheBall::UNIT_PLAYER, GenerateUnitId(), spawnPos);
 
 	/*
 	WVector3 spawnPos = WVector3(player->m_x, player->m_y, player->m_z);
