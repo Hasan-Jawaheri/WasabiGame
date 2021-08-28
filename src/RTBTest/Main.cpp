@@ -54,7 +54,7 @@ Wasabi* WInitialize() {
 	std::vector<std::thread> clientThreads;
 	for (int i = 0; i < NUM_CLIENTS; i++) {
 		clientThreads.push_back(std::thread([i]() {
-			std::srand(std::time(nullptr) + i * 1789);
+			std::srand(std::time(nullptr) + (time_t)i * 1789);
 			std::shared_ptr<RTBClient::ClientApplication> client = std::make_shared<RTBClient::ClientApplication>(false, false, false);
 			RunWasabi(client.get());
 		}));

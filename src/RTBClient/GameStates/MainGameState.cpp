@@ -1,7 +1,6 @@
 #include "RTBClient/Main.hpp"
 #include "RTBClient/GameStates/MainGameState.hpp"
 #include "RTBClient/Networking/Networking.hpp"
-#include "RTBClient/Networking/MovementNetworkingManager.hpp"
 
 #include "RollTheBall/Maps/RTBMaps.hpp"
 #include "RollTheBall/Units/RTBUnits.hpp"
@@ -77,7 +76,6 @@ void RTBClient::MainGameState::Load() {
 			}
 
 			std::dynamic_pointer_cast<RollTheBall::RTBAI>(unit->GetAI())->OnNetworkUpdate(prop, data, size);
-			return;
 		});
 		return true;
 	});
@@ -100,10 +98,6 @@ void RTBClient::MainGameState::Load() {
 }
 
 void RTBClient::MainGameState::Update(float fDeltaTime) {
-	if (m_player && m_player->O()) {
-		RTBClient::ClientApplication* app = (RTBClient::ClientApplication*)m_app;
-		std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->UpdatePlayer(std::static_pointer_cast<WasabiGame::Unit>(m_player));
-	}
 }
 
 void RTBClient::MainGameState::Cleanup() {
@@ -158,23 +152,18 @@ void RTBClient::GameInputHandler::OnKeydown(uint32_t key) {
 		switch (key) {
 		case W_KEY_W:
 			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveForward(true);
-			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveForward(true);
 			break;
 		case W_KEY_S:
 			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveBackward(true);
-			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveBackward(true);
 			break;
 		case W_KEY_A:
 			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveLeft(true);
-			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveLeft(true);
 			break;
 		case W_KEY_D:
 			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveRight(true);
-			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveRight(true);
 			break;
 		case W_KEY_SPACE:
 			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveJump(true);
-			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveJump(true);
 			break;
 		}
 	}
@@ -186,23 +175,18 @@ void RTBClient::GameInputHandler::OnKeyup(uint32_t key) {
 		switch (key) {
 		case W_KEY_W:
 			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveForward(false);
-			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveForward(false);
 			break;
 		case W_KEY_S:
 			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveBackward(false);
-			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveBackward(false);
 			break;
 		case W_KEY_A:
 			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveLeft(false);
-			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveLeft(false);
 			break;
 		case W_KEY_D:
 			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveRight(false);
-			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveRight(false);
 			break;
 		case W_KEY_SPACE:
 			std::dynamic_pointer_cast<RollTheBall::RTBAI>(m_game->m_player->GetAI())->SetMoveJump(false);
-			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetMoveJump(false);
 			break;
 		}
 	}
@@ -227,7 +211,6 @@ void RTBClient::GameInputHandler::OnMouseMove(double mx, double my) {
 
 			ai->SetYawAngle(yawAngle);
 			ai->SetCameraPitch(cameraPitch);
-			std::dynamic_pointer_cast<RTBClient::ClientNetworking>(app->Networking)->Movement->SetYawAngle(yawAngle);
 		}
 	}
 }

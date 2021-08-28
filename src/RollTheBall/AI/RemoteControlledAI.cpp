@@ -14,7 +14,7 @@ void RollTheBall::RemoteControlledAI::Update(float fDeltaTime) {
 	std::shared_ptr<WasabiGame::Unit> unit = m_unit.lock();
 
 	float currentTime = app->Timer.GetElapsedTime();
-	while (m_replayStates.size() > 0 && m_replayStates[0].time + 0.5f <= currentTime) {
+	while (m_replayStates.size() > 0 && m_replayStates[0].time + 0.2f <= currentTime) {
 		WOrientation* orientation = unit->O();
 		RollTheBall::MOVEMENT_PACKET_STRUCT m = m_replayStates[0];
 		if (m.type == 'Y')
@@ -47,9 +47,16 @@ void RollTheBall::RemoteControlledAI::OnNetworkUpdate(std::string prop, void* da
 	std::shared_ptr<WasabiGame::Unit> unit = m_unit.lock();
 
 	if (prop == "move" && size == sizeof(RollTheBall::MOVEMENT_PACKET_STRUCT)) {
-		AI_MOVEMENT curStateInTimeline = m_movement;
 		RollTheBall::MOVEMENT_PACKET_STRUCT m;
 		memcpy((void*)&m, data, sizeof(RollTheBall::MOVEMENT_PACKET_STRUCT));
+		m_replayStates.push_back(m);
+	} else if (prop == "pos" && size == sizeof(WVector3)) {
+		WVector3 position;
+		memcpy((void*)&position, data, sizeof(WVector3));
+
+		RollTheBall::MOVEMENT_PACKET_STRUCT m;
+		m.type = 'P';
+		m.prop.pos = position;
 		m_replayStates.push_back(m);
 	}
 }

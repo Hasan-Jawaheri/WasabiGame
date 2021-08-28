@@ -1,5 +1,4 @@
 #include "RTBClient/Networking/Networking.hpp"
-#include "RTBClient/Networking/MovementNetworkingManager.hpp"
 #include "WasabiGame/Main.hpp"
 
 #include <random>
@@ -9,7 +8,6 @@ RTBClient::ClientNetworking::ClientNetworking(std::shared_ptr<WasabiGame::Wasabi
 	m_tcpConnection = std::make_shared<WasabiGame::ReconnectingNetworkClient>(m_listener);
 	m_udpConnection = std::make_shared<WasabiGame::ReconnectingNetworkClient>(m_listener);
 	Status = RTBConnectionStatus::CONNECTION_NOT_CONNECTED;
-	m_clientTimer = &app->Timer;
 }
 
 void RTBClient::ClientNetworking::Initialize() {
@@ -19,8 +17,6 @@ void RTBClient::ClientNetworking::Initialize() {
 	m_listener->Config->Set<int>("tcpPort", 0);
 	m_listener->Config->Set<int>("udpPort", 0);
 	m_listener->Config->Set<int>("numWorkers", 1);
-
-	Movement = std::make_shared<MovementNetworkingManager>(std::dynamic_pointer_cast<ClientNetworking>(shared_from_this()), m_clientTimer);
 
 	std::function<bool(WasabiGame::CircularBuffer*)> onConsumeBuffer = [this](WasabiGame::CircularBuffer* buffer) {
 		WasabiGame::NetworkUpdate update;
@@ -69,7 +65,6 @@ void RTBClient::ClientNetworking::Destroy() {
 }
 
 void RTBClient::ClientNetworking::Update(float fDeltaTime) {
-	Movement->Update(fDeltaTime);
 }
 
 void RTBClient::ClientNetworking::Login() {

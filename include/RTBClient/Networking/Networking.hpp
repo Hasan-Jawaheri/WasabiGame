@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Wasabi/Core/WTimer.hpp"
 #include "WasabiGame/Networking/Data.hpp"
 #include "WasabiGame/Networking/NetworkManager.hpp"
 #include "WasabiGame/Networking/NetworkListener.hpp"
@@ -20,11 +19,7 @@ namespace RTBClient {
 		CONNECTION_CONNECTED = 3,
 	};
 
-	class MovementNetworkingManager;
-
 	class ClientNetworking : public WasabiGame::NetworkManager {
-		::WTimer* m_clientTimer;
-
 		std::shared_ptr<WasabiGame::NetworkListenerT<WasabiGame::NetworkClient>> m_listener;
 
 		std::shared_ptr<WasabiGame::ReconnectingNetworkClient> m_tcpConnection;
@@ -34,7 +29,6 @@ namespace RTBClient {
 		ClientNetworking(std::shared_ptr<WasabiGame::WasabiBaseGame> app, std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler);
 
 		std::atomic<RTBConnectionStatus> Status;
-		std::shared_ptr<MovementNetworkingManager> Movement;
 
 		virtual void Initialize() override;
 		virtual void Destroy() override;

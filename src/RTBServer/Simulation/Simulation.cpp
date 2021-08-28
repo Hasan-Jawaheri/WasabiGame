@@ -184,15 +184,20 @@ void RTBServer::ServerSimulation::Update() {
 		if (m_wasabi->Timer.GetElapsedTime() - m_lastBroadcastTime > 0.05f) {
 			m_lastBroadcastTime = m_wasabi->Timer.GetElapsedTime();
 			for (auto senderPlayer : m_players) {
-				WasabiGame::NetworkUpdate update;
-				std::function<void(std::string, void*, uint16_t)> addProp = nullptr;
-				RollTheBall::UpdateBuilders::SetUnitProps(update, senderPlayer.second.second->GetId(), &addProp);
 				WVector3 pos = senderPlayer.second.second->O()->GetPosition();
+				WasabiGame::NetworkUpdate updateToOtherPlayers, updateToPlayer;
+				std::function<void(std::string, void*, uint16_t)> addProp = nullptr;
+				RollTheBall::UpdateBuilders::SetUnitProps(updateToOtherPlayers, senderPlayer.second.second->GetId(), &addProp);
+				addProp("pos", (void*)&pos, sizeof(WVector3));
+				RollTheBall::UpdateBuilders::SetUnitProps(updateToPlayer, 0, &addProp);
 				addProp("pos", (void*)&pos, sizeof(WVector3));
 
 				for (auto receiverPlayer : m_players) {
 					if (senderPlayer.second != receiverPlayer.second) {
-						m_wasabi->Networking->SendUpdate(receiverPlayer.second.first->m_clientId, update);
+						m_wasabi->Networking->SendUpdate(receiverPlayer.second.first->m_clientId, updateToOtherPlayers);
+					} else {
+						// tell each player where he actually is, every player thinks their unit id is 0
+						m_wasabi->Networking->SendUpdate(receiverPlayer.second.first->m_clientId, updateToPlayer);
 					}
 				}
 			}

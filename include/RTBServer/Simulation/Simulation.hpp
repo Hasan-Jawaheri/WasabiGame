@@ -26,13 +26,6 @@ namespace RTBServer {
 		void InitializeFPSRegulation();
 		double RegulateFPS();
 
-		struct {
-			float fYaw, fPitch, fDist;
-			WVector3 vPos;
-			bool bMouseHidden;
-			int lastX, lastY;
-		} m_cam;
-
 		uint32_t m_currentUnitId;
 		std::mutex m_unitIdsMutex;
 
