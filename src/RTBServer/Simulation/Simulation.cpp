@@ -39,12 +39,6 @@ RTBServer::ServerSimulation::ServerSimulation(std::weak_ptr<ServerApplication> s
 	m_wasabi->Networking = sharedServer->Networking; // we have a separate networking class in ServerApplication, use that
 	m_currentUnitId = 1;
 	m_lastBroadcastTime = 0.0f;
-
-	m_cam.fYaw = 0;
-	m_cam.fPitch = 30;
-	m_cam.fDist = -15;
-	m_cam.lastX = m_cam.lastY = 0;
-	m_cam.bMouseHidden = false;
 }
 
 RTBServer::ServerSimulation::~ServerSimulation() {
