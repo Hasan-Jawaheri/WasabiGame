@@ -19,6 +19,8 @@ RTBClient::MainGameState::MainGameState(Wasabi* app) : WasabiGame::BaseGameState
 	m_input = nullptr;
 	m_player = nullptr;
 	m_currentGameMode = RollTheBall::RTB_GAME_MODE::GAME_MODE_NONE;
+	m_currentMap = RollTheBall::MAP_NAME::MAP_NONE;
+	m_mapToLoad = RollTheBall::MAP_NAME::MAP_NONE;
 }
 
 RTBClient::MainGameState ::~MainGameState() {
@@ -35,51 +37,62 @@ void RTBClient::MainGameState::Load() {
 
 	m_input->DisableInput(); // disable input (loading)
 
-	// Load the map
-	((RTBClient::ClientApplication*)m_app)->Maps->SetMap(RollTheBall::MAP_TEST);
-
-	((RTBClient::ClientApplication*)m_app)->Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOAD_UNIT, [this](std::shared_ptr<WasabiGame::Selectable> s, WasabiGame::NetworkUpdate& update) {
-		uint32_t unitId, unitType;
-		WVector3 spawnPos;
-		RollTheBall::UpdateBuilders::ReadLoadUnitPacket(update, &unitType, &unitId, &spawnPos);
-		std::shared_ptr<WasabiGame::Unit> unit = ((RTBClient::ClientApplication*)this->m_app)->Units->LoadUnit(unitType, unitId, spawnPos);
-		if (unitType == RollTheBall::UNIT_PLAYER && !this->m_player) {
-			m_input->EnableInput(); // enable input now that player is loaded
-			this->m_player = std::dynamic_pointer_cast<RollTheBall::Player>(unit);
+	((RTBClient::ClientApplication*)m_app)->Networking->RegisterNetworkUpdateCallback(static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOAD_MAP),
+		[this](std::shared_ptr<WasabiGame::Selectable> s, WasabiGame::NetworkUpdate& update) {
+			RollTheBall::MAP_NAME map;
+			RollTheBall::UpdateBuilders::ReadLoadMapPacket(update, (uint32_t*)&map);
+			m_mapToLoad = map;
+			return true;
 		}
-		return true;
-	});
+	);
 
-	((RTBClient::ClientApplication*)m_app)->Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_UNLOAD_UNIT, [this](std::shared_ptr<WasabiGame::Selectable> s, WasabiGame::NetworkUpdate& update) {
-		uint32_t unitId;
-		RollTheBall::UpdateBuilders::ReadUnloadUnitPacket(update, &unitId);
-		if (m_player && unitId == m_player->GetId())
-			this->m_player = nullptr;
-		((RTBClient::ClientApplication*)this->m_app)->Units->DestroyUnit(unitId);
-		return true;
-	});
-
-	((RTBClient::ClientApplication*)m_app)->Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_UNIT_PROPS, [this](std::shared_ptr<WasabiGame::Selectable> s, WasabiGame::NetworkUpdate& update) {
-		uint32_t unitId = -1;
-		std::shared_ptr<WasabiGame::Unit> unit = nullptr;
-		RollTheBall::UpdateBuilders::ReadSetUnitPropsPacket(update, &unitId, [this, &unitId, &unit](std::string prop, void* data, uint16_t size) {
-			if (unitId == -1)
-				return;
-			if (!unit) {
-				unit = ((RTBClient::ClientApplication*)this->m_app)->Units->GetUnit(unitId);
-				if (!unit) {
-					WasabiGame::NetworkUpdate whoisUpdate;
-					RollTheBall::UpdateBuilders::WhoIsUnit(whoisUpdate, unitId);
-					((RTBClient::ClientApplication*)this->m_app)->Networking->SendUpdate(whoisUpdate);
-					unitId = -1;
-					return;
-				}
+	((RTBClient::ClientApplication*)m_app)->Networking->RegisterNetworkUpdateCallback(static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOAD_UNIT),
+		[this](std::shared_ptr<WasabiGame::Selectable> s, WasabiGame::NetworkUpdate& update) {
+			uint32_t unitId, unitType;
+			WVector3 spawnPos;
+			RollTheBall::UpdateBuilders::ReadLoadUnitPacket(update, &unitType, &unitId, &spawnPos);
+			std::shared_ptr<WasabiGame::Unit> unit = ((RTBClient::ClientApplication*)this->m_app)->Units->LoadUnit(unitType, unitId, spawnPos);
+			if (static_cast<RollTheBall::UNIT_TYPE>(unitType) == RollTheBall::UNIT_TYPE::UNIT_PLAYER && !this->m_player) {
+				this->m_player = std::dynamic_pointer_cast<RollTheBall::Player>(unit);
 			}
+			return true;
+		}
+	);
 
-			std::dynamic_pointer_cast<RollTheBall::RTBAI>(unit->GetAI())->OnNetworkUpdate(prop, data, size);
-		});
-		return true;
-	});
+	((RTBClient::ClientApplication*)m_app)->Networking->RegisterNetworkUpdateCallback(static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_UNLOAD_UNIT),
+		[this](std::shared_ptr<WasabiGame::Selectable> s, WasabiGame::NetworkUpdate& update) {
+			uint32_t unitId;
+			RollTheBall::UpdateBuilders::ReadUnloadUnitPacket(update, &unitId);
+			if (m_player && unitId == m_player->GetId())
+				this->m_player = nullptr;
+			((RTBClient::ClientApplication*)this->m_app)->Units->DestroyUnit(unitId);
+			return true;
+		}
+	);
+
+	((RTBClient::ClientApplication*)m_app)->Networking->RegisterNetworkUpdateCallback(static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_UNIT_PROPS),
+		[this](std::shared_ptr<WasabiGame::Selectable> s, WasabiGame::NetworkUpdate& update) {
+			uint32_t unitId = -1;
+			std::shared_ptr<WasabiGame::Unit> unit = nullptr;
+			RollTheBall::UpdateBuilders::ReadSetUnitPropsPacket(update, &unitId, [this, &unitId, &unit](std::string prop, void* data, uint16_t size) {
+				if (unitId == -1)
+					return;
+				if (!unit) {
+					unit = ((RTBClient::ClientApplication*)this->m_app)->Units->GetUnit(unitId);
+					if (!unit) {
+						WasabiGame::NetworkUpdate whoisUpdate;
+						RollTheBall::UpdateBuilders::WhoIsUnit(whoisUpdate, unitId);
+						((RTBClient::ClientApplication*)this->m_app)->Networking->SendUpdate(whoisUpdate);
+						unitId = -1;
+						return;
+					}
+				}
+
+				std::dynamic_pointer_cast<RollTheBall::RTBAI>(unit->GetAI())->OnNetworkUpdate(prop, data, size);
+			});
+			return true;
+		}
+	);
 
 
 	// Login to server
@@ -90,13 +103,19 @@ void RTBClient::MainGameState::Update(float fDeltaTime) {
 	if (std::dynamic_pointer_cast<ClientNetworking>(((RTBClient::ClientApplication*)m_app)->Networking)->Status == RTBConnectionStatus::CONNECTION_CONNECTED && m_currentGameMode == RollTheBall::RTB_GAME_MODE::GAME_MODE_NONE) {
 		m_currentGameMode = RollTheBall::RTB_GAME_MODE::GAME_MODE_ONE_VS_ONE;
 		WasabiGame::NetworkUpdate gameModeUpdate;
-		RollTheBall::UpdateBuilders::SelectGameMode(gameModeUpdate, RollTheBall::RTB_GAME_MODE::GAME_MODE_ONE_VS_ONE);
+		RollTheBall::UpdateBuilders::SelectGameMode(gameModeUpdate, static_cast<uint32_t>(RollTheBall::RTB_GAME_MODE::GAME_MODE_ONE_VS_ONE));
 		((RTBClient::ClientApplication*)this->m_app)->Networking->SendUpdate(gameModeUpdate);
+	}
+
+	if (m_currentMap != m_mapToLoad) {
+		m_currentMap = m_mapToLoad;
+		((RTBClient::ClientApplication*)m_app)->Maps->SetMap(static_cast<uint32_t>(m_currentMap));
+		m_input->EnableInput(); // enable input now that player & map are loaded
 	}
 }
 
 void RTBClient::MainGameState::Cleanup() {
-	((RTBClient::ClientApplication*)m_app)->Maps->SetMap(RollTheBall::MAP_NONE);
+	((RTBClient::ClientApplication*)m_app)->Maps->SetMap(static_cast<uint32_t>(RollTheBall::MAP_NAME::MAP_NONE));
 }
 
 std::shared_ptr<RollTheBall::Player> RTBClient::MainGameState::GetPlayer() const {

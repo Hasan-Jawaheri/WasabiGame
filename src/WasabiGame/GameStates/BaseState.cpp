@@ -41,7 +41,7 @@ void WasabiGame::BaseGameState::OnMouseDown(W_MOUSEBUTTON button, double mx, dou
 				if (((WasabiBaseGame*)m_app)->UI->GetFocus())
 					if (!((WasabiBaseGame*)m_app)->UI->GetFocus()->OnLoseFocus()) {
 						bool bIsChild = false;
-						for (UINT i = 0; i < ((WasabiBaseGame*)m_app)->UI->GetFocus()->GetNumChildren(); i++)
+						for (uint32_t i = 0; i < ((WasabiBaseGame*)m_app)->UI->GetFocus()->GetNumChildren(); i++)
 							if (((WasabiBaseGame*)m_app)->UI->GetFocus()->GetChild(i) == targetElement)
 								bIsChild = true;
 						if (!bIsChild)
@@ -67,7 +67,7 @@ void WasabiGame::BaseGameState::OnMouseUp(W_MOUSEBUTTON button, double mx, doubl
 			if (((WasabiBaseGame*)m_app)->UI->GetFocus())
 				if (!((WasabiBaseGame*)m_app)->UI->GetFocus()->OnLoseFocus()) {
 					bool bIsChild = false;
-					for (UINT i = 0; i < ((WasabiBaseGame*)m_app)->UI->GetFocus()->GetNumChildren(); i++)
+					for (uint32_t i = 0; i < ((WasabiBaseGame*)m_app)->UI->GetFocus()->GetNumChildren(); i++)
 						if (((WasabiBaseGame*)m_app)->UI->GetFocus()->GetChild(i) == targetElement)
 							bIsChild = true;
 					if (!bIsChild)
@@ -125,9 +125,9 @@ void WasabiGame::BaseGameState::OnInput(uint32_t c) {
 				if (target_element->OnTab()) {
 					std::shared_ptr<UIElement> parent = target_element->GetParent();
 					if (parent) {
-						UINT numChildren = parent->GetNumChildren();
-						UINT focusIndex = -1;
-						for (UINT i = 0; i <= numChildren; i++) {
+						uint32_t numChildren = parent->GetNumChildren();
+						uint32_t focusIndex = -1;
+						for (uint32_t i = 0; i <= numChildren; i++) {
 							if (i == numChildren)
 								i = 0;
 							std::shared_ptr<UIElement> cur_child = parent->GetChild(i);

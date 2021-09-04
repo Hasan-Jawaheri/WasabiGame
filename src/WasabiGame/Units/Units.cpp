@@ -15,11 +15,11 @@ WasabiGame::Unit::~Unit() {
 	}
 }
 
-uint WasabiGame::Unit::GetId() const {
+uint32_t WasabiGame::Unit::GetId() const {
 	return m_id;
 }
 
-uint WasabiGame::Unit::GetType() const {
+uint32_t WasabiGame::Unit::GetType() const {
 	return m_type;
 }
 

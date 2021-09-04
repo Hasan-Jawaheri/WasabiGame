@@ -90,8 +90,8 @@ void WasabiGame::ResourceManager::LoadMapFile(std::string mapFilename) {
 		m_mapResources.mapFile = new WFile(app.get());
 		err = m_mapResources.mapFile->Open(fullMapFilename);
 		if (err) {
-			uint numAssets = m_mapResources.mapFile->GetAssetsCount();
-			for (uint i = 0; i < numAssets; i++) {
+			uint32_t numAssets = m_mapResources.mapFile->GetAssetsCount();
+			for (uint32_t i = 0; i < numAssets; i++) {
 				std::pair<std::string, std::string> info = m_mapResources.mapFile->GetAssetInfo(i);
 				std::string& name = info.first;
 				std::string& type = info.second;

@@ -4,6 +4,7 @@
 #include "WasabiGame/Utilities/Scheduler.hpp"
 #include "RTBServer/Main.hpp"
 #include "RTBServer/Game/RTBConnectedPlayer.hpp"
+#include "RollTheBall/Maps/RTBMaps.hpp"
 
 #include <atomic>
 
@@ -26,6 +27,7 @@ namespace RTBServer {
 		void InitializeFPSRegulation();
 		double RegulateFPS();
 
+		RollTheBall::MAP_NAME m_map;
 		uint32_t m_currentUnitId;
 		std::mutex m_unitIdsMutex;
 
@@ -39,7 +41,7 @@ namespace RTBServer {
 		ServerSimulation(std::weak_ptr<ServerApplication> server);
 		virtual ~ServerSimulation();
 
-		void Initialize();
+		void Initialize(RollTheBall::MAP_NAME map);
 		void Update();
 		void Cleanup();
 

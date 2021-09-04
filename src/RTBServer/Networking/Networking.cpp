@@ -121,7 +121,7 @@ void RTBServer::ServerNetworking::OnClientDisconnected(std::shared_ptr<WasabiGam
 
 bool RTBServer::ServerNetworking::OnReceivedNetworkUpdate(std::shared_ptr<ServerConnectedClient> client, WasabiGame::NetworkUpdate update) {
 	// first message from the client must be a login message
-	if (update.type != RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN && client->Identity.accountName[0] == 0)
+	if (static_cast<RollTheBall::NetworkUpdateTypeEnum>(update.type) != RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN && client->Identity.accountName[0] == 0)
 		return false;
 
 	auto it = m_updateCallbacks.find(update.type);
@@ -142,7 +142,7 @@ void RTBServer::ServerNetworking::OnReceivedUDPPacket(void* packet, size_t lengt
 		auto clientIdIter = m_udpPortToClientId.find(portFrom);
 		if (clientIdIter == m_udpPortToClientId.end()) {
 			// don't know which client this udp PoRT maps to, this packet will only be accepted if it identifies sender's id
-			if (update.type == RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_IDENTIFY_UDP_CLIENT) {
+			if (static_cast<RollTheBall::NetworkUpdateTypeEnum>(update.type) == RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_IDENTIFY_UDP_CLIENT) {
 				{
 					std::scoped_lock lockGuard(m_clientsMutex);
 					auto clientsIter = m_clients.find(update.targetId);

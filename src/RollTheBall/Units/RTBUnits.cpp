@@ -21,7 +21,7 @@ static std::function<std::shared_ptr<WasabiGame::Unit>()> GenerateUnit(std::shar
 
 void RollTheBall::SetupRTBUnits(std::shared_ptr<WasabiGame::UnitsManager> manager, bool isServer) {
 	manager->ResetUnits();
-	manager->RegisterUnit(UNIT_PLAYER, GenerateUnit<Player, PlayerAI, RemoteControlledAI>(manager, isServer, Player::modelName));
-	manager->RegisterUnit(UNIT_OTHER_PLAYER, GenerateUnit<Player, RemoteControlledAI, RemoteControlledAI>(manager, isServer, Player::modelName));
-	manager->RegisterUnit(UNIT_TEST_BALL, GenerateUnit<BallUnit, RemoteControlledAI, TestUnitAI>(manager, isServer, BallUnit::modelName));
+	manager->RegisterUnit(static_cast<uint32_t>(UNIT_TYPE::UNIT_PLAYER), GenerateUnit<Player, PlayerAI, RemoteControlledAI>(manager, isServer, Player::modelName));
+	manager->RegisterUnit(static_cast<uint32_t>(UNIT_TYPE::UNIT_OTHER_PLAYER), GenerateUnit<Player, RemoteControlledAI, RemoteControlledAI>(manager, isServer, Player::modelName));
+	manager->RegisterUnit(static_cast<uint32_t>(UNIT_TYPE::UNIT_TEST_BALL), GenerateUnit<BallUnit, RemoteControlledAI, TestUnitAI>(manager, isServer, BallUnit::modelName));
 }

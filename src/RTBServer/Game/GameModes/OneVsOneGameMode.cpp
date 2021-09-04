@@ -1,8 +1,9 @@
 #include "RTBServer/Game/GameModes/OneVsOneGameMode.hpp"
 #include "RTBServer/Repositories/ClientsRepository.hpp"
+#include "RollTheBall/Maps/RTBMaps.hpp"
 
 
-RTBServer::GAME_MODE_MATCHMAKING_PROPERTIES RTBServer::OneVsOneGameMode::MATCHMAKING_PROPERTIES = { 1, 2 };
+RTBServer::GAME_MODE_MATCHMAKING_PROPERTIES RTBServer::OneVsOneGameMode::MATCHMAKING_PROPERTIES = { 2, 2 };
 
 RTBServer::OneVsOneGameMode::OneVsOneGameMode(std::weak_ptr<ServerApplication> server) : GameMode(server) {
 	m_simulation = std::make_shared<ServerSimulation>(m_server);
@@ -15,7 +16,7 @@ void RTBServer::OneVsOneGameMode::Initialize(std::weak_ptr<ServerCell> weakCell)
 	std::shared_ptr<ServerApplication> server = m_server.lock();
 	std::shared_ptr<ServerCell> cell = weakCell.lock();
 
-	m_simulation->Initialize();
+	m_simulation->Initialize(RollTheBall::MAP_NAME::MAP_TEST);
 
 	ServerCellClientsMap* clientsMap = nullptr;
 	server->ClientsRepository->LockCellClients(cell, &clientsMap);

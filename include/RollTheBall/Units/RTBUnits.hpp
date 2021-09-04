@@ -5,7 +5,7 @@
 
 namespace RollTheBall {
 
-	enum UNIT_TYPE {
+	enum class UNIT_TYPE : uint32_t {
 		UNIT_PLAYER = 0, // The player's unit
 		UNIT_OTHER_PLAYER = 1, // another player's unit
 		UNIT_TEST_BALL = 2,

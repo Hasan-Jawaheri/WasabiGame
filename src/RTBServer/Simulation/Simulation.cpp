@@ -39,6 +39,7 @@ RTBServer::ServerSimulation::ServerSimulation(std::weak_ptr<ServerApplication> s
 	m_wasabi->Networking = sharedServer->Networking; // we have a separate networking class in ServerApplication, use that
 	m_currentUnitId = 1;
 	m_lastBroadcastTime = 0.0f;
+	m_map = RollTheBall::MAP_NAME::MAP_NONE;
 }
 
 RTBServer::ServerSimulation::~ServerSimulation() {
@@ -49,7 +50,7 @@ uint32_t RTBServer::ServerSimulation::GenerateUnitId() {
 	return m_currentUnitId++;
 }
 
-void RTBServer::ServerSimulation::Initialize() {
+void RTBServer::ServerSimulation::Initialize(RollTheBall::MAP_NAME map) {
 	//
 	// This is called in a different thread than Update() and Cleanup()
 	//
@@ -64,57 +65,63 @@ void RTBServer::ServerSimulation::Initialize() {
 	m_wasabi->Resources->Init(server->Config->Get<std::string>("MediaFolderNoTrailingSlash"));
 	RollTheBall::SetupRTBUnits(m_wasabi->Units, true);
 	RollTheBall::SetupRTBMaps(m_wasabi->Maps);
-	m_wasabi->Maps->SetMap(RollTheBall::MAP_NAME::MAP_TEST);
 
-	InitializeFPSRegulation();
+	m_map = map;
+	m_wasabi->Maps->SetMap(static_cast<uint32_t>(m_map));
 
 	std::shared_ptr<ServerNetworking> Networking = std::static_pointer_cast<ServerNetworking>(m_wasabi->Networking);
 
-	Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_WHOIS_UNIT, [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& update) {
-		std::shared_ptr<RTBServer::ServerConnectedClient> client = std::static_pointer_cast<RTBServer::ServerConnectedClient>(_client);
-		uint32_t unitId;
-		RollTheBall::UpdateBuilders::ReadWhoIsUnitPacket(update, &unitId);
-		uint32_t actualUnitId = unitId;
-		if (unitId == 0) {
-			std::scoped_lock lockGuard(m_playersMutex);
-			actualUnitId = m_players.find(client->m_id)->second.second->GetId();
-		}
-		std::shared_ptr<WasabiGame::Unit> unit = this->m_wasabi->Units->GetUnit(actualUnitId);
-		if (unit && unit->O()) {
-			WasabiGame::NetworkUpdate unitLoadUpdate;
-			uint32_t unitType = unit->GetType();
-			if (unitType == RollTheBall::UNIT_PLAYER && unitId != 0)
-				unitType = RollTheBall::UNIT_OTHER_PLAYER;
-			RollTheBall::UpdateBuilders::LoadUnit(unitLoadUpdate, unitType, unitId, unit->O()->GetPosition());
-			this->m_wasabi->Networking->SendUpdate(client->m_id, unitLoadUpdate);
-		}
-		return true;
-	});
-	
-	Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_UNIT_PROPS, [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& update) {
-		std::shared_ptr<RTBServer::ServerConnectedClient> client = std::static_pointer_cast<RTBServer::ServerConnectedClient>(_client);
-		uint32_t unitId = -1;
-		uint32_t clientId = client->m_id;
-		std::shared_ptr<WasabiGame::Unit> unit = nullptr;
-		RollTheBall::UpdateBuilders::ReadSetUnitPropsPacket(update, &unitId, [this, clientId, &unitId, &unit](std::string prop, void* data, uint16_t size) {
-			if (unitId == -1)
-				return;
+	Networking->RegisterNetworkUpdateCallback(static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_WHOIS_UNIT),
+		[this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& update) {
+			std::shared_ptr<RTBServer::ServerConnectedClient> client = std::static_pointer_cast<RTBServer::ServerConnectedClient>(_client);
+			uint32_t unitId;
+			RollTheBall::UpdateBuilders::ReadWhoIsUnitPacket(update, &unitId);
+			uint32_t actualUnitId = unitId;
 			if (unitId == 0) {
-				// players think their id is 0
 				std::scoped_lock lockGuard(m_playersMutex);
-				unitId = m_players.find(clientId)->second.second->GetId();
+				actualUnitId = m_players.find(client->m_id)->second.second->GetId();
 			}
-			if (!unit) {
-				unit = this->m_wasabi->Units->GetUnit(unitId);
-				if (!unit) {
-					unitId = -1;
+			std::shared_ptr<WasabiGame::Unit> unit = this->m_wasabi->Units->GetUnit(actualUnitId);
+			if (unit && unit->O()) {
+				WasabiGame::NetworkUpdate unitLoadUpdate;
+				RollTheBall::UNIT_TYPE unitType = static_cast<RollTheBall::UNIT_TYPE>(unit->GetType());
+				if (unitType == RollTheBall::UNIT_TYPE::UNIT_PLAYER && unitId != 0)
+					unitType = RollTheBall::UNIT_TYPE::UNIT_OTHER_PLAYER;
+				RollTheBall::UpdateBuilders::LoadUnit(unitLoadUpdate, static_cast<uint32_t>(unitType), unitId, unit->O()->GetPosition());
+				this->m_wasabi->Networking->SendUpdate(client->m_id, unitLoadUpdate);
+			}
+			return true;
+		}
+	);
+	
+	Networking->RegisterNetworkUpdateCallback(static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_UNIT_PROPS),
+		[this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& update) {
+			std::shared_ptr<RTBServer::ServerConnectedClient> client = std::static_pointer_cast<RTBServer::ServerConnectedClient>(_client);
+			uint32_t unitId = -1;
+			uint32_t clientId = client->m_id;
+			std::shared_ptr<WasabiGame::Unit> unit = nullptr;
+			RollTheBall::UpdateBuilders::ReadSetUnitPropsPacket(update, &unitId, [this, clientId, &unitId, &unit](std::string prop, void* data, uint16_t size) {
+				if (unitId == -1)
 					return;
+				if (unitId == 0) {
+					// players think their id is 0
+					std::scoped_lock lockGuard(m_playersMutex);
+					unitId = m_players.find(clientId)->second.second->GetId();
 				}
-			}
-			std::dynamic_pointer_cast<RollTheBall::RTBAI>(unit->GetAI())->OnNetworkUpdate(prop, data, size);
-		});
-		return unit != nullptr;
-	});
+				if (!unit) {
+					unit = this->m_wasabi->Units->GetUnit(unitId);
+					if (!unit) {
+						unitId = -1;
+						return;
+					}
+				}
+				std::dynamic_pointer_cast<RollTheBall::RTBAI>(unit->GetAI())->OnNetworkUpdate(prop, data, size);
+			});
+			return unit != nullptr;
+		}
+	);
+
+	InitializeFPSRegulation();
 }
 
 void RTBServer::ServerSimulation::InitializeFPSRegulation() {
@@ -205,7 +212,6 @@ void RTBServer::ServerSimulation::Cleanup() {
 	//
 
 	m_wasabi->PhysicsComponent->Cleanup();
-	//m_server->Maps->SetMap(RollTheBall::MAP_NONE);
 }
 
 void RTBServer::ServerSimulation::AddPlayer(std::shared_ptr<RTBServer::RTBConnectedPlayer> player) {
@@ -213,12 +219,16 @@ void RTBServer::ServerSimulation::AddPlayer(std::shared_ptr<RTBServer::RTBConnec
 	// this is called in a different thread than Initialize(), Cleanup() and Update()
 	//
 	WVector3 spawnPos = WVector3(player->m_x, player->m_y, player->m_z);
-	std::shared_ptr<WasabiGame::Unit> newPlayerUnit = m_wasabi->Units->LoadUnit(RollTheBall::UNIT_PLAYER, GenerateUnitId(), spawnPos);
+	std::shared_ptr<WasabiGame::Unit> newPlayerUnit = m_wasabi->Units->LoadUnit(static_cast<uint32_t>(RollTheBall::UNIT_TYPE::UNIT_PLAYER), GenerateUnitId(), spawnPos);
 
 	// special message for the player, make sure the first unit it loads is the player unit (and each player thinks his id is 0)
-	WasabiGame::NetworkUpdate unitLoadUpdate;
-	RollTheBall::UpdateBuilders::LoadUnit(unitLoadUpdate, RollTheBall::UNIT_PLAYER, 0, spawnPos);
-	m_wasabi->Networking->SendUpdate(player->m_clientId, unitLoadUpdate);
+	WasabiGame::NetworkUpdate update;
+	RollTheBall::UpdateBuilders::LoadUnit(update, static_cast<uint32_t>(RollTheBall::UNIT_TYPE::UNIT_PLAYER), 0, spawnPos);
+	m_wasabi->Networking->SendUpdate(player->m_clientId, update);
+
+	// tell the player to load the map
+	RollTheBall::UpdateBuilders::LoadMap(update, static_cast<uint32_t>(m_map));
+	m_wasabi->Networking->SendUpdate(player->m_clientId, update);
 
 	{
 		std::scoped_lock lockGuard(m_playersMutex);

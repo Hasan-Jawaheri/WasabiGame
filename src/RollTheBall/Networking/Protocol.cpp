@@ -2,7 +2,7 @@
 
 
 void RollTheBall::UpdateBuilders::Error(WasabiGame::NetworkUpdate& output, const char* error) {
-	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_ERROR;
+	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_ERROR);
 	output.dataSize = std::min(strlen(error), sizeof(WasabiGame::NetworkUpdate::data));
 	memcpy(output.data, error, output.dataSize);
 }
@@ -14,7 +14,7 @@ bool RollTheBall::UpdateBuilders::ReadErrorPacket(WasabiGame::NetworkUpdate& inp
 }
 
 void RollTheBall::UpdateBuilders::SetClientId(WasabiGame::NetworkUpdate& output, uint32_t clientId) {
-	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_CLIENT_ID;
+	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_CLIENT_ID);
 	output.dataSize = 0;
 	output.targetId = clientId;
 }
@@ -25,7 +25,7 @@ bool RollTheBall::UpdateBuilders::ReadSetClientIdPacket(WasabiGame::NetworkUpdat
 }
 
 void RollTheBall::UpdateBuilders::IdentifyUDPClient(WasabiGame::NetworkUpdate& output, uint32_t clientId) {
-	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_IDENTIFY_UDP_CLIENT;
+	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_IDENTIFY_UDP_CLIENT);
 	output.dataSize = 0;
 	output.targetId = clientId;
 }
@@ -36,7 +36,7 @@ bool RollTheBall::UpdateBuilders::ReadIdentifyUDPClientPacket(WasabiGame::Networ
 }
 
 void RollTheBall::UpdateBuilders::UDPClientIdentified(WasabiGame::NetworkUpdate& output) {
-	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_UDP_CLIENT_IDENTIFIED;
+	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_UDP_CLIENT_IDENTIFIED);
 	output.dataSize = 0;
 }
 
@@ -50,7 +50,7 @@ void RollTheBall::UpdateBuilders::Login(WasabiGame::NetworkUpdate& output, const
 	strcpy(identity.accountName, account);
 	strcpy(identity.passwordHash, password);
 
-	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN;
+	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN);
 	output.dataSize = sizeof(WasabiGame::ClientIdentity);
 	memcpy(output.data, &identity, output.dataSize);
 }
@@ -63,7 +63,7 @@ bool RollTheBall::UpdateBuilders::ReadLoginPacket(WasabiGame::NetworkUpdate& inp
 }
 
 void RollTheBall::UpdateBuilders::LoginStatus(WasabiGame::NetworkUpdate& output, bool success) {
-	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN_STATUS;
+	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN_STATUS);
 	output.dataSize = 1;
 	memcpy(output.data, &success, output.dataSize);
 }
@@ -76,7 +76,7 @@ bool RollTheBall::UpdateBuilders::ReadLoginStatusPacket(WasabiGame::NetworkUpdat
 }
 
 void RollTheBall::UpdateBuilders::SelectGameMode(WasabiGame::NetworkUpdate& output, uint32_t gameMode) {
-	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SELECT_GAME_MODE;
+	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SELECT_GAME_MODE);
 	output.dataSize = sizeof(uint32_t);
 	memcpy(output.data, &gameMode, output.dataSize);
 }
@@ -89,7 +89,7 @@ bool RollTheBall::UpdateBuilders::ReadSelectGameModePacket(WasabiGame::NetworkUp
 }
 
 void RollTheBall::UpdateBuilders::LoadUnit(WasabiGame::NetworkUpdate& output, uint32_t unitType, uint32_t unitId, WVector3 spawnPos) {
-	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOAD_UNIT;
+	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOAD_UNIT);
 	output.purpose = unitType;
 	output.targetId = unitId;
 	output.dataSize = sizeof(WVector3);
@@ -106,7 +106,7 @@ bool RollTheBall::UpdateBuilders::ReadLoadUnitPacket(WasabiGame::NetworkUpdate& 
 }
 
 void RollTheBall::UpdateBuilders::UnloadUnit(WasabiGame::NetworkUpdate& output, uint32_t unitId) {
-	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_UNLOAD_UNIT;
+	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_UNLOAD_UNIT);
 	output.purpose = 0;
 	output.targetId = unitId;
 	output.dataSize = 0;
@@ -118,7 +118,7 @@ bool RollTheBall::UpdateBuilders::ReadUnloadUnitPacket(WasabiGame::NetworkUpdate
 }
 
 void RollTheBall::UpdateBuilders::WhoIsUnit(WasabiGame::NetworkUpdate& output, uint32_t unitId) {
-	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_WHOIS_UNIT;
+	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_WHOIS_UNIT);
 	output.purpose = 0;
 	output.targetId = unitId;
 	output.dataSize = 0;
@@ -130,7 +130,7 @@ bool RollTheBall::UpdateBuilders::ReadWhoIsUnitPacket(WasabiGame::NetworkUpdate&
 }
 
 void RollTheBall::UpdateBuilders::SetUnitProps(WasabiGame::NetworkUpdate& output, uint32_t unitId, std::function<void(std::string, void*, uint16_t)>* fillFunc) {
-	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_UNIT_PROPS;
+	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_UNIT_PROPS);
 	output.purpose = 0;
 	output.targetId = unitId;
 	output.dataSize = 0;
@@ -163,5 +163,17 @@ bool RollTheBall::UpdateBuilders::ReadSetUnitPropsPacket(WasabiGame::NetworkUpda
 		readFunc(std::string(tmpName, nameLen), input.data + pos + 3 + nameLen, size);
 		pos += 3 + nameLen + size;
 	}
+	return true;
+}
+
+void RollTheBall::UpdateBuilders::LoadMap(WasabiGame::NetworkUpdate& output, uint32_t map) {
+	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOAD_MAP);
+	output.purpose = 0;
+	output.targetId = map;
+	output.dataSize = 0;
+}
+
+bool RollTheBall::UpdateBuilders::ReadLoadMapPacket(WasabiGame::NetworkUpdate& input, uint32_t* map) {
+	*map = input.targetId;
 	return true;
 }

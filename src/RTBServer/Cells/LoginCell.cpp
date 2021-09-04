@@ -8,13 +8,17 @@
 RTBServer::LoginCell::LoginCell(std::weak_ptr<ServerApplication> app) : ServerCell(app), std::enable_shared_from_this<LoginCell>() {
 	// login update callback
     std::shared_ptr sharedApp = app.lock();
-    sharedApp->Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN, [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& loginUpdate) {
-        return this->OnClientLoginUpdate(_client, loginUpdate);
-	});
+    sharedApp->Networking->RegisterNetworkUpdateCallback(static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN),
+        [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& loginUpdate) {
+            return this->OnClientLoginUpdate(_client, loginUpdate);
+	    }
+    );
 
-    sharedApp->Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SELECT_GAME_MODE, [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& gameModeUpdate) {
-        return this->OnClientSelectedGameMode(_client, gameModeUpdate);
-    });
+    sharedApp->Networking->RegisterNetworkUpdateCallback(static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SELECT_GAME_MODE),
+        [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& gameModeUpdate) {
+            return this->OnClientSelectedGameMode(_client, gameModeUpdate);
+        }
+    );
 }
 
 RTBServer::LoginCell::~LoginCell() {
@@ -57,7 +61,7 @@ bool RTBServer::LoginCell::OnClientSelectedGameMode(std::shared_ptr<WasabiGame::
     std::shared_ptr<ServerApplication> app = m_app.lock();
     uint32_t gameMode;
     if (RollTheBall::UpdateBuilders::ReadSelectGameModePacket(gameModeUpdate, gameMode)) {
-        switch (gameMode) {
+        switch (static_cast<RollTheBall::RTB_GAME_MODE>(gameMode)) {
         case RollTheBall::RTB_GAME_MODE::GAME_MODE_ONE_VS_ONE:
             app->ClientsRepository->MoveClientToCell(client, app->GetMatchmakingCell(), (void*)(size_t)gameMode);
             break;

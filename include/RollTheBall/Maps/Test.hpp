@@ -92,19 +92,19 @@ namespace RollTheBall {
 
 			// save rigidbodies for server to load
 			saveRigidBodyForObject(app, mapFile, plain);
-			for (uint i = 0; i < boxes.size(); i++) {
+			for (uint32_t i = 0; i < boxes.size(); i++) {
 				saveRigidBodyForObject(app, mapFile, boxes[i]);
 			}
 
 			W_SAFE_REMOVEREF(plain);
 
-			for (uint i = 0; i < boxes.size(); i++) {
+			for (uint32_t i = 0; i < boxes.size(); i++) {
 				boxes[i]->SetName("test-box-" + std::to_string(i));
 				mapFile->SaveAsset(boxes[i]);
 				W_SAFE_REMOVEREF(boxes[i]);
 			}
 
-			for (uint i = 0; i < lights.size(); i++) {
+			for (uint32_t i = 0; i < lights.size(); i++) {
 				lights[i]->SetName("test-light-" + std::to_string(i));
 				mapFile->SaveAsset(lights[i]);
 				W_SAFE_REMOVEREF(lights[i]);

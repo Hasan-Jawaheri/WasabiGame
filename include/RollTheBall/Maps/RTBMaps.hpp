@@ -5,7 +5,7 @@
 
 namespace RollTheBall {
 
-	enum MAP_NAME {
+	enum class MAP_NAME : uint32_t {
 		MAP_NONE = 0,
 		MAP_TEST = 1,
 	};

@@ -25,8 +25,8 @@ namespace WasabiGame {
 
 		LOADED_MODEL* m_model;
 		std::shared_ptr<AI> m_AI;
-		uint m_id;
-		uint m_type;
+		uint32_t m_id;
+		uint32_t m_type;
 
 	protected:
 		std::weak_ptr<WasabiBaseGame> m_app;
@@ -41,8 +41,8 @@ namespace WasabiGame {
 
 	public:
 
-		uint GetId() const;
-		uint GetType() const;
+		uint32_t GetId() const;
+		uint32_t GetType() const;
 		std::weak_ptr<WasabiBaseGame> GetApp() const;
 
 		WOrientation* O() const;

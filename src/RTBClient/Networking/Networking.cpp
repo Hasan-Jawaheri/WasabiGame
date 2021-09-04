@@ -50,21 +50,21 @@ void RTBClient::ClientNetworking::Initialize() {
 		this->Status = RTBConnectionStatus::CONNECTION_HANDSHAKING;
 	});
 
-	RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_CLIENT_ID,
+	RegisterNetworkUpdateCallback(static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_CLIENT_ID),
 		[this](std::shared_ptr<WasabiGame::Selectable> selectable, WasabiGame::NetworkUpdate& update) {
 			this->m_clientId = update.targetId;
 			return true;
 		}
 	);
 
-	RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_UDP_CLIENT_IDENTIFIED,
+	RegisterNetworkUpdateCallback(static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_UDP_CLIENT_IDENTIFIED),
 		[this](std::shared_ptr<WasabiGame::Selectable> selectable, WasabiGame::NetworkUpdate& update) {
 			this->Status = RTBConnectionStatus::CONNECTION_AUTHENTICATING;
 			return true;
 		}
 	);
 
-	RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN_STATUS,
+	RegisterNetworkUpdateCallback(static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN_STATUS),
 		[this](std::shared_ptr<WasabiGame::Selectable> selectable, WasabiGame::NetworkUpdate& update) {
 			bool success;
 			RollTheBall::UpdateBuilders::ReadLoginStatusPacket(update, success);

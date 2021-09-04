@@ -6,5 +6,5 @@ template<typename T> std::shared_ptr<WasabiGame::Map> MapGen() { return std::mak
 
 void RollTheBall::SetupRTBMaps(std::shared_ptr<WasabiGame::MapLoader> loader) {
 	loader->ResetMaps();
-	loader->RegisterMap(MAP_TEST, MapGen<TestMap>);
+	loader->RegisterMap(static_cast<uint32_t>(MAP_NAME::MAP_TEST), MapGen<TestMap>);
 }

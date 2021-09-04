@@ -12,7 +12,7 @@
 
 namespace RollTheBall {
 
-	enum NetworkUpdateTypeEnum {
+	enum class NetworkUpdateTypeEnum : uint32_t {
 		UPDATE_TYPE_ERROR = 1,
 		UPDATE_TYPE_SET_CLIENT_ID = 2,
 		UPDATE_TYPE_IDENTIFY_UDP_CLIENT = 3,
@@ -24,6 +24,7 @@ namespace RollTheBall {
 		UPDATE_TYPE_UNLOAD_UNIT = 11,
 		UPDATE_TYPE_WHOIS_UNIT = 12,
 		UPDATE_TYPE_SET_UNIT_PROPS = 13,
+		UPDATE_TYPE_LOAD_MAP = 14,
 	};
 
 	namespace UpdateBuilders {
@@ -72,6 +73,9 @@ namespace RollTheBall {
 		void SetUnitProps(WasabiGame::NetworkUpdate& output, uint32_t unitId, std::function<void(std::string, void*, uint16_t)>* fillFunc);
 		bool ReadSetUnitPropsPacket(WasabiGame::NetworkUpdate& input, uint32_t* unitId, std::function<void(std::string, void*, uint16_t)> readFunc);
 
+		// (TCP) Server --> Client: Commands the client to load a map
+		void LoadMap(WasabiGame::NetworkUpdate& output, uint32_t map);
+		bool ReadLoadMapPacket(WasabiGame::NetworkUpdate& input, uint32_t* map);
 	};
 
 };

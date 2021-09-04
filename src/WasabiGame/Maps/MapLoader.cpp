@@ -12,7 +12,7 @@ WasabiGame::MapLoader::~MapLoader() {
 	Cleanup();
 }
 
-void WasabiGame::MapLoader::RegisterMap(uint id, std::function<std::shared_ptr<class Map> ()> mapGenerator) {
+void WasabiGame::MapLoader::RegisterMap(uint32_t id, std::function<std::shared_ptr<class Map> ()> mapGenerator) {
 	m_mapGenerators.insert(std::make_pair(id, mapGenerator));
 }
 
@@ -20,7 +20,7 @@ void WasabiGame::MapLoader::ResetMaps() {
 	m_mapGenerators.clear();
 }
 
-void WasabiGame::MapLoader::SetMap(uint mapId) {
+void WasabiGame::MapLoader::SetMap(uint32_t mapId) {
 	std::shared_ptr<Map> newMap = nullptr;
 	auto it = m_mapGenerators.find(mapId);
 	if (it != m_mapGenerators.end())
