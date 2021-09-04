@@ -6,7 +6,7 @@
 
 namespace RTBServer {
 
-    class LoginCell : public ServerCell {
+    class LoginCell : public ServerCell, public std::enable_shared_from_this<LoginCell> {
         bool OnClientLoginUpdate(std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& loginUpdate);
         bool OnClientSelectedGameMode(std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& gameModeUpdate);
 

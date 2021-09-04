@@ -5,7 +5,7 @@
 #include "RollTheBall/AI/RemoteControlledAI.hpp"
 
 
-RollTheBall::PlayerAI::PlayerAI(std::shared_ptr<WasabiGame::Unit> unit) : RTBAI(unit) {
+RollTheBall::PlayerAI::PlayerAI(std::shared_ptr<WasabiGame::Unit> unit) : RemoteControlledAI(unit) {
 	std::shared_ptr<WasabiGame::WasabiBaseGame> app = unit->GetApp().lock();
 
 	m_camera = app->CameraManager->GetDefaultCamera();
@@ -26,7 +26,7 @@ void RollTheBall::PlayerAI::Update(float fDeltaTime) {
 	std::shared_ptr<Wasabi> app = m_app.lock();
 	std::shared_ptr<WasabiGame::Unit> unit = m_unit.lock();
 
-	RTBAI::Update(fDeltaTime);
+	RemoteControlledAI::Update(fDeltaTime);
 
 	m_camera->SetPosition(m_cameraPivot);
 	m_camera->SetAngle(WQuaternion());
@@ -68,14 +68,11 @@ float RollTheBall::PlayerAI::GetCameraDistance() const {
 	return m_cameraDistance;
 }
 
-void RollTheBall::PlayerAI::OnNetworkUpdate(std::string prop, void* data, size_t size) {
-}
-
 void RollTheBall::PlayerAI::SendMovementUpdate(void* update, size_t size) {
 	std::function<void(std::string, void*, uint16_t)> setProp;
 	RollTheBall::UpdateBuilders::SetUnitProps(m_update, 0, &setProp);
 	setProp("move", update, size);
-	SendNetworkUpdate(m_update);
+	SendNetworkUpdate(m_update, false);
 }
 
 void RollTheBall::PlayerAI::SendMovementUpdate(char type, float angle) {
@@ -103,37 +100,37 @@ void RollTheBall::PlayerAI::SendMovementUpdate(char type, bool state) {
 }
 
 void RollTheBall::PlayerAI::SetYawAngle(float angle) {
-	RTBAI::SetYawAngle(angle);
+	RemoteControlledAI::SetYawAngle(angle);
 
 	SendMovementUpdate('Y', angle);
 }
 
 void RollTheBall::PlayerAI::SetMoveForward(bool isActive) {
-	RTBAI::SetMoveForward(isActive);
+	RemoteControlledAI::SetMoveForward(isActive);
 
 	SendMovementUpdate('W', isActive);
 }
 
 void RollTheBall::PlayerAI::SetMoveBackward(bool isActive) {
-	RTBAI::SetMoveBackward(isActive);
+	RemoteControlledAI::SetMoveBackward(isActive);
 
 	SendMovementUpdate('S', isActive);
 }
 
 void RollTheBall::PlayerAI::SetMoveLeft(bool isActive) {
-	RTBAI::SetMoveLeft(isActive);
+	RemoteControlledAI::SetMoveLeft(isActive);
 
 	SendMovementUpdate('A', isActive);
 }
 
 void RollTheBall::PlayerAI::SetMoveRight(bool isActive) {
-	RTBAI::SetMoveRight(isActive);
+	RemoteControlledAI::SetMoveRight(isActive);
 
 	SendMovementUpdate('D', isActive);
 }
 
 void RollTheBall::PlayerAI::SetMoveJump(bool isActive) {
-	RTBAI::SetMoveJump(isActive);
+	RemoteControlledAI::SetMoveJump(isActive);
 
 	SendMovementUpdate(' ', isActive);
 }

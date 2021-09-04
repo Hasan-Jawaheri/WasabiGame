@@ -14,7 +14,7 @@ void RollTheBall::RemoteControlledAI::Update(float fDeltaTime) {
 	std::shared_ptr<WasabiGame::Unit> unit = m_unit.lock();
 
 	float currentTime = app->Timer.GetElapsedTime();
-	while (m_replayStates.size() > 0 && m_replayStates[0].time + 0.2f <= currentTime) {
+	while (m_replayStates.size() > 0) {// && m_replayStates[0].time + 0.2f <= currentTime) {
 		WOrientation* orientation = unit->O();
 		RollTheBall::MOVEMENT_PACKET_STRUCT m = m_replayStates[0];
 		if (m.type == 'Y')

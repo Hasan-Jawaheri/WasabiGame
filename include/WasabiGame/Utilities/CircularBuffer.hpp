@@ -63,6 +63,10 @@ namespace WasabiGame {
 				return memSize - start;
 		}
 
+		inline uint8_t PeakByteAt(size_t offset) {
+			return *(uint8_t*)(mem + (start + offset) % memSize);
+		}
+
 		inline size_t GetSize() {
 			if (end >= start)
 				return end - start;

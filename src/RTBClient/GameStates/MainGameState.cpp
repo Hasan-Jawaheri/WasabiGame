@@ -18,6 +18,7 @@
 RTBClient::MainGameState::MainGameState(Wasabi* app) : WasabiGame::BaseGameState(app) {
 	m_input = nullptr;
 	m_player = nullptr;
+	m_currentGameMode = RollTheBall::RTB_GAME_MODE::GAME_MODE_NONE;
 }
 
 RTBClient::MainGameState ::~MainGameState() {
@@ -26,8 +27,8 @@ RTBClient::MainGameState ::~MainGameState() {
 void RTBClient::MainGameState::Load() {
 	// Setup and load the user interface
 	((RTBClient::ClientApplication*)m_app)->UI->AddUIElement(std::dynamic_pointer_cast<WasabiGame::UIElement>(m_input = std::make_shared<GameInputHandler>(this)), nullptr);
-	std::shared_ptr<WasabiGame::UIElement> ok = std::make_shared<WasabiGame::MenuButton>(((RTBClient::ClientApplication*)m_app)->UI, "sure");
-	std::shared_ptr<WasabiGame::UIElement> err = std::make_shared<WasabiGame::ErrorBox>(((RTBClient::ClientApplication*)m_app)->UI, "what??");
+	std::shared_ptr<WasabiGame::MenuButton> ok = std::make_shared<WasabiGame::MenuButton>(((RTBClient::ClientApplication*)m_app)->UI, "sure");
+	std::shared_ptr<WasabiGame::ErrorBox> err = std::make_shared<WasabiGame::ErrorBox>(((RTBClient::ClientApplication*)m_app)->UI, "what??");
 	((RTBClient::ClientApplication*)m_app)->UI->AddUIElement(err, std::dynamic_pointer_cast<WasabiGame::UIElement>(m_input));
 	((RTBClient::ClientApplication*)m_app)->UI->AddUIElement(ok, err);
 	((RTBClient::ClientApplication*)m_app)->UI->Load();
@@ -80,24 +81,18 @@ void RTBClient::MainGameState::Load() {
 		return true;
 	});
 
-	((RTBClient::ClientApplication*)m_app)->Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN_STATUS, [this](std::shared_ptr<WasabiGame::Selectable> s, WasabiGame::NetworkUpdate& update) {
-		bool loginSuccessful = false;
-		RollTheBall::UpdateBuilders::ReadLoginStatusPacket(update, loginSuccessful);
-		if (loginSuccessful) {
-			WasabiGame::NetworkUpdate gameModeUpdate;
-			RollTheBall::UpdateBuilders::SelectGameMode(gameModeUpdate, RollTheBall::RTB_GAME_MODE::GAME_MODE_ONE_VS_ONE);
-			((RTBClient::ClientApplication*)this->m_app)->Networking->SendUpdate(gameModeUpdate);
-		}
-
-		return loginSuccessful;
-	});
-
 
 	// Login to server
 	std::static_pointer_cast<ClientNetworking>(((RTBClient::ClientApplication*)m_app)->Networking)->Login();
 }
 
 void RTBClient::MainGameState::Update(float fDeltaTime) {
+	if (std::dynamic_pointer_cast<ClientNetworking>(((RTBClient::ClientApplication*)m_app)->Networking)->Status == RTBConnectionStatus::CONNECTION_CONNECTED && m_currentGameMode == RollTheBall::RTB_GAME_MODE::GAME_MODE_NONE) {
+		m_currentGameMode = RollTheBall::RTB_GAME_MODE::GAME_MODE_ONE_VS_ONE;
+		WasabiGame::NetworkUpdate gameModeUpdate;
+		RollTheBall::UpdateBuilders::SelectGameMode(gameModeUpdate, RollTheBall::RTB_GAME_MODE::GAME_MODE_ONE_VS_ONE);
+		((RTBClient::ClientApplication*)this->m_app)->Networking->SendUpdate(gameModeUpdate);
+	}
 }
 
 void RTBClient::MainGameState::Cleanup() {

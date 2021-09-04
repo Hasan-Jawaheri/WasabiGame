@@ -24,6 +24,7 @@ namespace WasabiGame {
 		virtual bool HasPendingWrites() = 0;
 		virtual bool OnReadReady() = 0;
 		virtual bool OnWriteReady() = 0;
+		virtual bool ShouldDeregisterSelectable() = 0;
 	};
 
 };

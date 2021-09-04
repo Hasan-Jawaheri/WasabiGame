@@ -10,20 +10,30 @@
 #include <unordered_map>
 #include <atomic>
 
+class WTimer;
+
 namespace RTBClient {
 
 	enum RTBConnectionStatus {
 		CONNECTION_NOT_CONNECTED = 0,
 		CONNECTION_CONNECTING = 1,
-		CONNECTION_AUTHENTICATING = 2,
-		CONNECTION_CONNECTED = 3,
+		CONNECTION_HANDSHAKING = 2,
+		CONNECTION_AUTHENTICATING = 3,
+		CONNECTION_CONNECTED = 4,
 	};
 
 	class ClientNetworking : public WasabiGame::NetworkManager {
 		std::shared_ptr<WasabiGame::NetworkListenerT<WasabiGame::NetworkClient>> m_listener;
 
 		std::shared_ptr<WasabiGame::ReconnectingNetworkClient> m_tcpConnection;
-		std::shared_ptr<WasabiGame::ReconnectingNetworkClient> m_udpConnection;
+		std::shared_ptr<WasabiGame::UDPNetworkClient> m_udpConnection;
+		
+		WTimer* m_timer;
+		uint32_t m_clientId;
+		float m_lastUDPIdentificationUpdate, m_lastLoginUpdate;
+
+		uint32_t m_serverTCPPort;
+		uint32_t m_serverUDPPort;
 
 	public:
 		ClientNetworking(std::shared_ptr<WasabiGame::WasabiBaseGame> app, std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler);

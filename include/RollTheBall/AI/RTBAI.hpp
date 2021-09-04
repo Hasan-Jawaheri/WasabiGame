@@ -25,7 +25,7 @@ namespace RollTheBall {
 
 		std::weak_ptr<WasabiGame::WasabiBaseGame> m_app;
 
-		void SendNetworkUpdate(WasabiGame::NetworkUpdate& update);
+		void SendNetworkUpdate(WasabiGame::NetworkUpdate& update, bool important = true);
 
 	public:
 		RTBAI(std::shared_ptr<WasabiGame::Unit> unit);

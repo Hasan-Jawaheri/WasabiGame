@@ -11,9 +11,9 @@ RollTheBall::BallUnit::BallUnit(std::shared_ptr<WasabiGame::WasabiBaseGame> app,
 
 	m_properties.canJump = true;
 	m_properties.canDash = true;
-	m_properties.movementSpeed = 500.0f;
-	m_properties.jumpHeight = 300.0f;
-	m_properties.dashSpeed = 300.0f;
+	m_properties.movementSpeed = 30000.0f;
+	m_properties.jumpHeight = 9000.0f;
+	m_properties.dashSpeed = 9000.0f;
 }
 
 RollTheBall::BallUnit::~BallUnit() {
@@ -41,28 +41,28 @@ void RollTheBall::BallUnit::Update(float fDeltaTime) {
 	Unit::Update(fDeltaTime);
 }
 
-void RollTheBall::BallUnit::Jump(WVector3 direction) {
+void RollTheBall::BallUnit::Jump(WVector3 direction, float fDeltaTime) {
 	WRigidBody* rb = RB();
 	if (rb) {
 		bool isDirection = WVec3LengthSq(direction) > 0.1f;
 
 		if (m_state.isGrounded && m_properties.canJump) {
 			rb->SetLinearDamping(0.2f);
-			rb->ApplyImpulse(WVector3(0.0f, m_properties.jumpHeight, 0.0f));
+			rb->ApplyImpulse(WVector3(0.0f, m_properties.jumpHeight * fDeltaTime, 0.0f));
 			m_state.jumpDirection = direction;
 			m_state.didDash = false;
 		} else if (!m_state.didDash && isDirection && m_properties.canDash) {
-			rb->ApplyImpulse(direction * m_properties.dashSpeed);
+			rb->ApplyImpulse(direction * m_properties.dashSpeed * fDeltaTime);
 			m_state.didDash = true;
 		}
 	}
 }
 
-void RollTheBall::BallUnit::Move(WVector3 direction) {
+void RollTheBall::BallUnit::Move(WVector3 direction, float fDeltaTime) {
 	if (m_state.isGrounded) {
 		WRigidBody* rb = RB();
 		if (rb) {
-			rb->ApplyForce(WVec3Normalize(direction) * m_properties.movementSpeed, WVector3(0.0f, 0.3f, 0.0f));
+			rb->ApplyForce(WVec3Normalize(direction) * m_properties.movementSpeed * fDeltaTime, WVector3(0.0f, 0.3f, 0.0f));
 		}
 	}
 }

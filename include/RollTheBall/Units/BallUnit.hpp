@@ -33,8 +33,8 @@ namespace RollTheBall {
 		} m_properties;
 
 		virtual bool IsOnGround() const override;
-		virtual void Jump(WVector3 direction) override;
-		virtual void Move(WVector3 direction) override;
+		virtual void Jump(WVector3 direction, float fDeltaTime) override;
+		virtual void Move(WVector3 direction, float fDeltaTime) override;
 	};
 
 };

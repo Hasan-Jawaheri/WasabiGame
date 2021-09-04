@@ -52,8 +52,8 @@ namespace WasabiGame {
 		std::shared_ptr<AI> GetAI() const;
 
 		virtual bool IsOnGround() const = 0;
-		virtual void Jump(WVector3 direction) = 0;
-		virtual void Move(WVector3 direction) = 0;
+		virtual void Jump(WVector3 direction, float fDeltaTime) = 0;
+		virtual void Move(WVector3 direction, float fDeltaTime) = 0;
 	};
 
 };

@@ -76,6 +76,21 @@ namespace WasabiGame {
 			}
 			return 0;
 		}
+
+		size_t readPacket(void* buffer, size_t bufLen) {
+			if (bufLen >= PACKET_META_SIZE) {
+				type = ntohs(*(NetworkUpdateType*)((char*)buffer + 0));
+				purpose = ntohs(*(PacketPurpose*)((char*)buffer + 2));
+				targetId = ntohl(*(uint32_t*)((char*)buffer + 4));
+				dataSize = ntohs(*(uint16_t*)((char*)buffer + 8));
+
+				if (bufLen >= PACKET_META_SIZE + dataSize) {
+					memcpy(data, (char*)buffer + PACKET_META_SIZE, dataSize);
+					return bufLen;
+				}
+			}
+			return 0;
+		}
 	};
     
 };

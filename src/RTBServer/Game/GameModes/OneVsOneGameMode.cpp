@@ -2,7 +2,7 @@
 #include "RTBServer/Repositories/ClientsRepository.hpp"
 
 
-RTBServer::GAME_MODE_MATCHMAKING_PROPERTIES RTBServer::OneVsOneGameMode::MATCHMAKING_PROPERTIES = { 2, 2 };
+RTBServer::GAME_MODE_MATCHMAKING_PROPERTIES RTBServer::OneVsOneGameMode::MATCHMAKING_PROPERTIES = { 1, 2 };
 
 RTBServer::OneVsOneGameMode::OneVsOneGameMode(std::weak_ptr<ServerApplication> server) : GameMode(server) {
 	m_simulation = std::make_shared<ServerSimulation>(m_server);

@@ -5,7 +5,7 @@
 #include "RollTheBall/GameModes/GameModes.hpp"
 
 
-RTBServer::LoginCell::LoginCell(std::weak_ptr<ServerApplication> app) : ServerCell(app) {
+RTBServer::LoginCell::LoginCell(std::weak_ptr<ServerApplication> app) : ServerCell(app), std::enable_shared_from_this<LoginCell>() {
 	// login update callback
     std::shared_ptr sharedApp = app.lock();
     sharedApp->Networking->RegisterNetworkUpdateCallback(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN, [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& loginUpdate) {
@@ -27,18 +27,27 @@ bool RTBServer::LoginCell::Update() {
 bool RTBServer::LoginCell::OnClientLoginUpdate(std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& loginUpdate) {
     std::shared_ptr<ServerConnectedClient> client = std::dynamic_pointer_cast<ServerConnectedClient>(_client);
     std::shared_ptr<ServerApplication> app = m_app.lock();
-    WasabiGame::ClientIdentity identity;
-    if (RollTheBall::UpdateBuilders::ReadLoginPacket(loginUpdate, identity)) {
-        bool authenticated = Authenticate(identity);
-        if (authenticated) {
-            memcpy(&client->Identity, &identity, sizeof(WasabiGame::ClientIdentity));
-            LOG_F(INFO, "AUTHENTICATED: id=%d, account=%s", client->m_id, client->Identity.accountName);
-        }
+    std::shared_ptr<ServerCell> sharedThis = shared_from_this();
+    ServerCellClientsMap* clientsMap;
+    bool clientIsInLoginCell = false;
+    app->ClientsRepository->LockCellClients(sharedThis, &clientsMap);
+    clientIsInLoginCell = clientsMap && clientsMap->find(client->m_id) != clientsMap->end();
+    app->ClientsRepository->UnlockCellClients(sharedThis, &clientsMap);
 
-        WasabiGame::NetworkUpdate loginStatusUpdate;
-        RollTheBall::UpdateBuilders::LoginStatus(loginStatusUpdate, authenticated);
-        app->Networking->SendUpdate(client, loginStatusUpdate);
-        return authenticated;
+    if (clientIsInLoginCell) {
+        WasabiGame::ClientIdentity identity;
+        if (RollTheBall::UpdateBuilders::ReadLoginPacket(loginUpdate, identity)) {
+            bool authenticated = Authenticate(identity);
+            if (authenticated) {
+                memcpy(&client->Identity, &identity, sizeof(WasabiGame::ClientIdentity));
+                LOG_F(INFO, "AUTHENTICATED: id=%d, account=%s", client->m_id, client->Identity.accountName);
+            }
+
+            WasabiGame::NetworkUpdate loginStatusUpdate;
+            RollTheBall::UpdateBuilders::LoginStatus(loginStatusUpdate, authenticated);
+            app->Networking->SendUpdate(client, loginStatusUpdate);
+            return authenticated;
+        }
     }
     return false;
 }
@@ -47,7 +56,7 @@ bool RTBServer::LoginCell::OnClientSelectedGameMode(std::shared_ptr<WasabiGame::
     std::shared_ptr<ServerConnectedClient> client = std::dynamic_pointer_cast<ServerConnectedClient>(_client);
     std::shared_ptr<ServerApplication> app = m_app.lock();
     uint32_t gameMode;
-    if (RollTheBall::UpdateBuilders::ReadSelectGameMode(gameModeUpdate, gameMode)) {
+    if (RollTheBall::UpdateBuilders::ReadSelectGameModePacket(gameModeUpdate, gameMode)) {
         switch (gameMode) {
         case RollTheBall::RTB_GAME_MODE::GAME_MODE_ONE_VS_ONE:
             app->ClientsRepository->MoveClientToCell(client, app->GetMatchmakingCell(), (void*)(size_t)gameMode);

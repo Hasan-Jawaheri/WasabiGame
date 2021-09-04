@@ -188,10 +188,10 @@ void RTBServer::ServerSimulation::Update() {
 
 				for (auto receiverPlayer : m_players) {
 					if (senderPlayer.second != receiverPlayer.second) {
-						m_wasabi->Networking->SendUpdate(receiverPlayer.second.first->m_clientId, updateToOtherPlayers);
+						m_wasabi->Networking->SendUpdate(receiverPlayer.second.first->m_clientId, updateToOtherPlayers, false);
 					} else {
 						// tell each player where he actually is, every player thinks their unit id is 0
-						m_wasabi->Networking->SendUpdate(receiverPlayer.second.first->m_clientId, updateToPlayer);
+						m_wasabi->Networking->SendUpdate(receiverPlayer.second.first->m_clientId, updateToPlayer, false);
 					}
 				}
 			}

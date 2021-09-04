@@ -36,17 +36,17 @@ void RollTheBall::RTBAI::Update(float fDeltaTime) {
 		m_movement.jumpReady = true;
 	else if (m_movement.jumpReady) {
 		m_movement.jumpReady = false;
-		unit->Jump(inputDirection);
+		unit->Jump(inputDirection, fDeltaTime);
 	}
 
 	if (isDirection) {
-		unit->Move(inputDirection);
+		unit->Move(inputDirection, fDeltaTime);
 	}
 }
 
-void RollTheBall::RTBAI::SendNetworkUpdate(WasabiGame::NetworkUpdate& update) {
+void RollTheBall::RTBAI::SendNetworkUpdate(WasabiGame::NetworkUpdate& update, bool important) {
 	WasabiGame::WasabiBaseGame* app = m_app.lock().get();
-	app->Networking->SendUpdate(update);
+	app->Networking->SendUpdate(update, important);
 }
 
 void RollTheBall::RTBAI::OnNetworkUpdate(std::string prop, void* data, size_t size) {

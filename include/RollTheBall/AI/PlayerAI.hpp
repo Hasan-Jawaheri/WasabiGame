@@ -1,13 +1,14 @@
 #pragma once
 
 #include "RollTheBall/AI/RTBAI.hpp"
+#include "RollTheBall/AI/RemoteControlledAI.hpp"
 #include "RollTheBall/Units/Player.hpp"
 #include "Wasabi/Core/WTimer.hpp"
 
 
 namespace RollTheBall {
 	
-	class PlayerAI : public RTBAI {
+	class PlayerAI : public RemoteControlledAI {
 		WCamera* m_camera;
 		WVector3 m_cameraPivot;
 		float m_cameraPitch, m_cameraDistance;
@@ -32,7 +33,6 @@ namespace RollTheBall {
 		float GetCameraPitch() const;
 		float GetCameraDistance() const;
 
-		virtual void OnNetworkUpdate(std::string prop, void* data, size_t size) override;
 		virtual void SetYawAngle(float angle) override;
 		virtual void SetMoveForward(bool isActive) override;
 		virtual void SetMoveBackward(bool isActive) override;

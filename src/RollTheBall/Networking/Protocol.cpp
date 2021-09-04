@@ -13,6 +13,38 @@ bool RollTheBall::UpdateBuilders::ReadErrorPacket(WasabiGame::NetworkUpdate& inp
 	return true;
 }
 
+void RollTheBall::UpdateBuilders::SetClientId(WasabiGame::NetworkUpdate& output, uint32_t clientId) {
+	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_CLIENT_ID;
+	output.dataSize = 0;
+	output.targetId = clientId;
+}
+
+bool RollTheBall::UpdateBuilders::ReadSetClientIdPacket(WasabiGame::NetworkUpdate& input, uint32_t* clientId) {
+	*clientId = input.targetId;
+	return true;
+}
+
+void RollTheBall::UpdateBuilders::IdentifyUDPClient(WasabiGame::NetworkUpdate& output, uint32_t clientId) {
+	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_IDENTIFY_UDP_CLIENT;
+	output.dataSize = 0;
+	output.targetId = clientId;
+}
+
+bool RollTheBall::UpdateBuilders::ReadIdentifyUDPClientPacket(WasabiGame::NetworkUpdate& input, uint32_t* clientId) {
+	*clientId = input.targetId;
+	return true;
+}
+
+void RollTheBall::UpdateBuilders::UDPClientIdentified(WasabiGame::NetworkUpdate& output) {
+	output.type = RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_UDP_CLIENT_IDENTIFIED;
+	output.dataSize = 0;
+}
+
+bool RollTheBall::UpdateBuilders::ReadUDPClientIdentifiedPacket(WasabiGame::NetworkUpdate& input) {
+	// no-op
+	return true;
+}
+
 void RollTheBall::UpdateBuilders::Login(WasabiGame::NetworkUpdate& output, const char* account, const char* password) {
 	WasabiGame::ClientIdentity identity;
 	strcpy(identity.accountName, account);
@@ -49,7 +81,7 @@ void RollTheBall::UpdateBuilders::SelectGameMode(WasabiGame::NetworkUpdate& outp
 	memcpy(output.data, &gameMode, output.dataSize);
 }
 
-bool RollTheBall::UpdateBuilders::ReadSelectGameMode(WasabiGame::NetworkUpdate& input, uint32_t& gameMode) {
+bool RollTheBall::UpdateBuilders::ReadSelectGameModePacket(WasabiGame::NetworkUpdate& input, uint32_t& gameMode) {
 	if (input.dataSize != sizeof(uint32_t))
 		return false;
 	memcpy(&gameMode, input.data, input.dataSize);
