@@ -1,6 +1,7 @@
 #include "RTBServer/Networking/Networking.hpp"
 #include "RollTheBall/Networking/Protocol.hpp"
 #include "RTBServer/Repositories/ClientsRepository.hpp"
+#include "RTBServer/Cells/ServerCell.hpp"
 
 
 RTBServer::ServerNetworking::ServerNetworking(std::shared_ptr<ServerApplication> app, std::shared_ptr<WasabiGame::GameConfig> config, std::shared_ptr<WasabiGame::GameScheduler> scheduler) : WasabiGame::NetworkManager() {
@@ -37,7 +38,7 @@ std::shared_ptr<WasabiGame::NetworkListenerT<RTBServer::ServerConnectedClient>> 
 void RTBServer::ServerNetworking::SendUpdate(uint32_t clientId, WasabiGame::NetworkUpdate& update, bool important) {
 	std::shared_ptr<ServerConnectedClient> client = nullptr;
 	if (clientId != 0) {
-		std::scoped_lock lockGuard(this->m_clientsMutex);
+		std::scoped_lock lockGuard(m_clientsMutex);
 		auto it = m_clients.find(clientId);
 		if (it != m_clients.end())
 			client = it->second;
@@ -61,7 +62,7 @@ void RTBServer::ServerNetworking::SendUpdate(std::shared_ptr<WasabiGame::Network
 		std::vector<std::shared_ptr<ServerConnectedClient>> allClients;
 		allClients.reserve(m_clients.size());
 		{
-			std::scoped_lock lockGuard(this->m_clientsMutex);
+			std::scoped_lock lockGuard(m_clientsMutex);
 			for (auto client : m_clients) {
 				allClients.push_back(client.second);
 			}
@@ -84,7 +85,7 @@ void RTBServer::ServerNetworking::OnClientConnected(std::shared_ptr<WasabiGame::
 	std::shared_ptr<ServerConnectedClient> client = std::dynamic_pointer_cast<ServerConnectedClient>(_client);
 	{
 		std::scoped_lock lockGuard(m_clientsMutex);
-		client->m_id = this->GenerateClientId();
+		client->m_id = GenerateClientId();
 		client->SetConsumeBufferCallback([this, client](char* buffer, size_t length) {
 			// client sent new data over TCP, identify message and react to it
 			WasabiGame::NetworkUpdate packet;
@@ -102,13 +103,13 @@ void RTBServer::ServerNetworking::OnClientConnected(std::shared_ptr<WasabiGame::
 	RollTheBall::UpdateBuilders::SetClientId(setClientIdUpdate, client->m_id);
 	SendUpdate(client, setClientIdUpdate, true);
 
-	this->m_app->ClientsRepository->SetClientConnected(client, this->m_app->GetLoginCell());
+	m_app->ClientsRepository->SetClientConnected(client, m_app->GetLoginCell());
 }
 
 void RTBServer::ServerNetworking::OnClientDisconnected(std::shared_ptr<WasabiGame::Selectable> _client) {
 	std::shared_ptr<ServerConnectedClient> client = std::dynamic_pointer_cast<ServerConnectedClient>(_client);
 
-	this->m_app->ClientsRepository->SetClientDisconnected(client);
+	m_app->ClientsRepository->SetClientDisconnected(client);
 
 	{
 		std::scoped_lock lockGuard(m_clientsMutex);
@@ -120,17 +121,13 @@ void RTBServer::ServerNetworking::OnClientDisconnected(std::shared_ptr<WasabiGam
 }
 
 bool RTBServer::ServerNetworking::OnReceivedNetworkUpdate(std::shared_ptr<ServerConnectedClient> client, WasabiGame::NetworkUpdate update) {
-	// first message from the client must be a login message
-	if (static_cast<RollTheBall::NetworkUpdateTypeEnum>(update.type) != RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN && client->Identity.accountName[0] == 0)
-		return false;
-
-	auto it = m_updateCallbacks.find(update.type);
-	if (it != m_updateCallbacks.end()) {
-		if (!it->second(client, update))
-			return false;
+	std::shared_ptr<ServerCell> clientCell = m_app->ClientsRepository->GetClientCell(client->m_id);
+	if (clientCell == nullptr) {
+		LOG_F(WARNING, "Client sent a message but is not in any cell (id=%d, account=%s)", client->m_id, client->Identity.accountName);
+		return false; // every player must be in a cell, something is wrong...
 	}
 
-	return true;
+	return clientCell->OnReceivedNetworkUpdate(client, update);
 }
 
 void RTBServer::ServerNetworking::OnReceivedUDPPacket(void* packet, size_t length, sockaddr* addrFrom, int addrLen) {

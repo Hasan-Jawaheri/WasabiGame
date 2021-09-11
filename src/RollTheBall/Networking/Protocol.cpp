@@ -90,24 +90,37 @@ bool RollTheBall::UpdateBuilders::ReadSelectGameModePacket(WasabiGame::NetworkUp
 
 void RollTheBall::UpdateBuilders::LoadUnit(WasabiGame::NetworkUpdate& output, uint32_t unitType, uint32_t unitId, WVector3 spawnPos) {
 	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOAD_UNIT);
-	output.purpose = unitType;
 	output.targetId = unitId;
-	output.dataSize = sizeof(WVector3);
-	memcpy(output.data, &spawnPos, output.dataSize);
+	output.dataSize = sizeof(uint32_t) + sizeof(WVector3);
+
+	unitType = htons(unitType);
+	memcpy((char*)output.data, &unitType, sizeof(uint32_t));
+
+	for (uint32_t i = 0; i < 3; i++) {
+		unsigned long component = htonf(spawnPos.components[i]);
+		memcpy((char*)output.data + sizeof(uint32_t) + i * sizeof(unsigned long), &component, sizeof(unsigned long));
+	}
 }
 
 bool RollTheBall::UpdateBuilders::ReadLoadUnitPacket(WasabiGame::NetworkUpdate& input, uint32_t* unitType, uint32_t* unitId, WVector3* spawnPos) {
-	if (input.dataSize != sizeof(WVector3))
+	if (input.dataSize != sizeof(uint32_t) + sizeof(WVector3))
 		return false;
-	*unitType = input.purpose;
+
 	*unitId = input.targetId;
-	memcpy((void*)spawnPos, input.data, input.dataSize);
+
+	memcpy((void*)unitType, (char*)input.data, sizeof(uint32_t));
+	*unitType = ntohs(*unitType);
+
+	for (uint32_t i = 0; i < 3; i++) {
+		float component = ntohf(*((char*)input.data + sizeof(uint32_t) + i * sizeof(float)));
+		memcpy((float*)spawnPos + i, &component, sizeof(float));
+	}
+
 	return true;
 }
 
 void RollTheBall::UpdateBuilders::UnloadUnit(WasabiGame::NetworkUpdate& output, uint32_t unitId) {
 	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_UNLOAD_UNIT);
-	output.purpose = 0;
 	output.targetId = unitId;
 	output.dataSize = 0;
 }
@@ -119,7 +132,6 @@ bool RollTheBall::UpdateBuilders::ReadUnloadUnitPacket(WasabiGame::NetworkUpdate
 
 void RollTheBall::UpdateBuilders::WhoIsUnit(WasabiGame::NetworkUpdate& output, uint32_t unitId) {
 	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_WHOIS_UNIT);
-	output.purpose = 0;
 	output.targetId = unitId;
 	output.dataSize = 0;
 }
@@ -131,7 +143,6 @@ bool RollTheBall::UpdateBuilders::ReadWhoIsUnitPacket(WasabiGame::NetworkUpdate&
 
 void RollTheBall::UpdateBuilders::SetUnitProps(WasabiGame::NetworkUpdate& output, uint32_t unitId, std::function<void(std::string, void*, uint16_t)>* fillFunc) {
 	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_UNIT_PROPS);
-	output.purpose = 0;
 	output.targetId = unitId;
 	output.dataSize = 0;
 	*fillFunc = [&output](std::string name, void* data, uint16_t size) {
@@ -161,14 +172,13 @@ bool RollTheBall::UpdateBuilders::ReadSetUnitPropsPacket(WasabiGame::NetworkUpda
 			return false;
 		memcpy(tmpName, input.data + pos + 3, nameLen);
 		readFunc(std::string(tmpName, nameLen), input.data + pos + 3 + nameLen, size);
-		pos += 3 + nameLen + size;
+		pos += 3 + (size_t)nameLen + (size_t)size;
 	}
 	return true;
 }
 
 void RollTheBall::UpdateBuilders::LoadMap(WasabiGame::NetworkUpdate& output, uint32_t map) {
 	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOAD_MAP);
-	output.purpose = 0;
 	output.targetId = map;
 	output.dataSize = 0;
 }

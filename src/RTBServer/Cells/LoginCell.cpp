@@ -6,19 +6,6 @@
 
 
 RTBServer::LoginCell::LoginCell(std::weak_ptr<ServerApplication> app) : ServerCell(app), std::enable_shared_from_this<LoginCell>() {
-	// login update callback
-    std::shared_ptr sharedApp = app.lock();
-    sharedApp->Networking->RegisterNetworkUpdateCallback(static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN),
-        [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& loginUpdate) {
-            return this->OnClientLoginUpdate(_client, loginUpdate);
-	    }
-    );
-
-    sharedApp->Networking->RegisterNetworkUpdateCallback(static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SELECT_GAME_MODE),
-        [this](std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& gameModeUpdate) {
-            return this->OnClientSelectedGameMode(_client, gameModeUpdate);
-        }
-    );
 }
 
 RTBServer::LoginCell::~LoginCell() {
@@ -26,6 +13,22 @@ RTBServer::LoginCell::~LoginCell() {
 
 bool RTBServer::LoginCell::Update() {
     return true;
+}
+
+bool RTBServer::LoginCell::OnReceivedNetworkUpdate(std::shared_ptr<ServerConnectedClient> client, WasabiGame::NetworkUpdate update) {
+    // first message from the client must be a login message
+    if (static_cast<RollTheBall::NetworkUpdateTypeEnum>(update.type) != RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN && client->Identity.accountName[0] == 0)
+        return false;
+
+    switch (static_cast<RollTheBall::NetworkUpdateTypeEnum>(update.type)) {
+    case RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_LOGIN:
+        return OnClientLoginUpdate(client, update);
+    case RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SELECT_GAME_MODE:
+        return OnClientSelectedGameMode(client, update);
+    }
+
+    // unknown message for this cell
+    return false;
 }
 
 bool RTBServer::LoginCell::OnClientLoginUpdate(std::shared_ptr<WasabiGame::Selectable> _client, WasabiGame::NetworkUpdate& loginUpdate) {

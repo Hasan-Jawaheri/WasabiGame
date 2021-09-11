@@ -19,34 +19,30 @@ namespace WasabiGame {
 	};
 
 	const size_t MAX_PACKET_SIZE = 4096;
-	const size_t PACKET_META_SIZE = 10;
+	const size_t PACKET_META_SIZE = 8;
 
 	typedef uint16_t NetworkUpdateType;
-	typedef uint16_t PacketPurpose;
 
 	struct NetworkUpdate {
 		NetworkUpdateType type;
-		PacketPurpose purpose;
-		uint32_t targetId;
 		uint16_t dataSize;
+		uint32_t targetId;
 		char data[MAX_PACKET_SIZE - PACKET_META_SIZE];
 
 		size_t fillPacket(char* packet) {
 			size_t hdataSize = (size_t)dataSize;
 
-			type = htons(type);
-			purpose = htons(purpose);
-			targetId = htonl(targetId);
-			dataSize = htons(dataSize);
+			NetworkUpdateType typeToWrite = htons(type);
+			uint32_t targetIdToWrite = htonl(targetId);
+			uint16_t dataSizeToWrite = htons(dataSize);
 
-			memcpy(packet, (char*)&type, sizeof(NetworkUpdateType));
-			memcpy(packet + 2, (char*)&purpose, sizeof(PacketPurpose));
-			memcpy(packet + 4, (char*)&targetId, sizeof(uint32_t));
-			memcpy(packet + 8, (char*)&dataSize, sizeof(uint16_t));
+			memcpy(packet, (char*)&typeToWrite, sizeof(NetworkUpdateType));
+			memcpy(packet + 2, (char*)&dataSizeToWrite, sizeof(uint16_t));
+			memcpy(packet + 4, (char*)&targetIdToWrite, sizeof(uint32_t));
 			if (hdataSize > 0)
-				memcpy(packet + 10, (char*)data, hdataSize);
+				memcpy(packet + 8, (char*)data, hdataSize);
 
-			return 10 + hdataSize;
+			return 8 + hdataSize;
 		}
 
 		size_t readPacket(WasabiGame::CircularBuffer* packet) {
@@ -58,9 +54,8 @@ namespace WasabiGame {
 					memcpy(tmp + availableToRead, packet->mem, PACKET_META_SIZE - availableToRead);
 
 				type = ntohs(*(NetworkUpdateType*)(tmp + 0));
-				purpose = ntohs(*(PacketPurpose*)(tmp + 2));
+				dataSize = ntohs(*(uint16_t*)(tmp + 2));
 				targetId = ntohl(*(uint32_t*)(tmp + 4));
-				dataSize = ntohs(*(uint16_t*)(tmp + 8));
 
 				if (packet->GetSize() >= PACKET_META_SIZE + dataSize) {
 					packet->OnConsumed(PACKET_META_SIZE);
@@ -80,9 +75,8 @@ namespace WasabiGame {
 		size_t readPacket(void* buffer, size_t bufLen) {
 			if (bufLen >= PACKET_META_SIZE) {
 				type = ntohs(*(NetworkUpdateType*)((char*)buffer + 0));
-				purpose = ntohs(*(PacketPurpose*)((char*)buffer + 2));
+				dataSize = ntohs(*(uint16_t*)((char*)buffer + 2));
 				targetId = ntohl(*(uint32_t*)((char*)buffer + 4));
-				dataSize = ntohs(*(uint16_t*)((char*)buffer + 8));
 
 				if (bufLen >= PACKET_META_SIZE + dataSize) {
 					memcpy(data, (char*)buffer + PACKET_META_SIZE, dataSize);

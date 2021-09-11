@@ -3,9 +3,11 @@
 #include "RollTheBall/Units/RTBUnits.hpp"
 #include "WasabiGame/Main.hpp"
 #include "RollTheBall/AI/RemoteControlledAI.hpp"
+#include "Wasabi/Core/WTimer.hpp"
 
 
-RollTheBall::PlayerAI::PlayerAI(std::shared_ptr<WasabiGame::Unit> unit) : RemoteControlledAI(unit) {
+RollTheBall::PlayerAI::PlayerAI(std::shared_ptr<WasabiGame::Unit> unit)
+		: RemoteControlledAI(unit), m_inputSequenceNumber(0), m_update({ 0 }) {
 	std::shared_ptr<WasabiGame::WasabiBaseGame> app = unit->GetApp().lock();
 
 	m_camera = app->CameraManager->GetDefaultCamera();
@@ -15,7 +17,8 @@ RollTheBall::PlayerAI::PlayerAI(std::shared_ptr<WasabiGame::Unit> unit) : Remote
 	m_cameraDistance = -10.0f;
 
 	m_clientTimer = &unit->GetApp().lock()->Timer;
-	m_periodicUpdateTimer = m_clientTimer->GetElapsedTime();
+	m_sendInputTimer = m_clientTimer->GetElapsedTime();
+	m_packetsToSend.reserve(RollTheBall::UpdateBuilders::GameStateSync::MAX_INPUTS_PER_PACKET);
 }
 
 RollTheBall::PlayerAI::~PlayerAI() {
@@ -44,12 +47,17 @@ void RollTheBall::PlayerAI::Update(float fDeltaTime) {
 		}
 	}
 
-	// send periodic update to server
-	/*if (m_periodicUpdateTimer + 0.2f < m_clientTimer->GetElapsedTime()) {
-		m_periodicUpdateTimer = m_clientTimer->GetElapsedTime();
-
-		SendMovementUpdate('P', m_playerPosition);
-	}*/
+	float curTime = m_clientTimer->GetElapsedTime(true);
+	if (m_sendInputTimer + SEND_INPUT_TO_SERVER_PERIOD_S < curTime) {
+		std::scoped_lock<std::mutex> lockGuard(m_inputsMutex);
+		m_sendInputTimer = curTime;
+		if (m_packetsToSend.size() > 0) {
+			RollTheBall::UpdateBuilders::GameStateSync::SetPlayerInput(m_update, m_packetsToSend);
+			SendNetworkUpdate(m_update, false);
+			for (uint32_t i = 0; i < m_packetsToSendMetadata.size(); i++)
+				m_packetsToSendMetadata[i].sent = true;
+		}
+	}
 }
 
 void RollTheBall::PlayerAI::SetCameraPitch(float pitch) {
@@ -68,70 +76,82 @@ float RollTheBall::PlayerAI::GetCameraDistance() const {
 	return m_cameraDistance;
 }
 
-void RollTheBall::PlayerAI::SendMovementUpdate(void* update, size_t size) {
-	std::function<void(std::string, void*, uint16_t)> setProp;
-	RollTheBall::UpdateBuilders::SetUnitProps(m_update, 0, &setProp);
-	setProp("move", update, size);
-	SendNetworkUpdate(m_update, false);
-}
+void RollTheBall::PlayerAI::QueueMovementUpdate() {
+	IN_FLIGHT_INPUT_STRUCT inputMetadata;
+	inputMetadata.sent = false;
+	RollTheBall::UpdateBuilders::GameStateSync::INPUT_STRUCT input = { 0 };
+	input.forward = m_movement.forward;
+	input.backward = m_movement.backward;
+	input.left = m_movement.left;
+	input.right = m_movement.right;
+	input.jump = m_movement.jump;
+	input.yaw = m_movement.angle;
 
-void RollTheBall::PlayerAI::SendMovementUpdate(char type, float angle) {
-	RollTheBall::MOVEMENT_PACKET_STRUCT m;
-	m.type = type;
-	m.time = m_clientTimer->GetElapsedTime();
-	m.prop.angle = angle;
-	SendMovementUpdate((void*)&m, sizeof(RollTheBall::MOVEMENT_PACKET_STRUCT));
-}
+	{
+		std::scoped_lock<std::mutex> lockGuard(m_inputsMutex);
+		if (m_packetsToSendMetadata.size() > 0 && !m_packetsToSendMetadata[m_packetsToSendMetadata.size() - 1].sent) {
+			// if last packet is not sent and is same as this one except for angle, just merge the two
+			RollTheBall::UpdateBuilders::GameStateSync::INPUT_STRUCT* lastPacket = &m_packetsToSend[m_packetsToSend.size() - 1];
+			if (lastPacket->backward == input.backward && lastPacket->forward == input.forward &&
+					lastPacket->left == input.left && lastPacket->right == input.right && lastPacket->jump == input.jump) {
+				lastPacket->yaw = input.yaw;
+				return;
+			}
+		}
 
-void RollTheBall::PlayerAI::SendMovementUpdate(char type, WVector3 position) {
-	RollTheBall::MOVEMENT_PACKET_STRUCT m;
-	m.type = type;
-	m.time = m_clientTimer->GetElapsedTime();
-	m.prop.pos = position;
-	SendMovementUpdate((void*)&m, sizeof(RollTheBall::MOVEMENT_PACKET_STRUCT));
-}
-
-void RollTheBall::PlayerAI::SendMovementUpdate(char type, bool state) {
-	RollTheBall::MOVEMENT_PACKET_STRUCT m;
-	m.type = type;
-	m.time = m_clientTimer->GetElapsedTime();
-	m.prop.state = state;
-	SendMovementUpdate((void*)&m, sizeof(RollTheBall::MOVEMENT_PACKET_STRUCT));
+		input.sequenceNumber = m_inputSequenceNumber++;
+		m_packetsToSendMetadata.push_back(inputMetadata);
+		m_packetsToSend.push_back(input);
+		if (m_packetsToSend.size() > RollTheBall::UpdateBuilders::GameStateSync::MAX_INPUTS_PER_PACKET) {
+			m_packetsToSend.erase(m_packetsToSend.begin());
+			m_packetsToSendMetadata.erase(m_packetsToSendMetadata.begin());
+		}
+	}
 }
 
 void RollTheBall::PlayerAI::SetYawAngle(float angle) {
 	RemoteControlledAI::SetYawAngle(angle);
-
-	SendMovementUpdate('Y', angle);
+	QueueMovementUpdate();
 }
 
 void RollTheBall::PlayerAI::SetMoveForward(bool isActive) {
 	RemoteControlledAI::SetMoveForward(isActive);
-
-	SendMovementUpdate('W', isActive);
+	QueueMovementUpdate();
 }
 
 void RollTheBall::PlayerAI::SetMoveBackward(bool isActive) {
 	RemoteControlledAI::SetMoveBackward(isActive);
-
-	SendMovementUpdate('S', isActive);
+	QueueMovementUpdate();
 }
 
 void RollTheBall::PlayerAI::SetMoveLeft(bool isActive) {
 	RemoteControlledAI::SetMoveLeft(isActive);
-
-	SendMovementUpdate('A', isActive);
+	QueueMovementUpdate();
 }
 
 void RollTheBall::PlayerAI::SetMoveRight(bool isActive) {
 	RemoteControlledAI::SetMoveRight(isActive);
-
-	SendMovementUpdate('D', isActive);
+	QueueMovementUpdate();
 }
 
 void RollTheBall::PlayerAI::SetMoveJump(bool isActive) {
 	RemoteControlledAI::SetMoveJump(isActive);
-
-	SendMovementUpdate(' ', isActive);
+	QueueMovementUpdate();
 }
 
+void RollTheBall::PlayerAI::OnInputsAcked(std::vector<SEQUENCE_NUMBER_TYPE> inputs) {
+	std::scoped_lock<std::mutex> lockGuard(m_inputsMutex);
+	for (int i = 0; i < m_packetsToSend.size(); i++) {
+		bool iIsAcked = false;
+		for (int j = 0; j < inputs.size() && !iIsAcked; j++) {
+			if (m_packetsToSend[i].sequenceNumber == inputs[j]) {
+				iIsAcked = true;
+			}
+		}
+		if (iIsAcked) {
+			m_packetsToSend.erase(m_packetsToSend.begin() + i);
+			m_packetsToSendMetadata.erase(m_packetsToSendMetadata.begin() + i);
+			i--;
+		}
+	}
+}

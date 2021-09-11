@@ -27,6 +27,7 @@ namespace RTBServer {
 
 		virtual void OnClientAdded(std::shared_ptr<ServerConnectedClient> client) {}
 		virtual void OnClientRemoved(std::shared_ptr<ServerConnectedClient> client) {}
+		virtual bool OnReceivedNetworkUpdate(std::shared_ptr<ServerConnectedClient> client, WasabiGame::NetworkUpdate update) { return false; }
 	};
 	
 	GAME_MODE_MATCHMAKING_PROPERTIES GetGameModeMatchmakingProperties(GAME_MODE gameMode);

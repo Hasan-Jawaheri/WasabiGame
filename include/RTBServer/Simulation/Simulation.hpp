@@ -3,6 +3,7 @@
 #include "WasabiGame/GameStates/BaseState.hpp"
 #include "WasabiGame/Utilities/Scheduler.hpp"
 #include "RTBServer/Main.hpp"
+#include "RTBServer/Simulation/GameStateSyncBackend.hpp"
 #include "RTBServer/Game/RTBConnectedPlayer.hpp"
 #include "RollTheBall/Maps/RTBMaps.hpp"
 
@@ -15,6 +16,8 @@ namespace RTBServer {
 
 	class ServerSimulation {
 		std::weak_ptr<ServerApplication> m_server;
+
+		std::unique_ptr<GameStateSyncBackend> m_gameStateSync;
 
 		// this is only used for physics, it is not properly initialized
 		std::shared_ptr<WasabiGame::WasabiBaseGame> m_wasabi;
@@ -31,10 +34,6 @@ namespace RTBServer {
 		uint32_t m_currentUnitId;
 		std::mutex m_unitIdsMutex;
 
-		std::unordered_map<uint32_t, std::pair<std::shared_ptr<RTBConnectedPlayer>, std::shared_ptr<WasabiGame::Unit>>> m_players;
-		std::mutex m_playersMutex;
-		float m_lastBroadcastTime;
-
 		uint32_t GenerateUnitId();
 
 	public:
@@ -47,6 +46,7 @@ namespace RTBServer {
 
 		void AddPlayer(std::shared_ptr<RTBConnectedPlayer> player);
 		void RemovePlayer(std::shared_ptr<RTBConnectedPlayer> player);
+		bool OnReceivedNetworkUpdate(std::shared_ptr<RTBConnectedPlayer> client, WasabiGame::NetworkUpdate update);
 	};
 
 };

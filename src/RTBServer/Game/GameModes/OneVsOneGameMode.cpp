@@ -70,3 +70,11 @@ void RTBServer::OneVsOneGameMode::OnClientRemoved(std::shared_ptr<ServerConnecte
 		m_connectedPlayers.erase(it); // this will remove reference to the pointer
 	}
 }
+
+bool RTBServer::OneVsOneGameMode::OnReceivedNetworkUpdate(std::shared_ptr<ServerConnectedClient> client, WasabiGame::NetworkUpdate update) {
+	auto it = m_connectedPlayers.find(client->m_id);
+	if (it != m_connectedPlayers.end()) {
+		return m_simulation->OnReceivedNetworkUpdate(it->second, update);
+	}
+	return false;
+}

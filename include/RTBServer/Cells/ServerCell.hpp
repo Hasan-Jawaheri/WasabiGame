@@ -1,4 +1,5 @@
 #pragma once
+
 #include "RTBServer/Main.hpp"
 
 
@@ -38,6 +39,7 @@ namespace RTBServer {
 
         virtual void OnClientAdded(std::shared_ptr<ServerConnectedClient> client, void* arg) {}
         virtual void OnClientRemoved(std::shared_ptr<ServerConnectedClient> client) {}
+        virtual bool OnReceivedNetworkUpdate(std::shared_ptr<ServerConnectedClient> client, WasabiGame::NetworkUpdate update) { return false; }
     };
 
 };

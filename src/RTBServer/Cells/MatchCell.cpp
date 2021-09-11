@@ -44,3 +44,7 @@ void RTBServer::MatchCell::OnClientAdded(std::shared_ptr<ServerConnectedClient> 
 void RTBServer::MatchCell::OnClientRemoved(std::shared_ptr<ServerConnectedClient> client) {
     m_gameMode->OnClientRemoved(client);
 }
+
+bool RTBServer::MatchCell::OnReceivedNetworkUpdate(std::shared_ptr<ServerConnectedClient> client, WasabiGame::NetworkUpdate update) {
+    return m_gameMode->OnReceivedNetworkUpdate(client, update);
+}

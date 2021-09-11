@@ -19,8 +19,12 @@ namespace RTBServer {
 
         std::recursive_mutex m_clientsDataByCellMutex;
         std::unordered_map<uint32_t, std::shared_ptr<CELL_DATA>> m_clientsDataByCellId;
+        std::recursive_mutex m_cellDataByClientIdMutex;
+        std::unordered_map<uint32_t, std::shared_ptr<CELL_DATA>> m_cellDataByClientId;
 
     public:
+
+        ServerClientsRepository();
 
         void SetClientConnected(std::shared_ptr<ServerConnectedClient> client, std::shared_ptr<ServerCell> initialCell, void* arg = nullptr);
         void SetClientDisconnected(std::shared_ptr<ServerConnectedClient> client);
@@ -28,6 +32,8 @@ namespace RTBServer {
 
         void LockCellClients(std::shared_ptr<ServerCell> cell, ServerCellClientsMap** clientsMap);
         void UnlockCellClients(std::shared_ptr<ServerCell> cell, ServerCellClientsMap** clientsMap);
+
+        std::shared_ptr<ServerCell> GetClientCell(uint32_t clientId);
     };
 
 };

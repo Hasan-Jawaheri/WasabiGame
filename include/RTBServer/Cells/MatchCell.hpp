@@ -19,6 +19,7 @@ namespace RTBServer {
 
         virtual void OnClientAdded(std::shared_ptr<ServerConnectedClient> client, void* arg) override;
         virtual void OnClientRemoved(std::shared_ptr<ServerConnectedClient> client) override;
+        virtual bool OnReceivedNetworkUpdate(std::shared_ptr<ServerConnectedClient> client, WasabiGame::NetworkUpdate update) override;
     };
 
 };

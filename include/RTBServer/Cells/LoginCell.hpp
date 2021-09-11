@@ -16,6 +16,8 @@ namespace RTBServer {
 
         virtual SERVER_CELL_TYPE GetType() const override { return RTBServer::SERVER_CELL_TYPE::CELL_TYPE_LOGIN; }
         virtual bool Update() override;
+
+        virtual bool OnReceivedNetworkUpdate(std::shared_ptr<ServerConnectedClient> client, WasabiGame::NetworkUpdate update) override;
         
 		bool Authenticate(WasabiGame::ClientIdentity& identity);
     };
