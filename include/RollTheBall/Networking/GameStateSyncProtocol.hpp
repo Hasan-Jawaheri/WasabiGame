@@ -25,12 +25,16 @@ namespace RollTheBall {
 			#pragma pack(push, 1)
 			PACKED_STRUCT(INPUT_STRUCT) {
 				SEQUENCE_NUMBER_TYPE sequenceNumber;
+				uint16_t millisSinceLastInput;
 				float yaw;
 				bool forward;
 				bool backward;
 				bool left;
 				bool right;
 				bool jump;
+
+				size_t WriteToMemory(void* memory);
+				bool ReadFromMemory(void* memory, size_t memSize);
 			};
 
 			PACKED_STRUCT(STATE_STRUCT) {

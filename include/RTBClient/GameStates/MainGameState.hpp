@@ -6,6 +6,7 @@
 #include "RollTheBall/Units/Player.hpp"
 #include "RollTheBall/GameModes/GameModes.hpp"
 #include "RollTheBall/Maps/RTBMaps.hpp"
+#include "RollTheBall/Networking/GameStateSyncProtocol.hpp"
 
 
 namespace RTBClient {
@@ -45,11 +46,11 @@ namespace RTBClient {
 		friend class GameInputHandler;
 
 		std::shared_ptr<RollTheBall::Player> m_player;
+		std::shared_ptr<GameInputHandler> m_input;
+
 		RollTheBall::MAP_NAME m_currentMap;
 		RollTheBall::MAP_NAME m_mapToLoad;
 		RollTheBall::RTB_GAME_MODE m_currentGameMode;
-
-		std::shared_ptr<GameInputHandler> m_input;
 
 	public:
 		MainGameState(Wasabi* app);

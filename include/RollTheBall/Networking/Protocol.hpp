@@ -23,11 +23,10 @@ namespace RollTheBall {
 		UPDATE_TYPE_LOAD_UNIT = 10,
 		UPDATE_TYPE_UNLOAD_UNIT = 11,
 		UPDATE_TYPE_WHOIS_UNIT = 12,
-		UPDATE_TYPE_SET_UNIT_PROPS = 13,
-		UPDATE_TYPE_LOAD_MAP = 14,
-		UPDATE_TYPE_SET_PLAYER_INPUT = 15,
-		UPDATE_TYPE_ACK_PLAYER_INPUTS = 16,
-		UPDATE_TYPE_SET_UNITS_MOTION_STATES = 17,
+		UPDATE_TYPE_LOAD_MAP = 13,
+		UPDATE_TYPE_SET_PLAYER_INPUT = 14,
+		UPDATE_TYPE_ACK_PLAYER_INPUTS = 15,
+		UPDATE_TYPE_SET_UNITS_MOTION_STATES = 16,
 	};
 
 	namespace UpdateBuilders {
@@ -71,11 +70,6 @@ namespace RollTheBall {
 		// (TCP) Server <-- Client: ask the server to send the description of a unit
 		void WhoIsUnit(WasabiGame::NetworkUpdate& output, uint32_t unitId);
 		bool ReadWhoIsUnitPacket(WasabiGame::NetworkUpdate& input, uint32_t* unitId);
-
-		// (UDP or TCP) Server <-> Client: Commands the receiver to set certain properties of a unit
-		// TODO: Remove this, its a mess, it doesn't allow proper endianness handling
-		void SetUnitProps(WasabiGame::NetworkUpdate& output, uint32_t unitId, std::function<void(std::string, void*, uint16_t)>* fillFunc);
-		bool ReadSetUnitPropsPacket(WasabiGame::NetworkUpdate& input, uint32_t* unitId, std::function<void(std::string, void*, uint16_t)> readFunc);
 
 		// (TCP) Server --> Client: Commands the client to load a map
 		void LoadMap(WasabiGame::NetworkUpdate& output, uint32_t map);

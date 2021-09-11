@@ -193,27 +193,6 @@ bool RTBServer::ServerSimulation::OnReceivedNetworkUpdate(std::shared_ptr<RTBCon
 		}
 		return true;
 	}
-	case RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_UNIT_PROPS:
-	{
-		uint32_t unitId = -1;
-		uint32_t clientId = client->m_clientId;
-		std::shared_ptr<WasabiGame::Unit> unit = nullptr;
-		RollTheBall::UpdateBuilders::ReadSetUnitPropsPacket(update, &unitId,
-			[this, clientId, &unitId, &unit](std::string prop, void* data, uint16_t size) {
-				if (unitId == -1)
-					return;
-				if (!unit) {
-					unit = m_wasabi->Units->GetUnit(unitId);
-					if (!unit) {
-						unitId = -1;
-						return;
-					}
-				}
-				std::dynamic_pointer_cast<RollTheBall::RTBAI>(unit->GetAI())->OnNetworkUpdate(prop, data, size);
-			}
-		);
-		return unit != nullptr;
-	}
 	case RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_PLAYER_INPUT:
 	{
 		std::vector<RollTheBall::UpdateBuilders::GameStateSync::INPUT_STRUCT> inputStructs;

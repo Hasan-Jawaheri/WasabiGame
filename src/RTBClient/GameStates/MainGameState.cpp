@@ -78,28 +78,19 @@ void RTBClient::MainGameState::Load() {
 	);
 
 	((RTBClient::ClientApplication*)m_app)->Networking->RegisterNetworkUpdateCallback(
-		static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_UNIT_PROPS),
+		static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_UNITS_MOTION_STATES),
 		[this](std::shared_ptr<WasabiGame::Selectable> s, WasabiGame::NetworkUpdate& update) {
-			uint32_t unitId = -1;
-			std::shared_ptr<WasabiGame::Unit> unit = nullptr;
-			RollTheBall::UpdateBuilders::ReadSetUnitPropsPacket(update, &unitId,
-				[this, &unitId, &unit](std::string prop, void* data, uint16_t size) {
-					if (unitId == -1)
-						return;
-					if (!unit) {
-						unit = ((RTBClient::ClientApplication*)this->m_app)->Units->GetUnit(unitId);
-						if (!unit) {
-							WasabiGame::NetworkUpdate whoisUpdate;
-							RollTheBall::UpdateBuilders::WhoIsUnit(whoisUpdate, unitId);
-							((RTBClient::ClientApplication*)this->m_app)->Networking->SendUpdate(whoisUpdate);
-							unitId = -1;
-							return;
-						}
-					}
-
-					std::dynamic_pointer_cast<RollTheBall::RTBAI>(unit->GetAI())->OnNetworkUpdate(prop, data, size);
-				}
-			);
+			RollTheBall::UpdateBuilders::GameStateSync::UNITS_MOTION_STATE_STRUCT motionStates;
+			RollTheBall::UpdateBuilders::GameStateSync::ReadSetUnitsMotionStatesPacket(update, &motionStates);
+			for (uint32_t i = 0; i < motionStates.numStates; i++) {
+				std::shared_ptr<WasabiGame::Unit> unit = ((RTBClient::ClientApplication*)this->m_app)->Units->GetUnit(motionStates.unitStates[i].uintId);
+				if (!unit) {
+					WasabiGame::NetworkUpdate whoisUpdate;
+					RollTheBall::UpdateBuilders::WhoIsUnit(whoisUpdate, motionStates.unitStates[i].uintId);
+					((RTBClient::ClientApplication*)this->m_app)->Networking->SendUpdate(whoisUpdate);
+				} else
+					std::dynamic_pointer_cast<RollTheBall::RTBAI>(unit->GetAI())->OnSetMotionState(motionStates.sequenceNumber, motionStates.unitStates[i]);
+			}
 			return true;
 		}
 	);

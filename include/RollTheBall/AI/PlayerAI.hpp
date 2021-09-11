@@ -11,7 +11,7 @@ using RollTheBall::UpdateBuilders::GameStateSync::SEQUENCE_NUMBER_TYPE;
 
 namespace RollTheBall {
 
-	const float SEND_INPUT_TO_SERVER_PERIOD_S = 0.1f;
+	constexpr float SEND_INPUT_TO_SERVER_PERIOD_S = 1.0f / 30.0f;
 
 	struct IN_FLIGHT_INPUT_STRUCT {
 		bool sent;
@@ -24,6 +24,7 @@ namespace RollTheBall {
 
 		WTimer* m_clientTimer;
 		float m_sendInputTimer;
+		float m_lastInputRecordedTime;
 		SEQUENCE_NUMBER_TYPE m_inputSequenceNumber;
 		std::vector<RollTheBall::UpdateBuilders::GameStateSync::INPUT_STRUCT> m_packetsToSend;
 		std::vector<IN_FLIGHT_INPUT_STRUCT> m_packetsToSendMetadata;

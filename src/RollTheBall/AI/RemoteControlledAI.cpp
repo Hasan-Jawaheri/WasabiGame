@@ -2,7 +2,7 @@
 
 
 RollTheBall::RemoteControlledAI::RemoteControlledAI(std::shared_ptr<WasabiGame::Unit> unit) : RTBAI(unit) {
-
+	m_lastStateSequenceNumberUsed = 0;
 }
 
 RollTheBall::RemoteControlledAI::~RemoteControlledAI() {
@@ -10,53 +10,44 @@ RollTheBall::RemoteControlledAI::~RemoteControlledAI() {
 }
 
 void RollTheBall::RemoteControlledAI::Update(float fDeltaTime) {
-	std::shared_ptr<Wasabi> app = m_app.lock();
-	std::shared_ptr<WasabiGame::Unit> unit = m_unit.lock();
-
-	float currentTime = app->Timer.GetElapsedTime();
-	while (m_replayStates.size() > 0) {// && m_replayStates[0].time + 0.2f <= currentTime) {
-		WOrientation* orientation = unit->O();
-		RollTheBall::MOVEMENT_PACKET_STRUCT m = m_replayStates[0];
-		if (m.type == 'Y')
-			m_movement.angle = m.prop.angle;
-		else if (m.type == 'W')
-			m_movement.forward = m.prop.state;
-		else if (m.type == 'S')
-			m_movement.backward = m.prop.state;
-		else if (m.type == 'A')
-			m_movement.left = m.prop.state;
-		else if (m.type == 'D')
-			m_movement.right = m.prop.state;
-		else if (m.type == ' ')
-			m_movement.jump = m.prop.state;
-		else if (m.type == 'P')
-			m_drift = m.prop.pos - orientation->GetPosition();
-		m_replayStates.erase(m_replayStates.begin());
+	RollTheBall::UpdateBuilders::GameStateSync::STATE_STRUCT state;
+	bool hasNewState = false;
+	{
+		std::scoped_lock<std::mutex> lock(m_queuedStateUpdatesMutex);
+		if (m_queuedStateUpdates.size() > 0) {
+			state = m_queuedStateUpdates[0].state;
+			m_lastStateSequenceNumberUsed = m_queuedStateUpdates[0].sequenceNumber;
+			m_queuedStateUpdates.erase(m_queuedStateUpdates.begin());
+			hasNewState = true;
+		}
 	}
 
-	WVector3 correction = m_drift;// *std::min(1.0f, fDeltaTime * 4.0f);
-	if (WVec3LengthSq(correction) > 0.01) {
-		m_drift -= correction;
-		unit->RB()->SetPosition(unit->O()->GetPosition() + correction);
+	if (hasNewState) {
+		std::shared_ptr<Wasabi> app = m_app.lock();
+		std::shared_ptr<WasabiGame::Unit> unit = m_unit.lock();
+		float currentTime = app->Timer.GetElapsedTime();
+		if (unit->RB()) {
+			unit->RB()->SetPosition(state.position);
+			unit->RB()->SetAngle(state.rotation);
+			unit->RB()->SetLinearVelocity(state.linearVelocity);
+			unit->RB()->SetAngularVelocity(state.angularVelocity);
+		} else {
+			unit->O()->SetPosition(state.position);
+			unit->O()->SetAngle(state.rotation);
+		}
 	}
 
 	RTBAI::Update(fDeltaTime);
 }
 
-void RollTheBall::RemoteControlledAI::OnNetworkUpdate(std::string prop, void* data, size_t size) {
-	std::shared_ptr<WasabiGame::Unit> unit = m_unit.lock();
-
-	if (prop == "move" && size == sizeof(RollTheBall::MOVEMENT_PACKET_STRUCT)) {
-		RollTheBall::MOVEMENT_PACKET_STRUCT m;
-		memcpy((void*)&m, data, sizeof(RollTheBall::MOVEMENT_PACKET_STRUCT));
-		m_replayStates.push_back(m);
-	} else if (prop == "pos" && size == sizeof(WVector3)) {
-		WVector3 position;
-		memcpy((void*)&position, data, sizeof(WVector3));
-
-		RollTheBall::MOVEMENT_PACKET_STRUCT m;
-		m.type = 'P';
-		m.prop.pos = position;
-		m_replayStates.push_back(m);
+void RollTheBall::RemoteControlledAI::OnSetMotionState(RollTheBall::UpdateBuilders::GameStateSync::SEQUENCE_NUMBER_TYPE sequenceNumber,
+		RollTheBall::UpdateBuilders::GameStateSync::STATE_STRUCT motionState) {
+	// TODO: BUFFER THIS (time & queue) ?
+	std::scoped_lock<std::mutex> lock(m_queuedStateUpdatesMutex);
+	if (sequenceNumber > m_lastStateSequenceNumberUsed) {
+		MOTION_STATE_AND_METADATA state;
+		state.state = motionState;
+		state.sequenceNumber = sequenceNumber;
+		m_queuedStateUpdates.push_back(state);
 	}
 }

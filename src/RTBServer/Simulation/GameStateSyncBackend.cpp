@@ -7,23 +7,29 @@ RTBServer::GameStateSyncBackend::GameStateSyncBackend(std::shared_ptr<ServerNetw
 	m_networking = networking;
 	m_timer = timer;
 	m_lastBroadcastTime = 0.0f;
+	m_motionStatesCurrentSequenceNumber = 0;
 }
 
 void RTBServer::GameStateSyncBackend::Update(float fDeltaTime) {
 	if (m_timer->GetElapsedTime() - m_lastBroadcastTime > RollTheBall::SEND_INPUT_TO_SERVER_PERIOD_S) {
 		m_lastBroadcastTime = m_timer->GetElapsedTime();
 
-		std::vector<WasabiGame::NetworkUpdate> updatesToSend;
+		WasabiGame::NetworkUpdate gameStateUpdate;
+		RollTheBall::UpdateBuilders::GameStateSync::UNITS_MOTION_STATE_STRUCT motionState;
 		std::vector<uint32_t> clientIdsToReceiveUpdates;
+
+		motionState.sequenceNumber = m_motionStatesCurrentSequenceNumber++;
+
 		{
 			std::scoped_lock lockGuard(m_playersMutex);
-			updatesToSend.resize(m_players.size());
+			motionState.numStates = m_players.size(); // TODO: make sure to pack only useful updates to each player
 			clientIdsToReceiveUpdates.resize(m_players.size());
 
 			uint32_t i = 0;
 			for (auto playerIter : m_players) {
-				if (playerIter.second.second->queuedInputs.size() > 0) {
-					RollTheBall::UpdateBuilders::GameStateSync::INPUT_STRUCT input = playerIter.second.second->queuedInputs[0];
+				clientIdsToReceiveUpdates[i] = playerIter.first;
+				if (playerIter.second.second->queuedInputs.size() > 0 && m_lastBroadcastTime >= playerIter.second.second->queuedInputs[0].timeToReplayInput) {
+					RollTheBall::UpdateBuilders::GameStateSync::INPUT_STRUCT input = playerIter.second.second->queuedInputs[0].input;
 					playerIter.second.second->queuedInputs.erase(playerIter.second.second->queuedInputs.begin());
 					playerIter.second.second->nextInputSequence = input.sequenceNumber + 1;
 					std::shared_ptr<RollTheBall::RTBAI> playerAI = std::dynamic_pointer_cast<RollTheBall::RTBAI>(playerIter.second.second->unit->GetAI());
@@ -35,22 +41,26 @@ void RTBServer::GameStateSyncBackend::Update(float fDeltaTime) {
 					playerAI->SetYawAngle(input.yaw);
 				}
 
-
 				std::shared_ptr<WasabiGame::Unit> unit = playerIter.second.second->unit;
-				WVector3 pos = unit->O()->GetPosition();
-				std::function<void(std::string, void*, uint16_t)> addProp = nullptr;
-				RollTheBall::UpdateBuilders::SetUnitProps(updatesToSend[i], unit->GetId(), &addProp);
-				addProp("pos", (void*)&pos, sizeof(WVector3));
-				clientIdsToReceiveUpdates[i] = playerIter.first;
+				motionState.unitStates[i].uintId = unit->GetId();
+				motionState.unitStates[i].input = playerIter.second.second->latestInput;
+				if (unit->RB()) {
+					motionState.unitStates[i].position = unit->RB()->GetPosition();
+					motionState.unitStates[i].rotation = unit->RB()->GetRotation();
+					motionState.unitStates[i].linearVelocity = unit->RB()->getLinearVelocity();
+					motionState.unitStates[i].angularVelocity = unit->RB()->getAngularVelocity();
+				} else {
+					motionState.unitStates[i].position = unit->O()->GetPosition();
+					motionState.unitStates[i].rotation = unit->O()->GetRotation();
+				}
 				i++;
 			}
 		}
 
+		RollTheBall::UpdateBuilders::GameStateSync::SetUnitsMotionStates(gameStateUpdate, motionState);
+
 		for (uint32_t clientId : clientIdsToReceiveUpdates) {
-			// TODO: this can be batched instead of many SendUpdate calls. need to redo the sync mechanism
-			for (auto update : updatesToSend) {
-				m_networking->SendUpdate(clientId, update, false);
-			}
+			m_networking->SendUpdate(clientId, gameStateUpdate, false);
 		}
 	}
 }
@@ -59,6 +69,7 @@ void RTBServer::GameStateSyncBackend::AddPlayer(std::shared_ptr<RTBServer::RTBCo
 	std::shared_ptr<PLAYER_INFO> info = std::make_shared<PLAYER_INFO>();
 	info->unit = unit;
 	info->nextInputSequence = 0;
+	info->latestInput = { 0 };
 	std::scoped_lock lockGuard(m_playersMutex);
 	m_players.insert(std::make_pair(player->m_clientId, std::make_pair(player, info)));
 }
@@ -90,19 +101,28 @@ bool RTBServer::GameStateSyncBackend::OnPlayerInputUpdate(std::shared_ptr<RTBSer
 			uint32_t lastIndexInPlayerInputs = 0;
 			for (uint32_t indexInReceived = 0; indexInReceived < inputStructs.size(); indexInReceived++) {
 				RollTheBall::UpdateBuilders::GameStateSync::SEQUENCE_NUMBER_TYPE curReceivedSequenceNumber = inputStructs[indexInReceived].sequenceNumber;
+				PLAYER_INPUT_AND_METADATA inputToInsert = { inputStructs[indexInReceived], 0.0f };
 				if (curReceivedSequenceNumber >= info->nextInputSequence) {
 					for (uint32_t indexInPlayerInputs = lastIndexInPlayerInputs; indexInPlayerInputs < info->queuedInputs.size() + 1; indexInPlayerInputs++) {
 						lastIndexInPlayerInputs = indexInPlayerInputs;
 						if (indexInPlayerInputs == info->queuedInputs.size()) {
 							// we don't have this input and its bigger than all sequences, add it to the end
-							info->queuedInputs.push_back(inputStructs[indexInReceived]);
+							inputToInsert.timeToReplayInput =
+								inputStructs[indexInReceived].millisSinceLastInput == std::numeric_limits<uint16_t>::max() || info->queuedInputs.size() == 0
+									? m_timer->GetElapsedTime() + INPUT_REPLAY_DELAY_S
+									: info->queuedInputs[info->queuedInputs.size() - 1].timeToReplayInput + (float)inputStructs[indexInReceived].millisSinceLastInput / 1000.0f;
+							info->queuedInputs.push_back(inputToInsert);
 							lastIndexInPlayerInputs++; // at this point, all coming inputs are new, this will optimize so we always hit this branch first
 						}
-						if (info->queuedInputs[indexInPlayerInputs].sequenceNumber == curReceivedSequenceNumber)
+						if (info->queuedInputs[indexInPlayerInputs].input.sequenceNumber == curReceivedSequenceNumber)
 							break; // we have this input, ignore
-						if (info->queuedInputs[indexInPlayerInputs].sequenceNumber > curReceivedSequenceNumber) {
+						if (info->queuedInputs[indexInPlayerInputs].input.sequenceNumber > curReceivedSequenceNumber) {
 							// this received sequence number is not seen yet, and should be before indexInPlayerInputs
-							info->queuedInputs.insert(info->queuedInputs.begin() + indexInPlayerInputs, inputStructs[indexInReceived]);
+							inputToInsert.timeToReplayInput =
+								inputStructs[indexInReceived].millisSinceLastInput == std::numeric_limits<uint16_t>::max() || indexInPlayerInputs == 0
+									? m_timer->GetElapsedTime() + INPUT_REPLAY_DELAY_S
+									: info->queuedInputs[indexInPlayerInputs - 1].timeToReplayInput + (float)inputStructs[indexInReceived].millisSinceLastInput / 1000.0f;
+							info->queuedInputs.insert(info->queuedInputs.begin() + indexInPlayerInputs, inputToInsert);
 							break;
 						}
 					}

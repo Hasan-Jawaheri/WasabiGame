@@ -19,6 +19,7 @@ RollTheBall::PlayerAI::PlayerAI(std::shared_ptr<WasabiGame::Unit> unit)
 	m_clientTimer = &unit->GetApp().lock()->Timer;
 	m_sendInputTimer = m_clientTimer->GetElapsedTime();
 	m_packetsToSend.reserve(RollTheBall::UpdateBuilders::GameStateSync::MAX_INPUTS_PER_PACKET);
+	m_lastInputRecordedTime = -100000000.0f;
 }
 
 RollTheBall::PlayerAI::~PlayerAI() {
@@ -65,7 +66,7 @@ void RollTheBall::PlayerAI::SetCameraPitch(float pitch) {
 }
 
 void RollTheBall::PlayerAI::SetCameraDistance(float distance) {
-	m_cameraDistance= distance;
+	m_cameraDistance = distance;
 }
 
 float RollTheBall::PlayerAI::GetCameraPitch() const {
@@ -99,6 +100,12 @@ void RollTheBall::PlayerAI::QueueMovementUpdate() {
 			}
 		}
 
+		uint16_t millisSinceLastInput = (uint16_t)(m_clientTimer->GetElapsedTime() - m_lastInputRecordedTime) * 1000.0f;
+		m_lastInputRecordedTime = m_clientTimer->GetElapsedTime();
+		if (millisSinceLastInput >= std::numeric_limits<uint16_t>::max() - 1)
+			input.millisSinceLastInput = std::numeric_limits<uint16_t>::max();
+		else
+			input.millisSinceLastInput = millisSinceLastInput;
 		input.sequenceNumber = m_inputSequenceNumber++;
 		m_packetsToSendMetadata.push_back(inputMetadata);
 		m_packetsToSend.push_back(input);

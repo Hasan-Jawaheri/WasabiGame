@@ -49,9 +49,6 @@ void RollTheBall::RTBAI::SendNetworkUpdate(WasabiGame::NetworkUpdate& update, bo
 	app->Networking->SendUpdate(update, important);
 }
 
-void RollTheBall::RTBAI::OnNetworkUpdate(std::string prop, void* data, size_t size) {
-}
-
 void RollTheBall::RTBAI::SetYawAngle(float angle) {
 	m_movement.angle = angle;
 }

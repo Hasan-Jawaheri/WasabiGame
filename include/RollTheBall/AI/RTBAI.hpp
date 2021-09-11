@@ -5,7 +5,7 @@
 #include "WasabiGame/Units/Units.hpp"
 
 #include "WasabiGame/Networking/Data.hpp"
-#include "RollTheBall/Networking/Protocol.hpp"
+#include "RollTheBall/Networking/GameStateSyncProtocol.hpp"
 
 
 namespace RollTheBall {
@@ -33,7 +33,8 @@ namespace RollTheBall {
 
 		virtual void Update(float fDeltaTime) override;
 
-		virtual void OnNetworkUpdate(std::string prop, void* data, size_t size);
+		virtual void OnSetMotionState(RollTheBall::UpdateBuilders::GameStateSync::SEQUENCE_NUMBER_TYPE sequenceNumber,
+			RollTheBall::UpdateBuilders::GameStateSync::STATE_STRUCT motionState) {};
 
 		virtual void SetYawAngle(float angle);
 		virtual void SetMoveForward(bool isActive);
