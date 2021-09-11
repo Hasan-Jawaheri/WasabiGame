@@ -104,7 +104,6 @@ void RTBClient::MainGameState::Load() {
 		}
 	);
 
-
 	((RTBClient::ClientApplication*)m_app)->Networking->RegisterNetworkUpdateCallback(
 		static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_ACK_PLAYER_INPUTS),
 		[this](std::shared_ptr<WasabiGame::Selectable> s, WasabiGame::NetworkUpdate& update) {

@@ -215,7 +215,11 @@ bool RTBServer::ServerSimulation::OnReceivedNetworkUpdate(std::shared_ptr<RTBCon
 		return unit != nullptr;
 	}
 	case RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_PLAYER_INPUT:
-		return true;
+	{
+		std::vector<RollTheBall::UpdateBuilders::GameStateSync::INPUT_STRUCT> inputStructs;
+		RollTheBall::UpdateBuilders::GameStateSync::ReadSetPlayerInputPacket(update, &inputStructs);
+		return m_gameStateSync->OnPlayerInputUpdate(client, inputStructs);
+	}
 	}
 
 	return false;

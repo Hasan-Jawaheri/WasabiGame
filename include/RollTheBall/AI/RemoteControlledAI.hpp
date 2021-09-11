@@ -5,6 +5,7 @@
 
 namespace RollTheBall {
 
+	// TODO: REMOVE
 	struct MOVEMENT_PACKET_STRUCT {
 		float time;
 		char type;

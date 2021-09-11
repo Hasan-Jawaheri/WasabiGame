@@ -58,8 +58,13 @@ void RollTheBall::UpdateBuilders::GameStateSync::SetPlayerInput(WasabiGame::Netw
 	output.type = static_cast<WasabiGame::NetworkUpdateType>(RollTheBall::NetworkUpdateTypeEnum::UPDATE_TYPE_SET_PLAYER_INPUT);
 	output.dataSize = 0;
 	for (auto iter : inputStructs) {
+		SEQUENCE_NUMBER_TYPE seqToWrite = SEQUENCE_NUMBER_HTON(iter.sequenceNumber);
+		unsigned int yawToWrite = htonf(iter.yaw);
+		size_t sizeofConvertedData = sizeof(SEQUENCE_NUMBER_TYPE) + sizeof(unsigned long);
+		memcpy((char*)output.data + output.dataSize, &seqToWrite, sizeof(SEQUENCE_NUMBER_TYPE));
+		memcpy((char*)output.data + output.dataSize + sizeof(SEQUENCE_NUMBER_TYPE), &yawToWrite, sizeof(unsigned long));
+		memcpy((char*)output.data + output.dataSize + sizeofConvertedData, &iter.forward, sizeof(INPUT_STRUCT) - sizeofConvertedData);
 		output.dataSize += sizeof(INPUT_STRUCT);
-		memcpy(output.data, &iter, sizeof(INPUT_STRUCT));
 	}
 }
 
@@ -69,7 +74,11 @@ bool RollTheBall::UpdateBuilders::GameStateSync::ReadSetPlayerInputPacket(Wasabi
 
 	for (uint32_t i = 0; i < input.dataSize / sizeof(INPUT_STRUCT); i++) {
 		INPUT_STRUCT inputStruct;
+		unsigned int yawRead;
 		memcpy(&inputStruct, &((INPUT_STRUCT*)input.data)[i], sizeof(INPUT_STRUCT));
+		memcpy(&yawRead, (char*)input.data + i * sizeof(INPUT_STRUCT) + sizeof(SEQUENCE_NUMBER_TYPE), sizeof(unsigned int));
+		inputStruct.sequenceNumber = SEQUENCE_NUMBER_NTOH(inputStruct.sequenceNumber);
+		inputStruct.yaw = ntohf(yawRead);
 		inputStructs->push_back(inputStruct);
 	}
 
