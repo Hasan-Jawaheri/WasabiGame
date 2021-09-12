@@ -44,7 +44,7 @@ void RollTheBall::PlayerAI::Update(float fDeltaTime) {
 		WVector3 rbPos = orientation->GetPosition();
 		float camToPlayerDistSquare = WVec3LengthSq(rbPos - m_cameraPivot);
 		if (camToPlayerDistSquare > 0.05f) {
-			m_cameraPivot = m_cameraPivot + (rbPos - m_cameraPivot) * (camToPlayerDistSquare / 2.0f) * fDeltaTime;
+			m_cameraPivot = m_cameraPivot + (rbPos - m_cameraPivot) * std::min((camToPlayerDistSquare / 2.0f) * fDeltaTime, 0.8f);
 		}
 	}
 
