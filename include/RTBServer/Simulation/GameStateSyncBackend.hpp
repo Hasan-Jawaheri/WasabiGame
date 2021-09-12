@@ -8,18 +8,10 @@ class WTimer;
 namespace RTBServer {
 
 	class GameStateSyncBackend {
-		const float INPUT_REPLAY_DELAY_S = 0.1f;
-
-		struct PLAYER_INPUT_AND_METADATA {
-			RollTheBall::UpdateBuilders::GameStateSync::INPUT_STRUCT input;
-			float timeToReplayInput;
-		};
-
 		struct PLAYER_INFO {
 			RollTheBall::UpdateBuilders::GameStateSync::INPUT_STRUCT latestInput;
 			std::shared_ptr<WasabiGame::Unit> unit;
-			std::vector<PLAYER_INPUT_AND_METADATA> queuedInputs;
-			RollTheBall::UpdateBuilders::GameStateSync::SEQUENCE_NUMBER_TYPE nextInputSequence;
+			RollTheBall::UpdateBuilders::GameStateSync::PacketsBuffer<RollTheBall::UpdateBuilders::GameStateSync::INPUT_STRUCT> inputsBuffer;
 		};
 
 		std::shared_ptr<ServerNetworking> m_networking;

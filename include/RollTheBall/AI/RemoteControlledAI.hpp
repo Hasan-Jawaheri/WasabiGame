@@ -7,14 +7,8 @@ namespace RollTheBall {
 
 	class RemoteControlledAI : public RTBAI {
 
-		struct MOTION_STATE_AND_METADATA {
-			RollTheBall::UpdateBuilders::GameStateSync::STATE_STRUCT state;
-			RollTheBall::UpdateBuilders::GameStateSync::SEQUENCE_NUMBER_TYPE sequenceNumber;
-		};
-
 		std::mutex m_queuedStateUpdatesMutex;
-		std::vector<MOTION_STATE_AND_METADATA> m_queuedStateUpdates;
-		RollTheBall::UpdateBuilders::GameStateSync::SEQUENCE_NUMBER_TYPE m_lastStateSequenceNumberUsed;
+		RollTheBall::UpdateBuilders::GameStateSync::PacketsBuffer<RollTheBall::UpdateBuilders::GameStateSync::STATE_STRUCT> m_queuedStateUpdates;
 
 	public:
 		RemoteControlledAI(std::shared_ptr<class WasabiGame::Unit> unit);

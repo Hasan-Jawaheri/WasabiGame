@@ -28,10 +28,10 @@ void RTBServer::GameStateSyncBackend::Update(float fDeltaTime) {
 			uint32_t i = 0;
 			for (auto playerIter : m_players) {
 				clientIdsToReceiveUpdates[i] = playerIter.first;
-				if (playerIter.second.second->queuedInputs.size() > 0 && m_lastBroadcastTime >= playerIter.second.second->queuedInputs[0].timeToReplayInput) {
-					RollTheBall::UpdateBuilders::GameStateSync::INPUT_STRUCT input = playerIter.second.second->queuedInputs[0].input;
-					playerIter.second.second->queuedInputs.erase(playerIter.second.second->queuedInputs.begin());
-					playerIter.second.second->nextInputSequence = input.sequenceNumber + 1;
+				std::optional<RollTheBall::UpdateBuilders::GameStateSync::INPUT_STRUCT> consumedPacket = playerIter.second.second->inputsBuffer.ConsumePacket(m_lastBroadcastTime);
+				if (consumedPacket.has_value()) {
+					RollTheBall::UpdateBuilders::GameStateSync::INPUT_STRUCT input = consumedPacket.value();
+					playerIter.second.second->latestInput = input;
 					std::shared_ptr<RollTheBall::RTBAI> playerAI = std::dynamic_pointer_cast<RollTheBall::RTBAI>(playerIter.second.second->unit->GetAI());
 					playerAI->SetMoveForward(input.forward);
 					playerAI->SetMoveBackward(input.backward);
@@ -68,7 +68,6 @@ void RTBServer::GameStateSyncBackend::Update(float fDeltaTime) {
 void RTBServer::GameStateSyncBackend::AddPlayer(std::shared_ptr<RTBServer::RTBConnectedPlayer> player, std::shared_ptr<WasabiGame::Unit> unit) {
 	std::shared_ptr<PLAYER_INFO> info = std::make_shared<PLAYER_INFO>();
 	info->unit = unit;
-	info->nextInputSequence = 0;
 	info->latestInput = { 0 };
 	std::scoped_lock lockGuard(m_playersMutex);
 	m_players.insert(std::make_pair(player->m_clientId, std::make_pair(player, info)));
@@ -86,47 +85,13 @@ std::shared_ptr<WasabiGame::Unit> RTBServer::GameStateSyncBackend::RemovePlayer(
 }
 
 bool RTBServer::GameStateSyncBackend::OnPlayerInputUpdate(std::shared_ptr<RTBServer::RTBConnectedPlayer> player, std::vector<RollTheBall::UpdateBuilders::GameStateSync::INPUT_STRUCT>& inputStructs) {
-	// TODO: WORK AROUND SEQUENCE NUMBER WRAPPING
-
-	// sequence numbers received must be strictly increasing
-	for (uint32_t i = 1; i < inputStructs.size(); i++)
-		if (inputStructs[i].sequenceNumber <= inputStructs[i - 1].sequenceNumber)
-			return false;
-
 	{
 		std::scoped_lock lockGuard(m_playersMutex);
 		auto it = m_players.find(player->m_clientId);
 		if (it != m_players.end()) {
 			std::shared_ptr<PLAYER_INFO> info = it->second.second;
-			uint32_t lastIndexInPlayerInputs = 0;
-			for (uint32_t indexInReceived = 0; indexInReceived < inputStructs.size(); indexInReceived++) {
-				RollTheBall::UpdateBuilders::GameStateSync::SEQUENCE_NUMBER_TYPE curReceivedSequenceNumber = inputStructs[indexInReceived].sequenceNumber;
-				PLAYER_INPUT_AND_METADATA inputToInsert = { inputStructs[indexInReceived], 0.0f };
-				if (curReceivedSequenceNumber >= info->nextInputSequence) {
-					for (uint32_t indexInPlayerInputs = lastIndexInPlayerInputs; indexInPlayerInputs < info->queuedInputs.size() + 1; indexInPlayerInputs++) {
-						lastIndexInPlayerInputs = indexInPlayerInputs;
-						if (indexInPlayerInputs == info->queuedInputs.size()) {
-							// we don't have this input and its bigger than all sequences, add it to the end
-							inputToInsert.timeToReplayInput =
-								inputStructs[indexInReceived].millisSinceLastInput == std::numeric_limits<uint16_t>::max() || info->queuedInputs.size() == 0
-									? m_timer->GetElapsedTime() + INPUT_REPLAY_DELAY_S
-									: info->queuedInputs[info->queuedInputs.size() - 1].timeToReplayInput + (float)inputStructs[indexInReceived].millisSinceLastInput / 1000.0f;
-							info->queuedInputs.push_back(inputToInsert);
-							lastIndexInPlayerInputs++; // at this point, all coming inputs are new, this will optimize so we always hit this branch first
-						}
-						if (info->queuedInputs[indexInPlayerInputs].input.sequenceNumber == curReceivedSequenceNumber)
-							break; // we have this input, ignore
-						if (info->queuedInputs[indexInPlayerInputs].input.sequenceNumber > curReceivedSequenceNumber) {
-							// this received sequence number is not seen yet, and should be before indexInPlayerInputs
-							inputToInsert.timeToReplayInput =
-								inputStructs[indexInReceived].millisSinceLastInput == std::numeric_limits<uint16_t>::max() || indexInPlayerInputs == 0
-									? m_timer->GetElapsedTime() + INPUT_REPLAY_DELAY_S
-									: info->queuedInputs[indexInPlayerInputs - 1].timeToReplayInput + (float)inputStructs[indexInReceived].millisSinceLastInput / 1000.0f;
-							info->queuedInputs.insert(info->queuedInputs.begin() + indexInPlayerInputs, inputToInsert);
-							break;
-						}
-					}
-				}
+			for (auto input : inputStructs) {
+				info->inputsBuffer.InsertPacket(m_timer->GetElapsedTime(), input, input.sequenceNumber, input.millisSinceLastInput);
 			}
 		}
 	}
